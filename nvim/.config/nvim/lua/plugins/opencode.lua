@@ -21,7 +21,7 @@ return {
 
       wk.add({
         -- Use a simple string icon to avoid Lua table shape issues in which-key
-        { "<leader>o", group = "opencode", icon = "ee9c" },
+        { "<leader>o", group = "opencode", icon = "{}" },
       })
 
       -- Required for `opts.events.reload`.
