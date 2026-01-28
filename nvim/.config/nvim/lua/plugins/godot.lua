@@ -8,7 +8,6 @@ return {
     ft = { "gdscript", "gdshader", "gdresource" },
     event = "vimEnter",
     init = function()
-      print("print entro")
       -- Se ejecuta al arrancar Neovim (Startup)
       local projectfile = vim.fn.getcwd() .. "/project.godot"
 
