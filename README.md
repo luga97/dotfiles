@@ -16,6 +16,7 @@ GNU Stow creates symlinks from this repository to your home directory. Each subd
 | `tmux/` | tmux configuration |
 | `pc/` | hardware-specific settings for desktop (monitors, input, etc.) |
 | `notebook/` | hardware-specific settings for laptop |
+| `agents/` | opencode config and skills (see Agent configs section) |
 
 ## Hardware-specific pattern
 
@@ -97,3 +98,23 @@ stow --override='.*' package
 ### Adding bash customizations
 1. Edit files in `bash/` (future package)
 2. omarchy's `.bashrc` sources `bash-customizations.conf`
+
+## Agent configs (agents/)
+
+The `agents/` package manages opencode and skills configurations:
+
+```
+agents/
+├── .config/opencode/    # -> ~/.config/opencode/
+│   └── opencode.json
+├── .agents/             # -> ~/.agents/
+│   └── skills/
+│       ├── sync-dotfiles/
+│       ├── find-skills/
+│       ├── frontend-design/
+│       └── skill-creator/
+```
+
+**Sync:** `stow agents`
+
+**Note:** The `omarchy` skill is not synced — it's installed by omarchy at `~/.local/share/omarchy/`.

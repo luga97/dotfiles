@@ -1,0 +1,26 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "autoupdate": false,
+  "provider": {
+    "lmstudio": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "LM Studio (local)",
+      "options": {
+        "baseURL": "http://localhost:1234/v1"
+      },
+      "models": {
+        "google/gemma-4-e4b": {
+          "name": "google/gemma-4-e4b"
+        }
+      }
+    }
+  },
+  "mcp": {
+    "ssh-vps": {
+      "type": "local",
+      "command": ["npx", "-y", "ssh-mcp", "--host=46.225.60.1", "--user=luis", "--key=/home/luis/.ssh/id_ed25519"],
+      "enabled": true,
+      "env": {}
+    }
+  }
+}
