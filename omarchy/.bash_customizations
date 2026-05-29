@@ -1,5 +1,5 @@
 # Add your own exports, aliases, and functions here.
-. "$HOME/.cargo.env"
+. "$HOME/.cargo/env"
 
 # Example aliases:
 # alias p='python'
