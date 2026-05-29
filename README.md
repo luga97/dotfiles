@@ -10,8 +10,8 @@ GNU Stow creates symlinks from this repository to your home directory. Each subd
 
 | Package | Description |
 |---------|-------------|
-| `omarchy/` | omarchy defaults + sources user customization files (minimal, don't edit directly) |
-| `bash/` | (future) all bash customizations — aliases, functions, paths |
+| `omarchy/` | omarchy defaults + .bashrc + sources user customization files |
+| `bash/` | (future) additional bash customizations if needed |
 | `nvim/` | Neovim configuration |
 | `tmux/` | tmux configuration |
 | `pc/` | hardware-specific settings for desktop (monitors, input, etc.) |
@@ -96,8 +96,9 @@ stow --override='.*' package
 3. Stow in correct order: `stow pc && stow omarchy`
 
 ### Adding bash customizations
-1. Edit files in `bash/` (future package)
-2. omarchy's `.bashrc` sources `bash-customizations.conf`
+1. Edit `dotfiles/omarchy/.bash_customizations` (sourced by omarchy's `.bashrc`)
+2. Your customizations are symlinked to `~/.bash_customizations`
+3. Restow omarchy: `stow -R omarchy`
 
 ## Agent configs (agents/)
 
