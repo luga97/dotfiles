@@ -41,6 +41,7 @@ dotfiles/
 - `bash/` — (future) all user bash customizations: aliases, functions, paths, etc. omarchy's `.bashrc` sources files from here.
 - `nvim/`, `tmux/` — program-specific configurations
 - `pc/`, `notebook/` — hardware-specific only (input, monitors, etc.)
+- `agents/` — opencode config and skills (see Agent configs section below)
 
 ## The Hardware-Specific Pattern
 
@@ -110,6 +111,7 @@ stow pc              # or: stow notebook
 stow omarchy
 stow nvim
 stow tmux
+stow agents         # opencode + skills
 ```
 
 ### "omarchy package was updated"
@@ -173,3 +175,48 @@ stow -t $HOME package
 3. **Stow order matters** — hardware first, programs last (so hw files exist when programs source them)
 4. **omarchy is foundational** — minimal defaults that source user customization packages
 5. **User customizations live separately** — in `bash/` and similar packages, not in omarchy
+
+## Agent Configs (agents/)
+
+The `agents/` package manages opencode and skills via stow:
+
+```
+agents/
+├── .config/opencode/    # -> ~/.config/opencode/
+│   └── opencode.json
+├── .agents/             # -> ~/.agents/
+│   └── skills/
+│       ├── sync-dotfiles/
+│       ├── find-skills/
+│       └── ...
+```
+
+**Note:** The `omarchy` skill is NOT synced — it's installed by omarchy at `~/.local/share/omarchy/`.
+
+### Adding a new skill
+
+1. Copy the skill folder to `agents/.agents/skills/`
+2. Run `stow -R agents`
+3. Verify: `ls -la ~/.agents/skills/` should show symlinks
+
+### Verifying the setup
+
+After stowing, verify everything works:
+
+```bash
+# Check skills symlinks
+ls -la ~/.agents/skills/
+
+# Check opencode symlink
+ls -la ~/.config/opencode/
+readlink ~/.config/opencode/opencode.json
+
+# Test reading a config
+cat ~/.config/opencode/opencode.json
+```
+
+If a symlink conflicts with an existing file, remove the file first:
+```bash
+rm ~/.config/opencode/opencode.json
+stow -R agents
+```
