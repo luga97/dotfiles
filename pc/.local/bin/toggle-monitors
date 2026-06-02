@@ -1,15 +1,45 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if hyprctl monitors all | awk '
-  /^Monitor DP-2 / { in_dp2 = 1 }
-  /^Monitor / && $2 != "DP-2" { in_dp2 = 0 }
-  in_dp2 && /mirrorOf: 0/ { found = 1 }
-  END { exit(found ? 0 : 1) }
-'; then
-  hyprctl keyword monitor "DP-1,2560x1440@180,1920x0,1.3"
-  hyprctl keyword monitor "DP-2,1920x1080@60,0x0,1"
-else
-  hyprctl keyword monitor "DP-1,2560x1440@180,1920x0,1.3"
-  hyprctl keyword monitor "DP-2,1920x1080@60,0x0,1,mirror,DP-1"
+set_hdmi_mirror() {
+  hyprctl keyword monitor "HDMI-A-1,highres,auto,1,mirror,DP-1" 2>/dev/null || true
+}
+
+# Solo: DP-2 disabled
+# Separate: DP-2 independent
+# Mirror: DP-2 mirrors DP-1
+
+solo=false
+separate=false
+mirror=false
+
+# Check DP-2 state
+DP2_STATUS=$(hyprctl monitors all 2>/dev/null | grep -A30 "^Monitor DP-2")
+
+if echo "$DP2_STATUS" | grep -q "disabled: true"; then
+  solo=true
+elif echo "$DP2_STATUS" | grep -q "1920x1080@60.00000 at 1920x0"; then
+  # DP-2 at position 1920x0 means it's mirrored (same position as HDMI-A-1)
+  mirror=true
+elif echo "$DP2_STATUS" | grep -q "1920x1080@60.00000 at 0x0"; then
+  # DP-2 at position 0x0 means it's separate
+  separate=true
 fi
+
+if [ "$solo" = true ]; then
+  # SOLO -> SEPARATE
+  hyprctl keyword monitor "DP-1,2560x1440@180,1920x0,1" 2>/dev/null || true
+  sleep 2
+  hyprctl keyword monitor "DP-2,1920x1080@60,0x0,1" 2>/dev/null || true
+elif [ "$mirror" = true ]; then
+  # MIRROR -> SOLO
+  hyprctl keyword monitor "DP-2,disable" 2>/dev/null || true
+elif [ "$separate" = true ]; then
+  # SEPARATE -> MIRROR
+  hyprctl keyword monitor "DP-1,2560x1440@180,1920x0,1" 2>/dev/null || true
+  sleep 2
+  hyprctl keyword monitor "DP-2,1920x1080@60,0x0,1,mirror,DP-1" 2>/dev/null || true
+fi
+
+sleep 2
+set_hdmi_mirror
