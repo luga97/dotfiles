@@ -35,17 +35,17 @@ if [ "$solo" = true ]; then
   hyprctl keyword monitor "DP-1,2560x1440@180,1920x0,1" 2>/dev/null || true
   sleep 2
   hyprctl keyword monitor "DP-2,1920x1080@60,0x0,1" 2>/dev/null || true
-  notify "Separate: DP-1 + DP-2 independiente"
+  notify "Separate Mode - DP-1 + DP-2 active"
 elif [ "$mirror" = true ]; then
   # MIRROR -> SOLO
   hyprctl keyword monitor "DP-2,disable" 2>/dev/null || true
-  notify "Solo: Solo DP-1 activo (DP-2 apagado)"
+  notify "Solo Mode - Only DP-1 active"
 elif [ "$separate" = true ]; then
   # SEPARATE -> MIRROR
   hyprctl keyword monitor "DP-1,2560x1440@180,1920x0,1" 2>/dev/null || true
   sleep 2
   hyprctl keyword monitor "DP-2,1920x1080@60,0x0,1,mirror,DP-1" 2>/dev/null || true
-  notify "Mirror: DP-2 clona DP-1"
+  notify "Mirror Mode - DP-2 mirroring DP-1"
 fi
 
 sleep 2
