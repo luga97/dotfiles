@@ -2,31 +2,62 @@
 -- This file contains personal keybindings. Use o.bind("MOD + KEY", "Name", "command")
 
 -- Application bindings
+-- CUSTOM: override default Terminal bind
+hl.unbind("SUPER + RETURN")
 o.bind("SUPER + RETURN", "Terminal", 'uwsm-app -- xdg-terminal-exec --dir="$(omarchy-cmd-terminal-cwd)"')
 o.bind("SUPER + ALT + RETURN", "Tmux", 'uwsm-app -- xdg-terminal-exec --dir="$(omarchy-cmd-terminal-cwd)" bash -c "tmux attach || tmux new -s Work"')
+-- CUSTOM: override default Browser bind
+hl.unbind("SUPER + SHIFT + RETURN")
 o.bind("SUPER + SHIFT + RETURN", "Browser", "omarchy-launch-browser")
 o.bind("SUPER + SHIFT + F", "File manager", "uwsm-app -- nautilus --new-window")
+-- CUSTOM: override default File manager (cwd)
+hl.unbind("SUPER + ALT + SHIFT + F")
 o.bind("SUPER + ALT + SHIFT + F", "File manager (cwd)", 'uwsm-app -- nautilus --new-window "$(omarchy-cmd-terminal-cwd)"')
+-- CUSTOM: override default Browser (secondary)
+hl.unbind("SUPER + SHIFT + B")
 o.bind("SUPER + SHIFT + B", "Browser", "omarchy-launch-browser")
 o.bind("SUPER + SHIFT + ALT + B", "Browser (private)", "omarchy-launch-browser --private")
+-- CUSTOM: override default Music TUI
+hl.unbind("SUPER + SHIFT + ALT + M")
 o.bind("SUPER + SHIFT + ALT + M", "Music TUI", "omarchy-launch-or-focus-tui cliamp")
-o.bind("SUPER + SHIFT + N", "Editor", "omarchy-launch-editor")
+    -- CUSTOM: override default Editor
+    hl.unbind("SUPER + SHIFT + N")
+    o.bind("SUPER + SHIFT + N", "Editor", "omarchy-launch-editor")
+-- CUSTOM: override default Docker
+hl.unbind("SUPER + SHIFT + D")
 o.bind("SUPER + SHIFT + D", "Docker", "omarchy-launch-tui lazydocker")
+-- CUSTOM: override default Obsidian
+hl.unbind("SUPER + SHIFT + O")
 o.bind("SUPER + SHIFT + O", "Obsidian", 'omarchy-launch-or-focus ^obsidian$ "uwsm-app -- obsidian"')
+-- CUSTOM: override default Typora
+hl.unbind("SUPER + SHIFT + W")
 o.bind("SUPER + SHIFT + W", "Typora", "uwsm-app -- typora --enable-wayland-ime")
+-- CUSTOM: override default Passwords
+hl.unbind("SUPER + SHIFT + SLASH")
 o.bind("SUPER + SHIFT + SLASH", "Passwords", "uwsm-app -- bitwarden-desktop")
 
 -- Web apps / AI
+-- CUSTOM: override default Chat/webapp bindings where desired
+hl.unbind("SUPER + SHIFT + A")
 o.bind("SUPER + SHIFT + A", "Gemini", 'omarchy-launch-or-focus-webapp Gemini "https://gemini.google.com"')
+hl.unbind("SUPER + SHIFT + ALT + A")
 o.bind("SUPER + SHIFT + ALT + A", "ChatGPT", 'omarchy-launch-or-focus-webapp ChatGPT "https://chatgpt.com"')
+hl.unbind("SUPER + SHIFT + CTRL + A")
 o.bind("SUPER + SHIFT + CTRL + A", "Grok", 'omarchy-launch-or-focus-webapp Grok "https://grok.com"')
 
 -- Utils
+-- CUSTOM: override default webapp utils where desired
+hl.unbind("SUPER + SHIFT + C")
 o.bind("SUPER + SHIFT + C", "Calendar", 'omarchy-launch-webapp "https://calendar.google.com"')
+hl.unbind("SUPER + SHIFT + E")
 o.bind("SUPER + SHIFT + E", "Email", 'omarchy-launch-webapp "https://gmail.com"')
+hl.unbind("SUPER + SHIFT + Y")
 o.bind("SUPER + SHIFT + Y", "YouTube", 'omarchy-launch-webapp "https://youtube.com/"')
+hl.unbind("SUPER + SHIFT + P")
 o.bind("SUPER + SHIFT + P", "Google Photos", 'omarchy-launch-or-focus-webapp "Google Photos" "https://photos.google.com/"')
+hl.unbind("SUPER + SHIFT + X")
 o.bind("SUPER + SHIFT + X", "X", 'omarchy-launch-or-focus-webapp X "https://x.com/"')
+hl.unbind("SUPER + SHIFT + M")
 o.bind("SUPER + SHIFT + M", "Youtube Music", 'omarchy-launch-or-focus-webapp "Youtube Music" "https://music.youtube.com/"')
 
 -- Messages
