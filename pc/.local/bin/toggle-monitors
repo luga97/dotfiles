@@ -85,6 +85,9 @@ if [ "$solo" = true ]; then
   # output receives an active workspace instead of remaining workspace 0.
   log "Reloading Hyprland config to assign workspaces"
   hyprctl reload >>"$LOG" 2>&1 || log "hyprctl reload failed"
+  # Ensure explicit positions: DP-2 left (0x0) and DP-1 right (1920x0)
+  run_eval "hl.monitor({ output = 'DP-2', mode = '${DP2_MODE}', position = '0x0', scale = 1 })"
+  run_eval "hl.monitor({ output = 'DP-1', mode = '${DP1_MODE}', position = '1920x0', scale = 1 })"
   notify "Display Setup: Extended (DP-1 + DP-2)"
 elif [ "$mirror" = true ]; then
   # MIRROR -> SOLO
