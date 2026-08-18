@@ -1,10 +1,14 @@
--- User monitors configuration: force DP-1 to use highest refresh available for 2560x1440
--- This ensures the primary monitor runs at the panel's capable refresh (e.g. 180Hz)
-local monitor_scale = 1
+-- See https://wiki.hypr.land/Configuring/Basics/Monitors/
+-- List current monitors and supported resolutions with: hyprctl monitors all
 
--- Explicitly set DP-1 to the high-refresh 2560x1440 mode when available.
--- If the mode is not present the compositor will ignore it gracefully.
-hl.monitor({ output = "DP-1", mode = "2560x1440@180.00", position = "0x0", scale = monitor_scale })
+local omarchy_gdk_scale = 2
+local omarchy_monitor_scale = "auto"
 
--- Keep DP-2 configured as preferred; toggle-monitors script handles enabling/disabling.
-hl.monitor({ output = "DP-2", mode = "preferred", position = "2560x0", scale = 1 })
+hl.env("GDK_SCALE", tostring(omarchy_gdk_scale))
+hl.monitor({ output = "", mode = "preferred", position = "auto", scale = omarchy_monitor_scale })
+
+-- Configure a specific monitor.
+-- hl.monitor({ output = "DP-2", mode = "2560x1440@144", position = "0x0", scale = 1 })
+
+-- Portrait/rotated secondary monitor (transform: 1 = 90°, 3 = 270°).
+-- hl.monitor({ output = "DP-2", mode = "preferred", position = "auto", scale = 1, transform = 1 })
