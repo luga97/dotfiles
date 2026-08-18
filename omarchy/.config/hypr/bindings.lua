@@ -30,7 +30,8 @@ o.bind("SUPER + SHIFT + X", "X", 'omarchy-launch-or-focus-webapp X "https://x.co
 o.bind("SUPER + SHIFT + M", "Youtube Music", 'omarchy-launch-or-focus-webapp "Youtube Music" "https://music.youtube.com/"')
 
 -- Messages
-o.bind("SUPER + SHIFT + G", "WhatsApp", 'omarchy-launch-or-focus-webapp WhatsApp "https://web.whatsapp.com/"')
+-- Use a wrapper that ensures WhatsApp windows land in the scratchpad
+o.bind("SUPER + SHIFT + G", "WhatsApp", '"/home/luis/.local/bin/launch-whatsapp"')
 o.bind("SUPER + SHIFT + CTRL + G", "Telegram", 'omarchy-launch-or-focus-webapp Telegram "https://web.telegram.org/"')
 o.bind("SUPER + SHIFT + ALT + G", "Google Messages", 'omarchy-launch-or-focus-webapp "Google Messages" "https://messages.google.com/web/conversations"')
 

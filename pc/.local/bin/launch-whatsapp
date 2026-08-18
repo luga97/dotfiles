@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Launch WhatsApp webapp (or focus if already open) and ensure it is moved to
+# the special scratchpad workspace. This wrapper is used to guarantee placement
+# when the window's title/class changes during load.
+
+omarchy-launch-or-focus-webapp WhatsApp "https://web.whatsapp.com/" &
+LAUNCH_PID=$!
+
+# Give the browser a moment to create the window
+sleep 0.8
+
+# Move any matching clients to the scratchpad
+for addr in $(hyprctl clients -j | jq -r '.[] | select((.title|test("whatsapp";"i")) or (.class|test("whatsapp";"i"))) | .address'); do
+  hyprctl dispatch "hl.dsp.window.move({ window = \"address:$addr\", workspace = \"special:scratchpad\", follow = false })" >/dev/null 2>&1 || true
+done
+
+exit 0
