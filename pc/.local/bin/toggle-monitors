@@ -74,6 +74,11 @@ if [ "$solo" = true ]; then
   run_eval "hl.monitor({ output = 'DP-1', mode = '${DP1_MODE}', position = '1920x0', scale = 1 })"
   sleep 2
   run_eval "hl.monitor({ output = 'DP-2', mode = '${DP2_MODE}', position = '0x0', scale = 1 })"
+  # After enabling DP-2 in extended mode, reload Hyprland config so workspaces
+  # and monitor->workspace mappings are reassigned. This ensures the new
+  # output receives an active workspace instead of remaining workspace 0.
+  log "Reloading Hyprland config to assign workspaces"
+  hyprctl reload >>"$LOG" 2>&1 || log "hyprctl reload failed"
   notify "Display Setup: Extended (DP-1 + DP-2)"
 elif [ "$mirror" = true ]; then
   # MIRROR -> SOLO
