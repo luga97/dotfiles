@@ -6,7 +6,7 @@ notify() {
 }
 
 set_hdmi_mirror() {
-  hyprctl keyword monitor "HDMI-A-1,highres,auto,1,mirror,DP-1" 2>/dev/null || true
+  hyprctl eval 'hl.monitor({ output = "HDMI-A-1", mode = "highres", position = "auto", scale = 1, mirror = "DP-1" })' 2>/dev/null || true
 }
 
 # Robust toggle for DP-2 between solo / separate / mirror states.
@@ -59,19 +59,19 @@ fi
 
 if [ "$solo" = true ]; then
   # SOLO -> SEPARATE
-  hyprctl keyword monitor "DP-1,${DP1_MODE},1920x0,1" 2>/dev/null || true
+  hyprctl eval "hl.monitor({ output = 'DP-1', mode = '${DP1_MODE}', position = '1920x0', scale = 1 })" 2>/dev/null || true
   sleep 2
-  hyprctl keyword monitor "DP-2,${DP2_MODE},0x0,1" 2>/dev/null || true
+  hyprctl eval "hl.monitor({ output = 'DP-2', mode = '${DP2_MODE}', position = '0x0', scale = 1 })" 2>/dev/null || true
   notify "Display Setup: Extended (DP-1 + DP-2)"
 elif [ "$mirror" = true ]; then
   # MIRROR -> SOLO
-  hyprctl keyword monitor "DP-2,disable" 2>/dev/null || true
+  hyprctl eval 'hl.monitor({ output = "DP-2", disabled = true })' 2>/dev/null || true
   notify "Display Setup: Single Monitor (DP-1)"
 elif [ "$separate" = true ]; then
   # SEPARATE -> MIRROR
-  hyprctl keyword monitor "DP-1,${DP1_MODE},1920x0,1" 2>/dev/null || true
+  hyprctl eval "hl.monitor({ output = 'DP-1', mode = '${DP1_MODE}', position = '1920x0', scale = 1 })" 2>/dev/null || true
   sleep 2
-  hyprctl keyword monitor "DP-2,${DP2_MODE},0x0,1,mirror,DP-1" 2>/dev/null || true
+  hyprctl eval "hl.monitor({ output = 'DP-2', mode = '${DP2_MODE}', position = '0x0', scale = 1, mirror = 'DP-1' })" 2>/dev/null || true
   notify "Display Setup: Mirror (DP-1 = DP-2)"
 fi
 
