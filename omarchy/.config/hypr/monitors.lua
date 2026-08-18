@@ -1,11 +1,10 @@
--- Converted from monitors.conf
--- See https://wiki.hypr.land/Configuring/Basics/Monitors/
+-- User monitors configuration: force DP-1 to use highest refresh available for 2560x1440
+-- This ensures the primary monitor runs at the panel's capable refresh (e.g. 180Hz)
+local monitor_scale = 1
 
--- Set environment variables for GUI scaling.
-hl.env("GDK_SCALE", "1")
+-- Explicitly set DP-1 to the high-refresh 2560x1440 mode when available.
+-- If the mode is not present the compositor will ignore it gracefully.
+hl.monitor({ output = "DP-1", mode = "2560x1440@180.00", position = "0x0", scale = monitor_scale })
 
--- Default monitor: prefer the preferred mode and auto position, with scale 1.
-hl.monitor({ output = "", mode = "preferred", position = "auto", scale = 1 })
-
--- Hardware-specific overrides are still loaded from monitors-specific-hardware.conf
--- (leave monitors-specific-hardware.conf in place under the same directory).
+-- Keep DP-2 configured as preferred; toggle-monitors script handles enabling/disabling.
+hl.monitor({ output = "DP-2", mode = "preferred", position = "2560x0", scale = 1 })
