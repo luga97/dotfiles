@@ -95,3 +95,9 @@ o.bind("SUPER + F6", nil, "ddcutil --display 1 setvcp 10 30; ddcutil --display 2
 o.bind("SUPER + F7", nil, "ddcutil --display 1 setvcp 10 70; ddcutil --display 2 setvcp 10 70")
 o.bind("SUPER + F8", nil, "ddcutil --display 1 setvcp 10 100; ddcutil --display 2 setvcp 10 100")
 o.bind("SUPER + F9", "Toggle monitor layout", "toggle-monitors")
+
+# Re-enable custom messaging binds (you requested these as custom overrides)
+hl.unbind("SUPER + SHIFT + G")
+o.bind("SUPER + SHIFT + G", "WhatsApp", '"/home/luis/.local/bin/launch-whatsapp"')
+hl.unbind("SUPER + SHIFT + CTRL + G")
+o.bind("SUPER + SHIFT + CTRL + G", "Telegram", 'omarchy-launch-or-focus-webapp Telegram "https://web.telegram.org/"')
