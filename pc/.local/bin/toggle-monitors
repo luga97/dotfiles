@@ -9,32 +9,56 @@ set_hdmi_mirror() {
   hyprctl keyword monitor "HDMI-A-1,highres,auto,1,mirror,DP-1" 2>/dev/null || true
 }
 
-# Solo: DP-2 disabled
-# Separate: DP-2 independent
-# Mirror: DP-2 mirrors DP-1
+# Robust toggle for DP-2 between solo / separate / mirror states.
+# Logic:
+# - solo: DP-2 disabled
+# - mirror: DP-2 is mirrored to DP-1 (hyprctl shows "mirrorOf: DP-1")
+# - separate: otherwise
 
 solo=false
 separate=false
 mirror=false
 
-# Check DP-2 state
-DP2_STATUS=$(hyprctl monitors all 2>/dev/null | grep -A30 "^Monitor DP-2")
+# Grab DP-2 block
+DP2_STATUS=$(hyprctl monitors all 2>/dev/null | sed -n '/^Monitor DP-2/,/^Monitor /p') || DP2_STATUS=""
 
 if echo "$DP2_STATUS" | grep -q "disabled: true"; then
   solo=true
-elif echo "$DP2_STATUS" | grep -q "1920x1080@60.00000 at 1920x0"; then
-  # DP-2 at position 1920x0 means it's mirrored (same position as HDMI-A-1)
+elif echo "$DP2_STATUS" | grep -q "mirrorOf:"; then
+  # If mirrorOf is set, assume mirrored
   mirror=true
-elif echo "$DP2_STATUS" | grep -q "1920x1080@60.00000 at 0x0"; then
-  # DP-2 at position 0x0 means it's separate
+else
   separate=true
+fi
+
+# Helper: get highest refresh for a resolution (e.g. 2560x1440) on an output
+highest_refresh_for() {
+  local output="$1"; shift
+  local res="$1"; shift
+  # extract availableModes line and find speeds for the resolution, pick max
+  hyprctl monitors all 2>/dev/null | awk -v out="Monitor ""$output"" 'BEGIN{p=0} $0~out{p=1} p{if($0~"availableModes:") print; if($0=="" && p==1) exit}' | \
+    sed -n '1p' | grep -oP "${res}@\K[0-9]+\.?[0-9]*(?=Hz|)" | sort -n -r | head -n1 || true
+}
+
+# Determine best modes
+DP1_MAX=$(highest_refresh_for "DP-1" "2560x1440")
+DP2_MAX=$(highest_refresh_for "DP-2" "1920x1080")
+
+# Fallbacks if parsing failed
+DP1_MODE="2560x1440@180"
+DP2_MODE="1920x1080@60"
+if [ -n "$DP1_MAX" ]; then
+  DP1_MODE="2560x1440@${DP1_MAX}"
+fi
+if [ -n "$DP2_MAX" ]; then
+  DP2_MODE="1920x1080@${DP2_MAX}"
 fi
 
 if [ "$solo" = true ]; then
   # SOLO -> SEPARATE
-  hyprctl keyword monitor "DP-1,2560x1440@180,1920x0,1" 2>/dev/null || true
+  hyprctl keyword monitor "DP-1,${DP1_MODE},1920x0,1" 2>/dev/null || true
   sleep 2
-  hyprctl keyword monitor "DP-2,1920x1080@60,0x0,1" 2>/dev/null || true
+  hyprctl keyword monitor "DP-2,${DP2_MODE},0x0,1" 2>/dev/null || true
   notify "Display Setup: Extended (DP-1 + DP-2)"
 elif [ "$mirror" = true ]; then
   # MIRROR -> SOLO
@@ -42,9 +66,9 @@ elif [ "$mirror" = true ]; then
   notify "Display Setup: Single Monitor (DP-1)"
 elif [ "$separate" = true ]; then
   # SEPARATE -> MIRROR
-  hyprctl keyword monitor "DP-1,2560x1440@180,1920x0,1" 2>/dev/null || true
+  hyprctl keyword monitor "DP-1,${DP1_MODE},1920x0,1" 2>/dev/null || true
   sleep 2
-  hyprctl keyword monitor "DP-2,1920x1080@60,0x0,1,mirror,DP-1" 2>/dev/null || true
+  hyprctl keyword monitor "DP-2,${DP2_MODE},0x0,1,mirror,DP-1" 2>/dev/null || true
   notify "Display Setup: Mirror (DP-1 = DP-2)"
 fi
 
