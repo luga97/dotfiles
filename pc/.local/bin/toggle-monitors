@@ -5,8 +5,20 @@ notify() {
   notify-send -u low -t 2000 "Monitor" "$1" 2>/dev/null || true
 }
 
+LOG=/tmp/toggle-monitors.log
+
+log() {
+  echo "--- $(date '+%Y-%m-%d %H:%M:%S') --- $*" >> "$LOG"
+}
+
+run_eval() {
+  local lua="$1"
+  log "RUN eval: $lua"
+  hyprctl eval "$lua" >>"$LOG" 2>&1 || log "eval failed: $lua"
+}
+
 set_hdmi_mirror() {
-  hyprctl eval 'hl.monitor({ output = "HDMI-A-1", mode = "highres", position = "auto", scale = 1, mirror = "DP-1" })' 2>/dev/null || true
+  run_eval 'hl.monitor({ output = "HDMI-A-1", mode = "highres", position = "auto", scale = 1, mirror = "DP-1" })'
 }
 
 # Robust toggle for DP-2 between solo / separate / mirror states.
@@ -59,19 +71,19 @@ fi
 
 if [ "$solo" = true ]; then
   # SOLO -> SEPARATE
-  hyprctl eval "hl.monitor({ output = 'DP-1', mode = '${DP1_MODE}', position = '1920x0', scale = 1 })" 2>/dev/null || true
+  run_eval "hl.monitor({ output = 'DP-1', mode = '${DP1_MODE}', position = '1920x0', scale = 1 })"
   sleep 2
-  hyprctl eval "hl.monitor({ output = 'DP-2', mode = '${DP2_MODE}', position = '0x0', scale = 1 })" 2>/dev/null || true
+  run_eval "hl.monitor({ output = 'DP-2', mode = '${DP2_MODE}', position = '0x0', scale = 1 })"
   notify "Display Setup: Extended (DP-1 + DP-2)"
 elif [ "$mirror" = true ]; then
   # MIRROR -> SOLO
-  hyprctl eval 'hl.monitor({ output = "DP-2", disabled = true })' 2>/dev/null || true
+  run_eval 'hl.monitor({ output = "DP-2", disabled = true })'
   notify "Display Setup: Single Monitor (DP-1)"
 elif [ "$separate" = true ]; then
   # SEPARATE -> MIRROR
-  hyprctl eval "hl.monitor({ output = 'DP-1', mode = '${DP1_MODE}', position = '1920x0', scale = 1 })" 2>/dev/null || true
+  run_eval "hl.monitor({ output = 'DP-1', mode = '${DP1_MODE}', position = '1920x0', scale = 1 })"
   sleep 2
-  hyprctl eval "hl.monitor({ output = 'DP-2', mode = '${DP2_MODE}', position = '0x0', scale = 1, mirror = 'DP-1' })" 2>/dev/null || true
+  run_eval "hl.monitor({ output = 'DP-2', mode = '${DP2_MODE}', position = '0x0', scale = 1, mirror = 'DP-1' })"
   notify "Display Setup: Mirror (DP-1 = DP-2)"
 fi
 
