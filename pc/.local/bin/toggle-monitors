@@ -71,9 +71,15 @@ fi
 
 if [ "$solo" = true ]; then
   # SOLO -> SEPARATE
+  # Enable DP-2. Some monitors need a short mirror wake to leave standby properly.
   run_eval "hl.monitor({ output = 'DP-1', mode = '${DP1_MODE}', position = '1920x0', scale = 1 })"
-  sleep 2
+  sleep 1
+  # First mirror DP-2 to DP-1 to wake the panel
+  run_eval "hl.monitor({ output = 'DP-2', mode = '${DP2_MODE}', position = '0x0', scale = 1, mirror = 'DP-1' })"
+  sleep 0.8
+  # Then set DP-2 to extended (separate) mode
   run_eval "hl.monitor({ output = 'DP-2', mode = '${DP2_MODE}', position = '0x0', scale = 1 })"
+  sleep 0.6
   # After enabling DP-2 in extended mode, reload Hyprland config so workspaces
   # and monitor->workspace mappings are reassigned. This ensures the new
   # output receives an active workspace instead of remaining workspace 0.
