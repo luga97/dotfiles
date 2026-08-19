@@ -27,3 +27,13 @@
 -- o.bind("SUPER + SHIFT + S", nil, "omarchy-capture-screenshot")
 -- o.bind("SUPER + H", nil, "voxtype record toggle")
 -- o.bind("SUPER + PERIOD", nil, "omarchy-shell shell toggle omarchy.emojis")
+
+-- Unbind the default mapping for SUPER+SHIFT+G (if any) and bind it to the
+-- installed WhatsApp webapp (use Omarchy's webapp launcher so it focuses an
+-- existing webapp window instead of opening a new browser tab).
+hl.unbind("SUPER + SHIFT + G")
+o.bind("SUPER + SHIFT + G", "WhatsApp", { webapp = "https://web.whatsapp.com/", focus = true })
+
+-- Bind SUPER+SHIFT+ALT+G to the installed Telegram webapp.
+hl.unbind("SUPER + SHIFT + ALT + G")
+o.bind("SUPER + SHIFT + ALT + G", "Telegram", { webapp = "https://web.telegram.org/", focus = true })
