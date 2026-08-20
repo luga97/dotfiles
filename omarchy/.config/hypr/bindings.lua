@@ -28,12 +28,29 @@
 -- o.bind("SUPER + H", nil, "voxtype record toggle")
 -- o.bind("SUPER + PERIOD", nil, "omarchy-shell shell toggle omarchy.emojis")
 
--- Unbind the default mapping for SUPER+SHIFT+G (if any) and bind it to the
--- installed WhatsApp webapp (use Omarchy's webapp launcher so it focuses an
--- existing webapp window instead of opening a new browser tab).
+-- The agent (opencode) appears to capture SUPER+SHIFT+G. Use a different
+-- combination less likely to be grabbed by the agent. We keep the same
+-- behavior (launch/focus the webapp).
 hl.unbind("SUPER + SHIFT + G")
 o.bind("SUPER + SHIFT + G", "WhatsApp", { webapp = "https://web.whatsapp.com/", focus = true })
 
 -- Bind SUPER+SHIFT+ALT+G to the installed Telegram webapp.
 hl.unbind("SUPER + SHIFT + ALT + G")
 o.bind("SUPER + SHIFT + ALT + G", "Telegram", { webapp = "https://web.telegram.org/", focus = true })
+
+--disable cliamp, is removed
+hl.unbind("SUPER + SHIFT + ALT + M")
+--set youtube music
+hl.unbind("SUPER + SHIFT + M")
+o.bind("SUPER + SHIFT + M", "Youtube Music", { webapp = "https://music.youtube.com", focus = true })
+
+--set google translator
+o.bind("SUPER + SHIFT + T", "Translator", { webapp = "https://translate.google.com/", focus = true })
+
+--remap email client
+
+hl.unbind("SUPER + SHIFT + E")
+o.bind("SUPER + SHIFT + E", "Gmail", { webapp = "https://mail.google.com", focus = true })
+
+hl.unbind("SUPER + SHIFT + C")
+o.bind("SUPER + SHIFT + C", "Calendar", { webapp = "https://calendar.google.com", focus = true })
