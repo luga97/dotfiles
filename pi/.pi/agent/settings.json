@@ -8,6 +8,7 @@
   "enabledModels": [
     "z-ai/glm-5.3",
     "deepseek/deepseek-pro-latest",
+    "deepseek/deepseek-flash-latest",
     "moonshotai/kimi-k3",
     "moonshotai/kimi-k2.6",
     "x-ai/grok-4.6",
