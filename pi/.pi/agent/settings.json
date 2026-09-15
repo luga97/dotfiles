@@ -1,0 +1,18 @@
+{
+  "lastChangelogVersion": "0.85.1",
+  "defaultProvider": "openrouter",
+  "defaultModel": "moonshotai/kimi-k2.6",
+  "defaultThinkingLevel": "medium",
+  "hideThinkingBlock": true,
+  "externalEditor": "nvim",
+  "enabledModels": [
+    "z-ai/glm-5.3",
+    "deepseek/deepseek-pro-latest",
+    "moonshotai/kimi-k3",
+    "moonshotai/kimi-k2.6",
+    "x-ai/grok-4.6",
+    "openai/gpt-5.6-sol*",
+    "openai/gpt-5.6-terra*",
+    "openai/gpt-5.6-luna*"
+  ]
+}
