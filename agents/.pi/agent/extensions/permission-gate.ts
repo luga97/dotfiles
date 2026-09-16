@@ -1,0 +1,37 @@
+/**
+ * Permission Gate Extension
+ *
+ * Prompts for confirmation before running potentially dangerous bash commands.
+ * Patterns checked: rm -rf, chmod/chown 777
+ *
+ * Note: `sudo` is not gated — NOPASSWD sudo is part of the normal workflow
+ * (e.g. managing the home-server over SSH).
+ */
+
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+
+export default function (pi: ExtensionAPI) {
+	const dangerousPatterns = [/\brm\s+(-rf?|--recursive)/i, /\b(chmod|chown)\b.*777/i];
+
+	pi.on("tool_call", async (event, ctx) => {
+		if (event.toolName !== "bash") return undefined;
+
+		const command = event.input.command as string;
+		const isDangerous = dangerousPatterns.some((p) => p.test(command));
+
+		if (isDangerous) {
+			if (!ctx.hasUI) {
+				// In non-interactive mode, block by default
+				return { block: true, reason: "Dangerous command blocked (no UI for confirmation)" };
+			}
+
+			const choice = await ctx.ui.select(`⚠️ Dangerous command:\n\n  ${command}\n\nAllow?`, ["Yes", "No"]);
+
+			if (choice !== "Yes") {
+				return { block: true, reason: "Blocked by user" };
+			}
+		}
+
+		return undefined;
+	});
+}
