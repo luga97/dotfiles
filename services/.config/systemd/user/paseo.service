@@ -1,0 +1,21 @@
+# Daemon de Paseo (https://paseo.sh) — controla agentes de código (pi, etc.)
+# desde móvil/escritorio/web. Estado y credenciales en ~/.paseo (no va al repo).
+# La contraseña vive en ~/.config/paseo/paseo.env (gitignored, fuera del repo).
+
+[Unit]
+Description=Paseo daemon (remote control for coding agents)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# Escucha en todas las interfaces (localhost + tailscale0); ufw decide quién entra.
+# Regla ufw: sudo ufw allow 6767 (abierto en todas las interfaces; protege la contraseña)
+ExecStart=%h/.local/share/mise/installs/node/latest/bin/paseo start --foreground --web-ui --listen 0.0.0.0:6767 --hostnames true
+# PATH con shims de mise para que el daemon encuentre pi, node, gh, etc.
+Environment=PATH=%h/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=-%h/.config/paseo/paseo.env
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

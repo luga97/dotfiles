@@ -103,7 +103,9 @@ stow --override='.*' package
 
 ## Services (services/)
 
-The `services/` package manages self-hosted docker-compose services. Each service lives in its own directory and gets symlinked to `~/services/<name>/`.
+The `services/` package backs up **any service or daemon that runs constantly in the setup** — both docker-compose services and native daemons (systemd user units). Each service lives in its own directory and gets symlinked to `~/services/<name>/`.
+
+### Docker services
 
 ```
 services/
@@ -128,21 +130,38 @@ docker compose up -d
 ```
 
 **Adding a new service:**
-1. Create `services/services/<name>/` with its `docker-compose.yml` and an `.env.example` if it needs secrets
+1. Create `services/services/<name>/` with its `docker-compose.yml` (Docker) or a README with setup notes (native), and an `.env.example` if it needs secrets
 2. Add the service's `.env` pattern to `.gitignore` if it has secrets (`services/services/<name>/.env` is already covered by `services/services/*/.env`)
 3. Restow: `stow -R services`
 4. Update this README with the new service and its setup steps
 
 **Rules:**
 - No secrets in tracked files — use environment variables injected from a gitignored `.env`
-- `restart: unless-stopped` on every service so Docker auto-starts them after reboot
+- Auto-start after reboot: `restart: unless-stopped` (Docker) or systemd user unit with `WantedBy=default.target` (native)
 - Bind ports to `127.0.0.1` unless the service must be reachable from outside
+- Native daemons only make sense when the service must access host resources (agent CLIs, host git/SSH, etc.) — otherwise prefer Docker for isolation
+
+### Native daemons
+
+Services that need host access live as **systemd user units** inside the same package: the unit is stowed from `.config/systemd/user/` (stow merges the tree) and setup notes live in `services/<name>/`.
+
+```
+services/
+├── .config/systemd/user/
+│   └── paseo.service      # -> ~/.config/systemd/user/paseo.service
+└── services/
+    └── paseo/
+        └── README.md      # setup notes for a new machine
+```
+
+Secrets for native daemons live in a host-local env file (e.g. `~/.config/paseo/paseo.env`, referenced by `EnvironmentFile=` in the unit) — never in the repo.
 
 **Current services:**
 
-| Service | Port | Purpose |
-|---------|------|---------|
-| searxng | 127.0.0.1:8081 | local metasearch engine, JSON API backend for `ketch search` |
+| Service | Kind | Port | Purpose |
+|---------|------|------|---------|
+| searxng | docker | 127.0.0.1:8081 | local metasearch engine, JSON API backend for `ketch search` |
+| paseo | native (systemd user) | 127.0.0.1:6767 | daemon to drive coding agents (pi, etc.) from mobile/web clients — needs host access to pi, `~/.pi` and git (https://paseo.sh) |
 
 ## Agent configs (agents/)
 
