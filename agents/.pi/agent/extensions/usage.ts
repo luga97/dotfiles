@@ -1,9 +1,14 @@
 /**
- * /usage — Session + OpenRouter usage report
+ * /usage — Session + provider usage report
  *
- * Shows token/cost usage for the current session and, when the active
- * provider is OpenRouter, fetches the account credit balance and API-key
- * usage from the OpenRouter API.
+ * Shows token/cost usage for the current session and, depending on the
+ * active provider, fetches account-level usage from the provider API:
+ *   - OpenRouter: credit balance and API-key usage/limits.
+ *   - Z.ai Coding Plan (`zai`): quota windows (tokens/requests, percentage,
+ *     reset times, per-model breakdown) from the account monitor endpoint.
+ *     https://api.z.ai/api/monitor/usage/quota/limit (Bearer auth, no public
+ *     spec; shape verified empirically). For `zai-coding-cn` the host would
+ *     differ — not handled here.
  *
  * Usage:
  *   /usage
@@ -18,6 +23,8 @@ import { BorderedLoader, DynamicBorder } from "@earendil-works/pi-coding-agent";
 import { Container, Key, matchesKey, Spacer, Text } from "@earendil-works/pi-tui";
 
 const OPENROUTER_API = "https://openrouter.ai/api/v1";
+const ZAI_API = "https://api.z.ai";
+const ZAI_QUOTA_PATH = "/api/monitor/usage/quota/limit";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -53,12 +60,35 @@ interface OpenRouterKeyInfo {
 	rateLimit?: { requests?: number; interval?: string } | null;
 }
 
+interface ZaiUsageDetail {
+	modelCode?: string;
+	usage?: number;
+}
+
+interface ZaiLimit {
+	type?: string; // e.g. TOKENS_LIMIT, TIME_LIMIT
+	unit?: number; // 3=hours, 4=days, 5=months, 6=weekly
+	number?: number; // window size in `unit`s
+	percentage?: number; // 0-100 used
+	nextResetTime?: number; // epoch ms
+	usage?: number; // TIME_LIMIT: total quota
+	currentValue?: number; // TIME_LIMIT: used
+	remaining?: number; // TIME_LIMIT: remaining
+	usageDetails?: ZaiUsageDetail[];
+}
+
+interface ZaiQuota {
+	level?: string; // plan tier: lite/pro/max
+	limits?: ZaiLimit[];
+}
+
 interface Report {
 	provider: string;
 	model: string;
 	session: SessionUsage;
 	credits?: OpenRouterCredits;
 	keyInfo?: OpenRouterKeyInfo;
+	zai?: ZaiQuota;
 	errors: string[];
 }
 
@@ -87,6 +117,37 @@ function fmtCost(n: number | null | undefined): string {
 function fmtRate(rate: OpenRouterKeyInfo["rateLimit"]): string | undefined {
 	if (!rate || rate.requests === undefined || rate.requests <= 0) return undefined;
 	return `${fmtInt(rate.requests)} requests / ${rate.interval ?? "?"}`;
+}
+
+function fmtZaiWindow(limit: ZaiLimit): string {
+	const n = limit.number !== undefined && limit.number > 0 ? limit.number : 1;
+	switch (limit.unit) {
+		case 3:
+			return n === 1 ? "hourly" : `every ${n}h`;
+		case 4:
+			return n === 1 ? "daily" : `every ${n}d`;
+		case 5:
+			return n === 1 ? "monthly" : `every ${n}mo`;
+		case 6:
+			return "weekly";
+		default:
+			return `window (unit ${limit.unit ?? "?"})`;
+	}
+}
+
+function fmtResetTime(ms?: number): string {
+	if (ms === undefined || !Number.isFinite(ms)) return "—";
+	const normalized = ms > 1e12 ? ms : ms * 1000;
+	const d = new Date(normalized);
+	const pad = (n: number) => String(n).padStart(2, "0");
+	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function zaiLimitLabel(limit: ZaiLimit): string {
+	if (limit.type === "TOKENS_LIMIT") return "Tokens";
+	if (limit.type === "TIME_LIMIT") return "Requests";
+	if (limit.type === "CREDIT_LIMIT") return "Credits";
+	return limit.type ?? "Quota";
 }
 
 // ---------------------------------------------------------------------------
@@ -120,14 +181,14 @@ function collectSessionUsage(ctx: ExtensionContext): SessionUsage {
 	return usage;
 }
 
-async function readAuthFileKey(): Promise<string | undefined> {
+async function readAuthFileKey(provider: string): Promise<string | undefined> {
 	try {
 		const { readFile } = await import("node:fs/promises");
 		const { homedir } = await import("node:os");
 		const { join } = await import("node:path");
 		const raw = await readFile(join(homedir(), ".pi", "agent", "auth.json"), "utf8");
 		const parsed = JSON.parse(raw) as Record<string, { key?: unknown }>;
-		const key = parsed?.openrouter?.key;
+		const key = parsed?.[provider]?.key;
 		if (typeof key === "string" && key.length > 0 && !key.startsWith("!") && !key.startsWith("$")) {
 			return key;
 		}
@@ -137,9 +198,14 @@ async function readAuthFileKey(): Promise<string | undefined> {
 	return undefined;
 }
 
-async function resolveApiKey(ctx: ExtensionContext): Promise<string | undefined> {
+const PROVIDER_ENV_KEYS: Record<string, string> = {
+	openrouter: "OPENROUTER_API_KEY",
+	zai: "ZAI_API_KEY",
+};
+
+async function resolveApiKey(ctx: ExtensionContext, provider: string): Promise<string | undefined> {
 	try {
-		const resolved = (await ctx.modelRegistry.getProviderAuth("openrouter")) as
+		const resolved = (await ctx.modelRegistry.getProviderAuth(provider)) as
 			| { auth?: { apiKey?: unknown } }
 			| undefined;
 		const key = resolved?.auth?.apiKey;
@@ -147,8 +213,9 @@ async function resolveApiKey(ctx: ExtensionContext): Promise<string | undefined>
 	} catch {
 		// Fall through to env / auth file.
 	}
-	if (process.env.OPENROUTER_API_KEY) return process.env.OPENROUTER_API_KEY;
-	return readAuthFileKey();
+	const envVar = PROVIDER_ENV_KEYS[provider];
+	if (envVar && process.env[envVar]) return process.env[envVar];
+	return readAuthFileKey(provider);
 }
 
 async function fetchJson(url: string, apiKey: string, signal?: AbortSignal): Promise<any> {
@@ -163,14 +230,32 @@ async function fetchJson(url: string, apiKey: string, signal?: AbortSignal): Pro
 	return res.json();
 }
 
+async function gatherZaiQuota(report: Report, ctx: ExtensionContext, signal?: AbortSignal): Promise<void> {
+	const apiKey = await resolveApiKey(ctx, "zai");
+	if (!apiKey) {
+		report.errors.push("No Z.ai API key found. Run /login zai or set ZAI_API_KEY.");
+		return;
+	}
+	try {
+		const quota = await fetchJson(`${ZAI_API}${ZAI_QUOTA_PATH}`, apiKey, signal);
+		report.zai = { level: quota?.data?.level, limits: quota?.data?.limits };
+	} catch (error) {
+		report.errors.push(`Z.ai quota API: ${error instanceof Error ? error.message : String(error)}`);
+	}
+}
+
 async function gatherReport(ctx: ExtensionContext, signal?: AbortSignal): Promise<Report> {
 	const provider = ctx.model?.provider ?? "unknown";
 	const model = ctx.model?.id ?? "unknown";
 	const report: Report = { provider, model, session: collectSessionUsage(ctx), errors: [] };
 
+	if (provider === "zai") {
+		await gatherZaiQuota(report, ctx, signal);
+		return report;
+	}
 	if (provider !== "openrouter") return report;
 
-	const apiKey = await resolveApiKey(ctx);
+	const apiKey = await resolveApiKey(ctx, "openrouter");
 	if (!apiKey) {
 		report.errors.push("No OpenRouter API key found. Run /login openrouter or set OPENROUTER_API_KEY.");
 		return report;
@@ -269,6 +354,27 @@ function buildSections(report: Report): Section[] {
 		sections.push({ title: "OpenRouter API key", rows });
 	}
 
+	if (report.zai) {
+		const rows: Array<[string, string]> = [];
+		if (report.zai.level) rows.push(["Plan", report.zai.level]);
+		for (const limit of report.zai.limits ?? []) {
+			const parts: string[] = [];
+			if (limit.currentValue !== undefined && limit.usage !== undefined) {
+				parts.push(`${fmtInt(limit.currentValue)} / ${fmtInt(limit.usage)} used`);
+			}
+			if (limit.percentage !== undefined) parts.push(`${limit.percentage}%`);
+			if (limit.remaining !== undefined) parts.push(`${fmtInt(limit.remaining)} left`);
+			parts.push(`resets ${fmtResetTime(limit.nextResetTime)}`);
+			rows.push([`${zaiLimitLabel(limit)} (${fmtZaiWindow(limit)})`, parts.join(" · ")]);
+			const details = (limit.usageDetails ?? []).filter((d) => (d.usage ?? 0) > 0);
+			if (details.length > 0) {
+				const summary = details.map((d) => `${d.modelCode ?? "?"}: ${fmtInt(d.usage ?? 0)}`).join(", ");
+				rows.push(["  Per model", summary]);
+			}
+		}
+		if (rows.length > 0) sections.push({ title: "Z.ai Coding Plan", rows });
+	}
+
 	if (report.errors.length > 0) {
 		sections.push({
 			title: "Warnings",
@@ -329,15 +435,17 @@ class UsagePanel extends Container {
 
 export default function usageExtension(pi: ExtensionAPI) {
 	pi.registerCommand("usage", {
-		description: "Show session token/cost usage and OpenRouter account credits",
+		description: "Show session token/cost usage and provider account usage (OpenRouter, Z.ai)",
 		handler: async (_args, ctx) => {
-			const isOpenRouter = ctx.model?.provider === "openrouter";
+			const activeProvider = ctx.model?.provider;
+			const hasAccountApi = activeProvider === "openrouter" || activeProvider === "zai";
 			let report: Report | null = null;
 
-			if (ctx.mode === "tui" && isOpenRouter) {
-				// Show a cancellable loader while the OpenRouter API is queried.
+			if (ctx.mode === "tui" && hasAccountApi) {
+				// Show a cancellable loader while the provider API is queried.
+				const loaderLabel = activeProvider === "openrouter" ? "OpenRouter" : "Z.ai";
 				report = await ctx.ui.custom<Report | null>((tui, theme, _keybindings, done) => {
-					const loader = new BorderedLoader(tui, theme, "Fetching OpenRouter usage…");
+					const loader = new BorderedLoader(tui, theme, `Fetching ${loaderLabel} usage…`);
 					loader.onAbort = () => done(null);
 					gatherReport(ctx, loader.signal)
 						.then((result) => done(result))
