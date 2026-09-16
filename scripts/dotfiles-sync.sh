@@ -19,6 +19,18 @@ if ! git pull --rebase --autostash --quiet 2>&1; then
 	exit 1
 fi
 
+# Resuelve el binario de pi: en shells está el shim de mise en PATH, pero desde
+# systemd user no (PATH reducido); ahí caemos a la ruta de instalación de mise.
+resolve_pi() {
+	if command -v pi >/dev/null 2>&1; then
+		command -v pi
+	elif [ -x "$HOME/.local/share/mise/installs/pi/latest/pi/pi" ]; then
+		echo "$HOME/.local/share/mise/installs/pi/latest/pi/pi"
+	else
+		return 1
+	fi
+}
+
 # Regex compartida para detectar posibles secretos (memoria y diff que va a la API)
 SECRET_RE='(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|sk-[A-Za-z0-9]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY|password[[:space:]]*[:=][[:space:]]*[^[:space:]]{6,}|api[_-]?key[[:space:]]*[:=][[:space:]]*[^[:space:]]{10,}|token[[:space:]]*[:=][[:space:]]*[^[:space:]]{15,})'
 
@@ -52,7 +64,9 @@ ${files}
 ${stat}
 
 ${diff}"
-	msg="$(printf '%s' "$prompt" | timeout 90 pi -p --no-session --no-tools --mode text 2>/dev/null)" || return 0
+	local pi_bin
+	pi_bin="$(resolve_pi)" || return 0
+	msg="$(printf '%s' "$prompt" | timeout 90 "$pi_bin" -p --no-session --no-tools --mode text 2>/dev/null)" || return 0
 	# Primera línea no vacía, sin comillas/backticks laterales, tope 72 chars
 	msg="$(sed -n '/[^[:space:]]/{s/^[[:space:]]*//;s/[[:space:]]*$//;s/^["\x60]//;s/["\x60]$//;p;q;}' <<<"$msg")"
 	printf '%s' "${msg:0:72}"
@@ -63,10 +77,10 @@ if [ -n "$(git status --porcelain)" ]; then
 	git add -A
 	msg="$(gen_commit_msg)"
 	if [ -n "$msg" ]; then
-		git commit -q -m "sync(auto): $msg" -m "auto-sync en $(hostname) — $(date '+%F %T')"
+		git commit -q -m "sync(auto): $msg" -m "auto-sync en $(uname -n) — $(date '+%F %T')"
 		echo "commiteados cambios locales: sync(auto): $msg"
 	else
-		git commit -q -m "sync(auto): $(hostname) $(date '+%F %T')"
+		git commit -q -m "sync(auto): $(uname -n) $(date '+%F %T')"
 		echo "commiteados cambios locales (mensaje genérico: pi no generó asunto)"
 	fi
 fi
