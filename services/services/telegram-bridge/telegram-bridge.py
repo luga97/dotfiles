@@ -172,11 +172,12 @@ async def worker(app: Application) -> None:
     while True:
         row = None
         with db() as conn:
-            (row,) = conn.execute(
+            # fetchone() devuelve la tupla de 5 columnas, o None si no hay pendientes.
+            row = conn.execute(
                 "SELECT id, chat_id, text, parse_mode, attempts FROM messages "
                 "WHERE status='pending' AND next_attempt <= ? ORDER BY id LIMIT 1",
                 (time.time(),),
-            ).fetchone() or (None,)
+            ).fetchone()
 
         if row is None:
             await asyncio.sleep(1)
