@@ -3,7 +3,7 @@
 # Variables opcionales en /home/user/Projetos/CV/tools/.env (ver .env.example).
 
 [Unit]
-Description=CV mail watch: chequeo de respuestas a postulaciones (himalaya + SQLite)
+Description=CV mail watch: chequeo de respuestas a postulaciones (himalaya + estado JSON)
 
 [Service]
 Type=oneshot

@@ -1,0 +1,19 @@
+# telegram-bridge — puente mínimo a la Bot API de Telegram.
+# Escucha SOLO en 127.0.0.1:8787 (POST /send, GET /health) y hace long polling
+# de Telegram para comandos (/ping, /help). Los secretos viven en el env local
+# del host (fuera de cualquier repo): %h/.config/telegram-bridge/telegram-bridge.env
+
+[Unit]
+Description=Telegram bridge (API HTTP local + long polling de la Bot API)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/python %h/services/telegram-bridge/telegram-bridge.py
+# Obligatorio (sin -): sin token el bridge no arranca.
+EnvironmentFile=%h/.config/telegram-bridge/telegram-bridge.env
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

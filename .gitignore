@@ -12,3 +12,5 @@ Thumbs.db
 
 # Secrets locales de servicios docker (uno por máquina, nunca commitear)
 services/services/*/.env
+__pycache__/
+*.pyc

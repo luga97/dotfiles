@@ -16,7 +16,7 @@ cd ~/dotfiles && stow -R services   # enlazar a ~/services/
 | nfs-server | nativo (systemd **del sistema**) | comparte `/home/user` por NFS a LAN y tailnet |
 | paseo | nativo (systemd user) | control de agentes de código desde móvil/web |
 | searxng | docker-compose | metabuscador |
-| telegram-bridge | docker-compose | puente de Telegram |
+| telegram-bridge | nativo (systemd user) | API HTTP local 127.0.0.1:8787 para enviar mensajes a Telegram |
 
 > Nota: `nfs-server` es la única unidad de sistema (la exporta el kernel con
 > root); su config está en `/etc/exports` del host, documentada en
