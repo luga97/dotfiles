@@ -19,5 +19,8 @@
   ],
   "theme": "dark",
   "defaultProjectTrust": "always",
-  "packages": []
+  "packages": [
+    "npm:@jl1990/pi-scheduler",
+    "npm:pi-memory"
+  ]
 }
