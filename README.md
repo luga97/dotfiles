@@ -165,20 +165,31 @@ Secrets for native daemons live in a host-local env file (e.g. `~/.config/paseo/
 
 ## Agent configs (agents/)
 
-The `agents/` package manages opencode and skills configurations:
+The `agents/` package manages **all coding-agent configurations** (one `stow agents` on any machine):
 
 ```
 agents/
 ├── .config/opencode/    # -> ~/.config/opencode/
 │   └── opencode.json
 ├── .agents/             # -> ~/.agents/
-│   └── skills/
+│   └── skills/          # shared skills (pi and opencode both read this)
 │       ├── sync-dotfiles/
 │       ├── find-skills/
 │       ├── frontend-design/
+│       ├── ketch/
 │       └── skill-creator/
+└── .pi/                 # -> ~/.pi/
+    └── agent/
+        ├── AGENTS.md    # global agent instructions
+        ├── settings.json
+        ├── extensions/
+        ├── prompts/
+        └── themes/
 ```
 
 **Sync:** `stow agents`
 
-**Note:** The `omarchy` skill is not synced — it's installed by omarchy at `~/.local/share/omarchy/`.
+**Notes:**
+- The `omarchy` and `diagnose-crash` skills are not synced — they're installed by omarchy at `/usr/share/omarchy/default/agents/skills/` (desktop-only).
+- Local-only pi files (never in the repo): `auth.json`, `models-store.json`, `presets.json`, `trust.json`, sessions, and `~/.pi/agent/skills/` for machine-specific skills.
+- On headless machines (no omarchy), stow with: `stow agents --ignore='omarchy-system-theme'`.
