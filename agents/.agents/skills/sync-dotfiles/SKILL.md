@@ -168,6 +168,29 @@ stow -R package
 stow -t $HOME package
 ```
 
+## Repo Sync Workflow (MANDATORY)
+
+Whenever a task involves changes that affect the dotfiles repo (editing files under
+`dotfiles/`, adding skills to `agents/.agents/skills/`, etc.), ALWAYS follow this order:
+
+1. **Sync before making changes:**
+   ```bash
+   cd ~/dotfiles && git pull --rebase
+   ```
+   This ensures the repo is up to date with the other machine (e.g. home-server)
+   before editing anything.
+
+2. **Commit after finishing:** once the changes are done, ALWAYS commit them
+   with a descriptive message:
+   ```bash
+   cd ~/dotfiles && git add -A && git commit -m "<descripción concisa del cambio>"
+   git push
+   ```
+   Never leave changes uncommitted at the end of a task.
+
+If `git pull` reports conflicts or the working tree is dirty, resolve/ask the user
+before proceeding — do not stash or discard changes silently.
+
 ## Key Principles
 
 1. **Hardware packages are minimal** — only `*-specific-hardware.conf` files, no shared configs
