@@ -20,6 +20,9 @@ Responde siempre en **español neutro** (sin regionalismos de España, Argentina
 - Cuando ejecutes comandos, muestra el comando y luego el resultado.
 - Si un comando es destructivo (rm, drop, etc.), confirma antes de ejecutar.
 
+## Instalación de paquetes
+- El flujo completo de instalación (pacman → paru/AUR → alternativas, con revisión de seguridad de PKGBUILDs) vive en la skill `arch-install`. Úsala siempre que se pida instalar algo.
+
 ## Documentación
 - Actualiza docs junto con el código, nunca por separado.
 - Los READMEs deben tener ejemplos de uso concretos, no solo descripciones abstractas.
