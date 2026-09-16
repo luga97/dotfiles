@@ -1,13 +1,13 @@
 {
   "lastChangelogVersion": "0.85.1",
-  "defaultProvider": "openrouter",
-  "defaultModel": "z-ai/glm-5.3-flash",
+  "defaultProvider": "zai",
+  "defaultModel": "glm-5.3-flash",
   "defaultThinkingLevel": "medium",
   "hideThinkingBlock": true,
   "externalEditor": "nvim",
   "enabledModels": [
-    "z-ai/glm-5.3",
-    "z-ai/glm-5.3-flash",
+    "zai/glm-5.3",
+    "zai/glm-5.3-flash",
     "deepseek/deepseek-pro-latest",
     "deepseek/deepseek-flash-latest",
     "moonshotai/kimi-k3",
