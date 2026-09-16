@@ -37,6 +37,9 @@
           "id": "omarchy.tray"
         },
         {
+          "id": "omarchy.tailscale"
+        },
+        {
           "id": "omarchy.agents"
         },
         {
@@ -63,6 +66,16 @@
     "lock": 300,
     "screensaver": 150
   },
-  "plugins": [],
-  "version": 1
+  "plugins": [
+    {
+      "id": "luis.notifications"
+    }
+  ],
+  "version": 1,
+  "disabledPlugins": [
+    "omarchy.notifications"
+  ],
+  "cloneSourceRestores": [
+    "luis.notifications"
+  ]
 }
