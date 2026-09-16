@@ -11,6 +11,7 @@ cd ~/dotfiles && stow -R services   # enlazar a ~/services/
 
 | Servicio | Tipo | Notas |
 |----------|------|-------|
+| cv-mail-watch | nativo (systemd user, timer 30 min) | respuestas a postulaciones del CV |
 | dotfiles-sync | nativo (systemd user) | sincronización de dotfiles |
 | nfs-server | nativo (systemd **del sistema**) | comparte `/home/user` por NFS a LAN y tailnet |
 | paseo | nativo (systemd user) | control de agentes de código desde móvil/web |

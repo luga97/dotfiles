@@ -1,0 +1,12 @@
+# CV mail watch — detecta respuestas a postulaciones y las notifica al bot.
+# Corre como oneshot disparado por cv-mail-watch.timer.
+# Variables opcionales en /home/user/Projetos/CV/tools/.env (ver .env.example).
+
+[Unit]
+Description=CV mail watch: chequeo de respuestas a postulaciones (himalaya + SQLite)
+
+[Service]
+Type=oneshot
+# El guion inicial permite que la unidad funcione aunque el .env no exista.
+EnvironmentFile=-/home/user/Projetos/CV/tools/.env
+ExecStart=/usr/bin/python3 /home/user/Projetos/CV/tools/mail-watch.py
