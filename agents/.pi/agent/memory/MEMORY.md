@@ -1,0 +1,2 @@
+<!-- 2026-09-16 18:39:53 [01a0ac20] -->
+- home-server: SSH `home-server` (archlinux, user `user`), tiene pi (~/.pi/agent). Repo dotfiles allá se sincroniza con el mismo timer/script. La credencial zai del Coding Plan quedó en su auth.json (no en el repo). En ambas máquinas solo `~/.pi/agent/memory` es symlink al repo; `extensions/` es copia manual — cambios a usage.ts hay que replicarlos a mano o convertir en symlink. #infra
