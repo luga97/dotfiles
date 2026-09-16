@@ -50,21 +50,56 @@ export default function question(pi: ExtensionAPI) {
 		executionMode: "sequential",
 
 		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
-			if (ctx.mode !== "tui") {
-				return {
-					content: [{ type: "text", text: "Error: UI not available (running in non-interactive mode)" }],
-					details: {
-						question: params.question,
-						options: params.options.map((o) => o.label),
-						answer: null,
-					} as QuestionDetails,
-				};
-			}
-
 			if (params.options.length === 0) {
 				return {
 					content: [{ type: "text", text: "Error: No options provided" }],
 					details: { question: params.question, options: [], answer: null } as QuestionDetails,
+				};
+			}
+
+			// Fallback para modos sin TUI (p. ej. RPC bajo Paseo): ctx.ui.custom() requiere
+			// terminal real, pero ctx.ui.select()/input() funcionan vía el sub-protocolo
+			// extension_ui_request y Paseo los muestra como preguntas nativas.
+			if (ctx.mode !== "tui") {
+				const labels = params.options.map((o) => o.label);
+				const OTHER = "Type something.";
+				const selection = await ctx.ui.select(params.question, [...labels, OTHER]);
+
+				if (selection === null || selection === undefined) {
+					return {
+						content: [{ type: "text", text: "User cancelled the selection" }],
+						details: { question: params.question, options: labels, answer: null } as QuestionDetails,
+					};
+				}
+
+				if (selection === OTHER) {
+					const custom = await ctx.ui.input(params.question);
+					if (custom === null || custom === undefined || !custom.trim()) {
+						return {
+							content: [{ type: "text", text: "User cancelled the selection" }],
+							details: { question: params.question, options: labels, answer: null } as QuestionDetails,
+						};
+					}
+					return {
+						content: [{ type: "text", text: `User wrote: ${custom.trim()}` }],
+						details: {
+							question: params.question,
+							options: labels,
+							answer: custom.trim(),
+							wasCustom: true,
+						} as QuestionDetails,
+					};
+				}
+
+				const idx = labels.indexOf(selection) + 1;
+				return {
+					content: [{ type: "text", text: `User selected: ${idx}. ${selection}` }],
+					details: {
+						question: params.question,
+						options: labels,
+						answer: selection,
+						wasCustom: false,
+					} as QuestionDetails,
 				};
 			}
 
