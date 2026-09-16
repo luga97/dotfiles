@@ -1,0 +1,6 @@
+[Unit]
+Description=Bidirectional sync of ~/dotfiles (pull --rebase --autostash, commit, push)
+
+[Service]
+Type=oneshot
+ExecStart=%h/dotfiles/scripts/dotfiles-sync.sh

@@ -162,6 +162,7 @@ Secrets for native daemons live in a host-local env file (e.g. `~/.config/paseo/
 |---------|------|------|---------|
 | searxng | docker | 127.0.0.1:8081 | local metasearch engine, JSON API backend for `ketch search` |
 | paseo | native (systemd user) | 127.0.0.1:6767 | daemon to drive coding agents (pi, etc.) from mobile/web clients — needs host access to pi, `~/.pi` and git (https://paseo.sh) |
+| dotfiles-sync | native (systemd user timer) | — | bidirectional sync of this repo across machines (pull --rebase --autostash → secret-scan → commit → push with retries); scans `agents/.pi/agent/memory/` for secrets before committing (repo is public) |
 
 ## Agent configs (agents/)
 
