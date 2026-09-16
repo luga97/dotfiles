@@ -1,7 +1,7 @@
 # Instrucciones Globales — Luis
 
 ## Idioma
-Responde siempre en **español**, salvo que el usuario explícitamente te pida otro idioma. Si citas términos técnicos en inglés, tradúcelos o acláralos la primera vez.
+Responde siempre en **español neutro** (sin regionalismos de España, Argentina u otros países: usa *tú*, no *vos* ni *vosotros*; evita *vale*, *che*, *ordenador*, etc.), salvo que el usuario explícitamente te pida otro idioma. Si citas términos técnicos en inglés, tradúcelos o acláralos la primera vez.
 
 ## Estilo de Trabajo
 - Sé conciso pero completo. Evita respuestas excesivamente largas sin necesidad.
