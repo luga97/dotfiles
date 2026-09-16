@@ -170,8 +170,26 @@ stow -t $HOME package
 
 ## Repo Sync Workflow (MANDATORY)
 
-Whenever a task involves changes that affect the dotfiles repo (editing files under
-`dotfiles/`, adding skills to `agents/.agents/skills/`, etc.), ALWAYS follow this order:
+**Changes that affect the dotfiles repo** — for this rule, ANY of the following:
+
+1. **Files inside `~/dotfiles/` directly** — including `scripts/`, `services/`,
+   `README.md`, `.gitignore`, etc.
+2. **Anything under the stowed config paths** — these directories (or files inside
+   them) are symlinks into the repo, so editing them edits the repo:
+   - `~/.config/hypr/` → `dotfiles/omarchy/.config/hypr/`
+   - `~/.config/tmux/`, `~/.config/waybar/`
+   - `~/.config/nvim/` → `dotfiles/nvim/.config/nvim/`
+   - Anything managed by a stowed package (`omarchy/`, `bash/`, `pc/`, `notebook/`)
+3. **Agent skills at `~/.agents/skills/`** — most are symlinks to
+   `dotfiles/agents/.agents/skills/` (exceptions: `omarchy` and `diagnose-crash`,
+   which live in `/usr/share/omarchy/` and are NOT synced).
+4. **pi agent files** — `~/.pi/agent/memory/` and `~/.pi/agent/extensions/` are
+   symlinks to `dotfiles/agents/.pi/agent/...`.
+
+**Quick check when in doubt:** `readlink -f <path>` — if the result is under
+`/home/*/dotfiles/`, the change affects the repo and this workflow applies.
+
+Whenever a task involves such changes, ALWAYS follow this order:
 
 1. **Sync before making changes:**
    ```bash
