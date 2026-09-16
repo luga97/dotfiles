@@ -15,6 +15,10 @@ Responde siempre en **español neutro** (sin regionalismos de España, Argentina
 - Nunca dejes código comentado como "respaldo"; usa el control de versiones para eso.
 - Si una función crece demasiado, sugiérela dividir, pero espera confirmación antes de refactorizar.
 
+## Memoria de pi
+
+- La memoria del agente (`~/.pi/agent/memory/`) se sincroniza vía git a un repo **público**. Nunca guardes ahí credenciales, tokens, claves, ni datos personales identificables (nombres reales, teléfonos, direcciones, mails). Si el usuario te pide guardar algo de ese tipo, advírtelo y ofrece una alternativa (variable de entorno, archivo local gitignored).
+
 ## Terminal
 - Prefiere soluciones que no dependan de herramientas externas innecesarias.
 - Cuando ejecutes comandos, muestra el comando y luego el resultado.
