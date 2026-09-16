@@ -34,3 +34,19 @@ systemctl --user enable --now paseo
 - Logs: `journalctl --user -u paseo -f`
 - Estado/credenciales: `~/.paseo/` (PASEO_HOME, no va al repo)
 - Emparejar móvil: en la UI, Settings → tu host → Pair Device
+
+## Instancias
+
+| Máquina | Web UI | Notas |
+|---------|--------|-------|
+| PC principal (omarchy) | http://localhost:6767 | la PC no está disponible 24/7 |
+| `home-server` (Arch headless, 24/7) | http://archlinux:6767 (LAN) | **instancia principal** |
+
+### Notas de `home-server`
+
+- Todo a nivel de usuario con **mise** (`~/.local/bin/mise`): node + pi + paseo. No requiere pacman para actualizarse (`mise upgrade`).
+- `stow agents --ignore=omarchy-system-theme` y `stow services` (server sin omarchy).
+- El `paseo.env` del server usa la misma contraseña que la PC.
+- **Linger activado** (`loginctl enable-linger`): corre 24/7 sin sesión abierta.
+- La unidad tiene `Environment=PATH` con los shims/binarios de mise para que el daemon encuentre pi.
+- Repo dotfiles en `~/dotfiles` (copiado desde la PC; clave SSH ed25519 generada para poder `git pull` desde GitHub).
