@@ -17,6 +17,7 @@ GNU Stow creates symlinks from this repository to your home directory. Each subd
 | `pc/` | hardware-specific settings for desktop (monitors, input, etc.) |
 | `notebook/` | hardware-specific settings for laptop |
 | `agents/` | opencode config and skills (see Agent configs section) |
+| `services/` | self-hosted docker-compose services (see Services section) |
 
 ## Hardware-specific pattern
 
@@ -99,6 +100,49 @@ stow --override='.*' package
 1. Edit `dotfiles/omarchy/.bash_customizations` (sourced by omarchy's `.bashrc`)
 2. Your customizations are symlinked to `~/.bash_customizations`
 3. Restow omarchy: `stow -R omarchy`
+
+## Services (services/)
+
+The `services/` package manages self-hosted docker-compose services. Each service lives in its own directory and gets symlinked to `~/services/<name>/`.
+
+```
+services/
+└── services/          # -> ~/services/
+    └── searxng/
+        ├── docker-compose.yml
+        ├── searxng-data/
+        │   └── settings.yml
+        ├── .env          # local secrets — GITIGNORED, never commit
+        └── .env.example  # template, tracked
+```
+
+**Sync:** `stow services`
+
+**Setup on a new machine (per service):**
+```bash
+cd ~/services/searxng
+cp .env.example .env
+# generate a real secret and paste it in .env
+python3 -c "import secrets; print(secrets.token_hex(32))"
+docker compose up -d
+```
+
+**Adding a new service:**
+1. Create `services/services/<name>/` with its `docker-compose.yml` and an `.env.example` if it needs secrets
+2. Add the service's `.env` pattern to `.gitignore` if it has secrets (`services/services/<name>/.env` is already covered by `services/services/*/.env`)
+3. Restow: `stow -R services`
+4. Update this README with the new service and its setup steps
+
+**Rules:**
+- No secrets in tracked files — use environment variables injected from a gitignored `.env`
+- `restart: unless-stopped` on every service so Docker auto-starts them after reboot
+- Bind ports to `127.0.0.1` unless the service must be reachable from outside
+
+**Current services:**
+
+| Service | Port | Purpose |
+|---------|------|---------|
+| searxng | 127.0.0.1:8081 | local metasearch engine, JSON API backend for `ketch search` |
 
 ## Agent configs (agents/)
 

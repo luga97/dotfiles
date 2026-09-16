@@ -9,3 +9,6 @@ Thumbs.db
 
 # Stow state files
 .dotfiles
+
+# Secrets locales de servicios docker (uno por máquina, nunca commitear)
+services/services/*/.env
