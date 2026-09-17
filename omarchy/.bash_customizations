@@ -1,6 +1,13 @@
 # Add your own exports, aliases, and functions here.
 . "$HOME/.cargo/env"
 
+# pc-metrics: history con timestamps + flush inmediato (ver ~/Projects/pc-metrics)
+# https://github.com/luga97/dotfiles — sincronizado con home-server vía stow
+HISTTIMEFORMAT="%F %T "                                # bash escribe #<epoch> por entrada
+PROMPT_COMMAND="history -a${PROMPT_COMMAND:+;$PROMPT_COMMAND}"  # flush tras cada comando
+shopt -s histappend                                    # shells concurrentes: append, no overwrite
+HISTCONTROL="${HISTCONTROL:+$HISTCONTROL:}ignorespace"  # espacio inicial = no guardar (secretos)
+
 # Example aliases:
 # alias p='python'
 # alias gs='git status'
