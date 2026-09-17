@@ -34,3 +34,8 @@
 
 <!-- 2026-09-17 -->
 - [[lugadev]] Luis prefiere el modelo **openai/gpt-5.6-luna** (vía OpenRouter, autenticado en ~/.pi/agent/auth.json) para traducciones de contenido del portafolio — eligió sus versiones sobre GLM para EN y PT-BR. Flujo validado: redactar ES (revisa Luis) → `pi -p --no-session --provider openrouter --model openai/gpt-5.6-luna` → revisión final. About trilingüe aprobado 2026-09-17 (docs/drafts/about-{es,en,pt}.md). Siguiente F1: case studies STAR. #preference #proyecto
+
+
+<!-- 2026-09-17 06:15:31 [01a0ae7b] -->
+<!-- 2026-09-17 -->
+- [[pi-scheduler-bug]] ACTUALIZACIÓN: `~/.pi/agent/npm/` NO es symlink al repo de dotfiles — es directorio real POR MÁQUINA. El parche de proper-lockfile existía solo en omarchy; **home-server fue parcheado también el 2026-09-17** (mismo fix, respaldo `.orig`, verificado: create+list+list+cancel sin crash, exit 0). Regla: cualquier reinstalación/actualización de pi-scheduler en CUALQUIER máquina borra el parche. Issue upstream redactado y verificado en `/tmp/pi-scheduler-issue.md` (repro mínimo Node con TypeError exacto de la spec de proxies) — Luis decidió publicarlo LUEGO, no todavía. #infra #bug
