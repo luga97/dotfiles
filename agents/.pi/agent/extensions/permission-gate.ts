@@ -52,7 +52,10 @@ function describeSegment(segment: string): string {
 			describe: (m) => {
 				const args = m[1];
 				const target =
-					truncate(args.replace(/--?\S+/g, "").replace(/^\s*--\s*/, "").trim()) || "los archivos indicados";
+					// Only strip tokens that start at a word boundary (real flags),
+					// so paths like /tmp/pi-gate-test-dir keep their dashes intact.
+					truncate(args.replace(/(^|\s)--?[\w-]+/g, "$1").replace(/^\s*--\s*/, "").trim()) ||
+					"los archivos indicados";
 				const parts = [`borra ${target}`];
 				if (hasFlag(args, "r", "recursive")) parts.push("recursivamente");
 				if (hasFlag(args, "f", "force")) parts.push("sin pedir confirmación (irreversible)");
@@ -96,14 +99,34 @@ const DESCRIPTION_SYSTEM =
 
 const LLM_TIMEOUT_MS = 10_000;
 
+let debugFs: typeof import("node:fs") | null = null;
+
+async function debugLog(entry: Record<string, unknown>): Promise<void> {
+	try {
+		if (!debugFs) debugFs = await import("node:fs");
+		debugFs.appendFileSync("/tmp/perm-gate-debug.log", JSON.stringify({ t: new Date().toISOString(), ...entry }) + "\n");
+	} catch {}
+}
+
 async function describeWithModel(command: string, ctx: any): Promise<string | null> {
 	try {
 		const model = ctx.model;
 		const registry = ctx.modelRegistry;
 		const provider = registry?.getProvider?.(model?.provider);
-		if (!model || !provider?.streamSimple) return null;
+		if (!model) {
+			await debugLog({ llm: "fail", why: "sin ctx.model" });
+			return null;
+		}
+		if (!provider?.streamSimple) {
+			await debugLog({ llm: "fail", why: "sin provider.streamSimple", providerKeys: Object.keys(provider ?? {}) });
+			return null;
+		}
 
-		const auth = registry?.getProviderAuth?.(model.provider) ?? {};
+		const resolved = (await registry?.getProviderAuth?.(model.provider)) ?? {};
+		const apiKey = resolved?.auth?.key ?? resolved?.auth?.apiKey;
+		if (!apiKey) {
+			await debugLog({ llm: "fail", why: "sin apiKey", resolvedKeys: Object.keys(resolved ?? {}), authKeys: Object.keys(resolved?.auth ?? {}) });
+		}
 
 		const messages: Message[] = [
 			{
@@ -121,7 +144,7 @@ async function describeWithModel(command: string, ctx: any): Promise<string | nu
 		const signal = AbortSignal.any(signals);
 
 		const stream = provider.streamSimple(model, context, {
-			apiKey: auth.apiKey,
+			apiKey,
 			maxTokens: 150,
 			signal,
 		});
@@ -129,12 +152,17 @@ async function describeWithModel(command: string, ctx: any): Promise<string | nu
 		let text = "";
 		for await (const event of stream) {
 			if (event.type === "text_delta") text += event.delta;
-			else if (event.type === "error") return null;
+			else if (event.type === "error") {
+				await debugLog({ llm: "fail", why: "evento error", error: String((event as any).error ?? event) });
+				return null;
+			}
 		}
 
 		text = text.trim().replace(/^["“'`]+|["”'`]+$/g, "");
+		if (!text) await debugLog({ llm: "fail", why: "respuesta vacía" });
 		return text || null;
-	} catch {
+	} catch (e) {
+		await debugLog({ llm: "fail", why: "excepción", error: String(e) });
 		return null;
 	}
 }
@@ -157,9 +185,26 @@ export default function (pi: ExtensionAPI) {
 				return { block: true, reason: "Dangerous command blocked (no UI for confirmation)" };
 			}
 
-			const description =
-				descriptionCache.get(command) ?? (await describeWithModel(command, ctx)) ?? heuristicDescription(command);
-			if (!descriptionCache.has(command)) descriptionCache.set(command, description);
+			const cached = descriptionCache.get(command);
+			let description: string;
+			let fromLLM = false;
+			if (cached !== undefined) {
+				description = cached;
+			} else {
+				const llm = await describeWithModel(command, ctx);
+				if (llm) {
+					// Solo cacheamos aciertos del LLM: un fallo transitorio no debe
+					// quedar pegado en la cache durante toda la sesión.
+					description = llm;
+					descriptionCache.set(command, llm);
+					fromLLM = true;
+				} else {
+					description = heuristicDescription(command);
+				}
+			}
+
+			// DEBUG temporal: registrar qué corrió
+			await debugLog({ hasUI: ctx.hasUI, model: ctx.model?.id, fromLLM, cacheHit: cached !== undefined, description });
 
 			const choice = await ctx.ui.select(
 				`⚠️ Comando potencialmente peligroso\n\n  ${command}\n\n  Qué hace: ${description}\n\n¿Ejecutar?`,
