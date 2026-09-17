@@ -1,0 +1,16 @@
+# ActivityWatch server (aw-server-rust v0.13.2 del bundle oficial).
+# El wrapper ~/.local/bin/aw-server solo exporta LD_LIBRARY_PATH del bundle
+# (~/.local/opt/activitywatch). Instalación y notas:
+#   services/services/activitywatch/README.md
+
+[Unit]
+Description=ActivityWatch server (aw-server-rust)
+After=network.target
+
+[Service]
+ExecStart=%h/.local/bin/aw-server
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

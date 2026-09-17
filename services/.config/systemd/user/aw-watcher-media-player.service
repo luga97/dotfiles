@@ -1,0 +1,16 @@
+# aw-watcher-media-player 1.1.4 (github.com/2e3s/aw-watcher-media-player,
+# compilado con cargo — es Rust, no Python): reporta el media en reproducción
+# vía MPRIS (D-Bus de sesión) al aw-server en :5600.
+
+[Unit]
+Description=aw-watcher-media-player (MPRIS media watcher para ActivityWatch)
+Requires=aw-server.service
+After=aw-server.service
+
+[Service]
+ExecStart=%h/.local/bin/aw-watcher-media-player
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

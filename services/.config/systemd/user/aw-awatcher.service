@@ -1,0 +1,17 @@
+# aw-awatcher 0.4.0 (github.com/2e3s/awatcher, binario del deb oficial):
+# watcher de ventana activa + AFK para Wayland/X11, envía a aw-server :5600.
+# NOTA: usar SIEMPRE aw-awatcher (watchers-only); el binario `awatcher` del
+# mismo release es la build bundle con server interno que choca en :5600.
+
+[Unit]
+Description=aw-awatcher (window + AFK watcher para ActivityWatch)
+Requires=aw-server.service
+After=aw-server.service
+
+[Service]
+ExecStart=%h/.local/bin/aw-awatcher
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
