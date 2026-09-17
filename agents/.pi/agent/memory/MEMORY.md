@@ -30,3 +30,9 @@
 - **Caveats**: (1) reinstalar/actualizar pi-scheduler borra el parche — re-aplicarlo o esperar fix upstream; (2) sesiones arrancadas ANTES del parche tienen el código viejo en memoria: no usar tools de scheduler en ellas; (3) 0.5.0 es la última versión, pi 0.85.1 también es la última. `pi-memory` NO usa proper-lockfile (verificado), sin riesgo.
 - **Pendiente**: reportar upstream a github.com/jl1990/pi-scheduler (regresión del PR #5, sin issue existente). El path estaba protegido por protected-paths.ts (node_modules) — parche aplicado vía bash+python.
 >>>>>>> Stashed changes
+
+
+<!-- 2026-09-16 22:35:39 [01a0acc6] -->
+
+<!-- 2026-09-17 -->
+- [[lugadev]] Luis prefiere el modelo **openai/gpt-5.6-luna** (vía OpenRouter, autenticado en ~/.pi/agent/auth.json) para traducciones de contenido del portafolio — eligió sus versiones sobre GLM para EN y PT-BR. Flujo validado: redactar ES (revisa Luis) → `pi -p --no-session --provider openrouter --model openai/gpt-5.6-luna` → revisión final. About trilingüe aprobado 2026-09-17 (docs/drafts/about-{es,en,pt}.md). Siguiente F1: case studies STAR. #preference #proyecto
