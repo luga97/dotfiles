@@ -36,3 +36,11 @@
 <!-- 2026-09-17 06:15:31 [01a0ae7b] -->
 <!-- 2026-09-17 -->
 - [[pi-scheduler-bug]] ACTUALIZACIÓN: `~/.pi/agent/npm/` NO es symlink al repo de dotfiles — es directorio real POR MÁQUINA. El parche de proper-lockfile existía solo en omarchy; **home-server fue parcheado también el 2026-09-17** (mismo fix, respaldo `.orig`, verificado: create+list+list+cancel sin crash, exit 0). Regla: cualquier reinstalación/actualización de pi-scheduler en CUALQUIER máquina borra el parche. Issue upstream redactado y verificado en `/tmp/pi-scheduler-issue.md` (repro mínimo Node con TypeError exacto de la spec de proxies) — Luis decidió publicarlo LUEGO, no todavía. #infra #bug
+
+
+<!-- 2026-09-17 06:34:52 [01a0ae9f] -->
+<!-- 2026-09-17 -->
+- **Setup 2 máquinas — división de propósitos (aclarado por Luis 2026-09-17)** #infra
+  - **omarchy (esta PC)**: la más potente; para trabajo que USA esta máquina y su hardware (GPU, monitores DDC/CI, ActivityWatch mide ESTA pc, builds pesados). Trabajo interactivo que NO necesariamente persiste.
+  - **home-server** ([[home-server]]): donde corren los servicios PERSISTENTES, salvo los atados al hardware de omarchy. Regla práctica: daemon permanente sin dependencia de hardware → home-server; necesita hardware de acá → omarchy (ej.: aw-awatcher, paseo para controlar el pi LOCAL, ddc-monitors). Regla documentada también en AGENTS.md y en la skill `dotfiles-services` (commit 31d65da).
+  - **Accesos desde omarchy**: SSH `home-server` (~/.ssh/config → archlinux, user `user`, vía Tailscale) + NFS v4 en `/mnt/home-server` (export `archlinux:/home/user`). El 2026-09-17 se eliminó el duplicado manual `/mnt/servidor` (mismo export, no estaba en fstab) y fstab quedó con `x-systemd.automount` + `idle-timeout=60` (antes `hard` puro: procesos se colgaban si el server no respondía). fstab respaldo: `/etc/fstab.bak-20260917`.
