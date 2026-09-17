@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "id": "d34b5f41-b6c4-4056-a81b-337155cb4b53",
+  "createdAt": "2026-09-17T09:34:31.249Z",
+  "target": "long_term",
+  "removedContent": [
+    "<!-- 2026-09-17 06:28:15 [01a0ae9f] -->\n<!-- 2026-09-17 -->\n- **Setup 2 máquinas — división de propósitos (aclarado por Luis 2026-09-17)** #infra\n  - **omarchy (esta PC)**: la más potente; para trabajo que USA esta máquina y su hardware (GPU, monitores DDC/CI, ActivityWatch mide ESTA pc, builds pesados). Trabajo interactivo que NO necesariamente persiste.\n  - **home-server** ([[home-server]]): donde corren los servicios PERSISTENTES, salvo los atados al hardware de omarchy. Regla práctica: daemon permanente sin dependencia de hardware → home-server; necesita hardware de acá → omarchy (ej.: aw-awatcher, paseo para controlar el pi LOCAL, ddc-monitors).\n  - **Accesos desde omarchy**: SSH `home-server` (~/.ssh/config → archlinux, user `user`, vía Tailscale) + NFS v4: montado en `/mnt/servidor` Y `/mnt/home-server` — **mismo export duplicado** (`archlinux:/home/user`), opciones `hard` (procesos se cuelgan si el server no responde). Pendiente: deduplicar y revisar config de acceso; Luis a veces se confunde sobre qué máquina está usando."
+  ]
+}

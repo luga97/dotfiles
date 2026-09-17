@@ -66,6 +66,12 @@ estado en `~/.paseo`, Web UI en http://localhost:6767.
 
 ## Notas que evitan sorpresas
 
+- **¿En qué máquina corre?** El repo es idéntico en ambas; lo que decide es el
+  objetivo del servicio + el enable por-máquina. omarchy (la PC potente de Luis)
+  corre lo atado a su hardware (métricas de uso local, paseo del pi local);
+  **home-server** corre los servicios persistentes sin dependencia de hardware.
+  Si Luis pide "un servicio" sin especificar máquina, preguntar (o deducir por
+  la regla anterior) antes de levantarlo.
 - **El enable es por-máquina**: `systemctl --user enable` crea el symlink en
   `~/.config/systemd/user/` (directorio real, fuera del repo) — stow solo enlaza
   el archivo de unidad. Cada máquina decide qué auto-arranca; home-server no

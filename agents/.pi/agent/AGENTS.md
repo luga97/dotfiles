@@ -15,6 +15,12 @@ Responde siempre en **español neutro** (sin regionalismos de España, Argentina
 - Nunca dejes código comentado como "respaldo"; usa el control de versiones para eso.
 - Si una función crece demasiado, sugiérela dividir, pero espera confirmación antes de refactorizar.
 
+## Setup de máquinas
+- Dos máquinas con este mismo setup de pi/dotfiles (repo sincronizado; qué corre dónde lo decide el `systemctl --user enable` por máquina):
+  - **omarchy** (sesiones locales de esta PC): la más potente — trabajo interactivo que usa su hardware (GPU, monitores, métricas de uso local). No necesariamente persistente.
+  - **home-server** (SSH `home-server`): servicios persistentes. Su FS está montado en `/mnt/home-server` (NFS, automount).
+- Regla: lo que necesita hardware de esta PC → omarchy; daemon permanente sin dependencia de hardware → home-server (detalle en la skill `dotfiles-services`).
+
 ## Memoria de pi
 
 - La memoria del agente (`~/.pi/agent/memory/`) se sincroniza vía git a un repo **público**. Nunca guardes ahí credenciales, tokens, claves, ni datos personales identificables (nombres reales, teléfonos, direcciones, mails). Si el usuario te pide guardar algo de ese tipo, advírtelo y ofrece una alternativa (variable de entorno, archivo local gitignored).
