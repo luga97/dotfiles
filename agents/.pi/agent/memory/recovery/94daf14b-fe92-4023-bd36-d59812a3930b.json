@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "id": "94daf14b-fe92-4023-bd36-d59812a3930b",
+  "createdAt": "2026-09-17T00:07:33.477Z",
+  "target": "long_term",
+  "removedContent": [
+    "<!-- 2026-09-16 20:51:27 [01a0ac6c] -->\n- [[lugadev]] Portafolio de Luis en lugadev.com → repo `~/Projetos/lugadev` (GitHub privado). **Estado y fases viven en `docs/PLAN.md`** (F0 setup → F1 contenido → F2 lanzamiento → F3 tracker semanal → F4 demo). Reglas del proyecto en su AGENTS.md: honestidad WIP (proyectos Godot/barbershop NO terminados = prototipos), confidencialidad Avalara heredada del repo CV, fuente de verdad de experiencia = `~/Projetos/CV/experience/`, contenido trilingüe ES/EN/PT (escribir ES, pi traduce). Decisiones cerradas: Cloudflare Pages only, Supabase/Neon para demos, blog integrado Astro. Para retomar en cualquier sesión: leer `docs/PLAN.md` → \"Estado actual\" + \"siguiente acción\". #proyecto #portafolio"
+  ]
+}

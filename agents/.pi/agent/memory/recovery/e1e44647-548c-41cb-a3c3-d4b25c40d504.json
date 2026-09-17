@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "id": "e1e44647-548c-41cb-a3c3-d4b25c40d504",
+  "createdAt": "2026-09-17T00:10:30.789Z",
+  "target": "long_term",
+  "removedContent": [
+    "<!-- 2026-09-16 21:07:41 [01a0ac6c] -->\n- [[lugadev]] Portafolio de Luis en lugadev.com → repo `~/Projetos/lugadev` (GitHub privado). **DEPLOY VIVO desde 2026-09-17: https://lugadev.pages.dev** (placeholder trilingüe ES/EN/PT, Astro 5 + Tailwind 4). **Estado y fases viven en `docs/PLAN.md`** — para retomar en cualquier sesión: leer PLAN.md → \"Estado actual\" + \"siguiente acción\". F0 casi listo (falta dominio custom: mover NS Hostinger→Cloudflare + custom domain en Pages). Deploy desde server: `.env` con CLOUDFLARE_API_TOKEN (solo Pages:Edit) + CLOUDFLARE_ACCOUNT_ID, NO wrangler login (el daemon corre headless; interfaz de Luis está en Omarchy). Reglas del proyecto en su AGENTS.md: honestidad WIP, confidencialidad Avalara, fuente de verdad experiencia = `~/Projetos/CV/experience/`. Siguiente fase: F1 contenido. #proyecto #portafolio"
+  ]
+}
