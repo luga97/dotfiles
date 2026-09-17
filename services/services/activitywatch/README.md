@@ -16,9 +16,14 @@ oficiales de GitHub (2026-09-16):
 | aw-watcher-media-player | 1.1.4 | `cargo build --locked` tag v1.1.4 | `~/.local/bin/aw-watcher-media-player` |
 
 - `~/.local/bin/aw-server` es un **wrapper** propio (exporta `LD_LIBRARY_PATH`
-  del bundle y ejecuta `aw-server-rust`). Es lo que apunta la unidad.
+  del bundle, ejecuta `aw-server-rust --host 0.0.0.0`). Es lo que apunta la
+  unidad.
 - Web UI embebida: http://localhost:5600 — db en
   `~/.local/share/activitywatch/aw-server-rust/sqlite.db`.
+- **Acceso remoto (móvil por Tailscale)**: el server escucha en 0.0.0.0; el
+  firewall limita quién entra (aw-server NO tiene auth): `sudo ufw allow in on
+  tailscale0 to any port 5600 proto tcp`. URL remota:
+  `http://<ip-tailscale-del-host>:5600`.
 - **Trampa 1**: el binario `awatcher` (sin guion) del release es la build
   *bundle* con server interno en :5600 — choca con aw-server-rust. Usar
   siempre `aw-awatcher`.
