@@ -11,7 +11,11 @@
  *     differ — not handled here.
  *
  * Usage:
- *   /usage
+ *   /usage            (terminal — interactive panel)
+ *   "show usage"      (ask the agent anywhere, incl. Paseo — calls the tool)
+ *
+ * Registers both a slash command (TUI panel) and a tool, so the report is
+ * reachable in every mode: terminal, RPC (Paseo), print (subagents).
  *
  * Install:
  *   Drop this file into ~/.pi/agent/extensions/ and run /reload,
@@ -20,6 +24,7 @@
 
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { BorderedLoader, DynamicBorder } from "@earendil-works/pi-coding-agent";
+import { Type } from "typebox";
 import { Container, Key, matchesKey, Spacer, Text } from "@earendil-works/pi-tui";
 
 const OPENROUTER_API = "https://openrouter.ai/api/v1";
@@ -434,6 +439,33 @@ class UsagePanel extends Container {
 // ---------------------------------------------------------------------------
 
 export default function usageExtension(pi: ExtensionAPI) {
+	// Tool: lets the agent fetch the usage report on demand — the only path
+	// available in RPC (Paseo) and print mode, where slash commands don't exist.
+	pi.registerTool({
+		name: "usage",
+		label: "Usage",
+		description:
+			"Show token/cost usage for the current session and the provider account " +
+			"(OpenRouter credits and key limits, Z.ai Coding Plan quota windows). " +
+			"Use when the user asks about usage, quota, remaining credits, or session cost.",
+		parameters: Type.Object({}),
+		async execute(_toolCallId, _params, _signal, _onUpdate, ctx) {
+			let report: Report;
+			try {
+				report = await gatherReport(ctx, AbortSignal.timeout(20_000));
+			} catch (error) {
+				report = {
+					provider: ctx.model?.provider ?? "unknown",
+					model: ctx.model?.id ?? "unknown",
+					session: collectSessionUsage(ctx),
+					errors: [error instanceof Error ? error.message : String(error)],
+				};
+			}
+			const text = renderSections(buildSections(report)).join("\n");
+			return { content: [{ type: "text", text }] };
+		},
+	});
+
 	pi.registerCommand("usage", {
 		description: "Show session token/cost usage and provider account usage (OpenRouter, Z.ai)",
 		handler: async (_args, ctx) => {
