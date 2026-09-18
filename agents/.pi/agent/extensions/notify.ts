@@ -137,6 +137,12 @@ export default function (pi: ExtensionAPI) {
 	// `agent_end` fires after each low-level run; Pi may still retry, compact,
 	// or continue with queued follow-ups. Notify only after the full run settles.
 	pi.on("agent_settled", async () => {
+		// Paseo runs its agents as `pi --mode rpc` children that also load these
+		// global extensions. Paseo already sends its own completion notification,
+		// so suppress ours to avoid duplicates.
+		if (process.env.PASEO_AGENT_ID) {
+			return;
+		}
 		if (terminalHasFocus()) {
 			return; // Don't notify if the terminal running pi already has focus
 		}
