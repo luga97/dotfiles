@@ -96,11 +96,11 @@ on_recording_stop = true
 on_transcription = false
 show_engine_icon = false
 
-# [text]
+[text]
 # Text processing options (word replacements, spoken punctuation)
-#
 # Enable spoken punctuation conversion (e.g., say "period" to get ".")
 # spoken_punctuation = false
-#
+
 # Custom word replacements (case-insensitive)
-# replacements = { "hyperwhisper" = "hyprwhspr" }
+# Garabatos reales encontrados en el historial de transcripciones (2026-09-18)
+replacements = { "boxdade" = "voxtype", "boxtype" = "voxtype", "marchi" = "omarchy", "omarchee" = "omarchy", "pksec" = "pkexec", "wishbear" = "whisper" }
