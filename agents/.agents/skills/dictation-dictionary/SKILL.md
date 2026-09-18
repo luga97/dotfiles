@@ -28,21 +28,25 @@ replacements = { "boxtype" = "voxtype", "omarchi" = "omarchy" }
 
 ## Flujo para añadir una palabra
 
-1. **Confirmar la palabra correcta** — si el pedido es ambiguo, preguntar antes de editar.
+1. **Confirmar la palabra correcta** — si el pedido es ambiguo, preguntar antes de seguir.
 2. **Buscar garabatos reales en el historial** (el modelo ya intentó transcribirla antes):
    ```bash
    journalctl --user -u voxtype --no-pager | grep "Transcribed:" \
      | grep -ioE "omarch[a-z]*|marchi[a-z]*|omache[a-z]*" | sort | uniq -c | sort -rn
    ```
    Estrategia: probar 2–4 fragmentos fonéticos de la palabra (inicio, medio, sin
-   caracteresproblemáticos). Sustituir el patrón por el de la palabra pedida.
-3. **Añadir cada variante encontrada** como clave → palabra correcta. También aceptar la
-   variante que el usuario reporte aunque no esté en el log.
-4. Editar `~/.config/voxtype/config.toml`: la sección `[text]` viene comentada por defecto —
+   caracteres problemáticos). Sustituir el patrón por el de la palabra pedida.
+3. **⚠️ CONFIRMAR CON EL USUARIO ANTES DE EDITAR CUALQUIER COSA.** Presentar la
+   propuesta como tabla — cada garabato encontrado (o reportado), su frecuencia en el
+   historial y la palabra correcta a la que mapearía — junto con el `replacements`
+   resultante. Esperar el OK explícito del usuario. Si no hay garabatos en el historial,
+   proponer solo la transcripción fonética más probable y preguntar.
+4. Tras el OK: **añadir cada variante confirmada** como clave → palabra correcta.
+5. Editar `~/.config/voxtype/config.toml`: la sección `[text]` viene comentada por defecto —
    crearla/descomentarla y fusionar con los reemplazos existentes (no pisarlos).
-5. `systemctl --user restart voxtype` (la sección `[text]` requiere restart) y verificar
+6. `systemctl --user restart voxtype` (la sección `[text]` requiere restart) y verificar
    `voxtype status` → idle.
-6. **Commit de dotfiles**: `cd ~/dotfiles && git add -A && git commit -m "feat(voxtype): ..." && git push`
+7. **Commit de dotfiles**: `cd ~/dotfiles && git add -A && git commit -m "feat(voxtype): ..." && git push`
    (el archivo es symlink al paquete omarchy).
 
 ## Reglas
