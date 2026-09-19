@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Toggle de reunión de voxtype (transcripción continua mic + audio del sistema).
+# Atajo: SUPER+F9. Notifica en ambos sentidos — voxtype solo notifica nativamente al final.
+set -u
+
+if voxtype meeting status 2>/dev/null | grep -qiE "recording|paused"; then
+    voxtype meeting stop >/dev/null 2>&1
+    omarchy-notification-send -g  "Reunión detenida" "Transcripción finalizada — 'voxtype meeting list' para exportar" -t 8000
+else
+    voxtype meeting start >/dev/null 2>&1
+    omarchy-notification-send -g  "Reunión grabando" "Micrófono + audio del sistema capturando" -t 8000
+fi

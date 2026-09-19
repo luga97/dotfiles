@@ -38,6 +38,23 @@ voxtype meeting stop                               # terminar y cerrar transcrip
   con `pactl list sources short`). El monitor captura TODO lo que suena en esa salida
   (música/notificaciones incluidas).
 
+## Atajo de teclado (SUPER+F9)
+
+Toggle completo (arranca si no hay reunión, corta si está grabando) con notificación
+en ambos sentidos (voxtype SOLO notifica al final de forma nativa — no hay claves de
+notificación de meeting en el schema):
+
+- Binding: `~/.config/hypr/bindings.lua` → `SUPER + F9` →
+  `~/.config/hypr/scripts/voxtype-meeting-toggle` (todo en el paquete omarchy de dotfiles).
+
+## Tiempo real: NO (verificado empíricamente 2026-09-19)
+
+La transcripción se procesa por chunks DURANTE la reunión, pero **no es visible hasta el
+`stop`** — `show`/`export`/`status` muestran 0 segmentos con la reunión activa (probado a
+los 80 s con audio sonando; todo se materializa segundos tras el stop). No hay opción de
+config para vista en vivo. Tiempo real hoy solo en: dictado de paseo (streaming nativo) y
+dictado voxtype con modelo inglés-only. Candidato a FR upstream.
+
 ## Después de la reunión
 
 ```bash
