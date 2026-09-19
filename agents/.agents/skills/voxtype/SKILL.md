@@ -110,5 +110,6 @@ journalctl --user -u voxtype --since today                 # actividad
 
 ## Relacionadas
 - `dictation-dictionary`: añadir palabras al diccionario de reemplazos (`[text]`).
+- `voxtype-meetings`: modo reunión (transcripción continua de llamadas, export, resumen IA).
 - `paseo`: el STT de paseo (parakeet int8 streaming, sherpa-onnx) — motor distinto, no
   comparte modelos ni config con voxtype.
