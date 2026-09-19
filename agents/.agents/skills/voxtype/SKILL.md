@@ -73,9 +73,10 @@ directo y restart). Si el log también está mal, es el modelo.
   ventana. `language=auto` añade una pasada completa (~2 s con small; ~6 s con large).
 - Modelos `.en` = solo inglés. **No existe base.es/.pt** — español siempre multilingüe.
 - Parakeet streaming solo con `parakeet-unified-en-0.6b` (inglés-only) — inútil para español.
-- Parakeet en GPU = `voxtype-onnx-rocm` → symlink a migraphx: requiere pila ROCm completa y
-  la RX 6650 XT (gfx1032) NO está soportada oficialmente — **descartado por análisis**; CPU
-  corre 21× tiempo real y el cuello de botella del flujo es el tipeo.
+- Parakeet en GPU: **MIGraphX 7.2 oficial solo para RX 7000/9000 (RDNA3/4, desde voxtype
+  0.7.0)**. La RX 6650 XT (gfx1032/RDNA2) queda fuera de soporte — descartado. Si la GPU
+  fuera RX 7000/9000: `pkexec voxtype setup gpu --enable` y A/B (10 min). El binario
+  `voxtype-onnx-rocm`→migraphx ya viene en el paquete.
 - **⚠️ `pkexec voxtype setup ...` rompe el symlink de dotfiles** (rename atómico como root
   reemplaza el symlink por archivo real). Síntoma: "nothing to commit" tras cambios. Fix:
   `cp` vivo→repo, `rm` vivo, `stow -R omarchy`, commit. Verificar con
