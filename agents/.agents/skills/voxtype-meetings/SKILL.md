@@ -30,8 +30,13 @@ voxtype meeting stop                               # terminar y cerrar transcrip
 - **Diarización** en el start: `--diarization simple` (Tú vs Remoto por fuente de audio,
   ideal 1:1) o `--diarization ml` (embeddings ECAPA-TDNN, varias personas en la misma
   sala — requiere feature `ml-diarization` y modelo extra). Default: config.
-- Captura: micrófono + loopback del sistema (monitor de PipeWire, detecta solo) con
-  cancelación de eco GTCRN y dedup de transcripciones entre pistas.
+- Captura: micrófono + loopback del sistema (monitor de PipeWire del sink default,
+  detecta solo) con cancelación de eco GTCRN y dedup de transcripciones entre pistas.
+  Diarización `simple` = pista mic ("Tú") vs pista monitor ("Remoto"). Con auriculares no
+  hay eco físico (más limpio). **Caso borde:** si la llamada suena por otra salida que no
+  es la default, fijar `meeting.audio.loopback_device` al monitor correcto (ver fuentes
+  con `pactl list sources short`). El monitor captura TODO lo que suena en esa salida
+  (música/notificaciones incluidas).
 
 ## Después de la reunión
 
