@@ -17,6 +17,9 @@ services:
       - CHOWN
       - SETGID
       - SETUID
+    # IPv6 no rutea en docker acá: DNS mixto + IPv6 muerto = timeouts en qwant/wikidata/ddg
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=1
     logging:
       driver: "json-file"
       options:

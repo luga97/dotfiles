@@ -12,6 +12,30 @@ server:
 search:
   safe_search: 0
   autocomplete: ""
+  # Los motores gratuitos tardan; el default de 3s deja todo en timeout
+  timeout: 8
   formats:
     - html
     - json
+
+# Override de motores: se fusiona con los defaults (use_default_settings: true).
+# brave y google cse bloquean esta IP residencial (too many requests persistente).
+engines:
+  - name: brave
+    disabled: true
+  - name: google cse
+    disabled: true
+  - name: bing
+    disabled: false
+  - name: duckduckgo
+    disabled: false
+  - name: qwant
+    disabled: false
+  - name: startpage
+    disabled: false
+  - name: mojeek
+    disabled: false
+  - name: wikipedia
+    disabled: false
+  - name: wikidata
+    disabled: false

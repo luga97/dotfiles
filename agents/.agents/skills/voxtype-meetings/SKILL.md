@@ -61,6 +61,12 @@ quiere resúmenes: instalar Ollama (ver skill `arch-install`) + modelo, o config
 
 ## Advertencias
 
+- **Auto-detect del loopback NO confiable en este setup** (2026-09-19): eligió el monitor
+  HDMI cuando el sink default es el analog. Ya fijado explícito en config
+  (`meeting.audio.loopback_device = alsa_output.pci-0000_0b_00.6.analog-stereo.monitor`).
+  Si cambia la salida de audio habitual (headset USB, HDMI), actualizar esta clave.
+- El transcript completo se materializa segundos DESPUÉS del `stop` (los chunks van
+  transcribiendo en vivo pero show/export en vacío justo al parar es normal — esperar 5s).
 - **Consentimiento:** grabar llamadas/entrevistas sin avisar a la otra parte tiene
   implicaciones legales (varía por jurisdicción) y estratégicas (p.ej. entrevistas de
   trabajo). Recordarle a Luis que lo considere antes de grabar terceros.
