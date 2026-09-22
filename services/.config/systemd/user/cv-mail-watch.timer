@@ -1,12 +1,12 @@
-# CV mail watch — timer de chequeo cada 30 minutos.
+# CV mail watch — timer de chequeo cada 5 minutos (Luis: 30 min tardaba en avisar).
 # Para probar a mano: systemctl --user start cv-mail-watch.service
 
 [Unit]
-Description=Timer del chequeo de respuestas a postulaciones (cada 30 min)
+Description=Timer del chequeo de respuestas a postulaciones (cada 5 min)
 
 [Timer]
 OnBootSec=2min
-OnUnitActiveSec=30min
+OnUnitActiveSec=5min
 AccuracySec=15s
 Persistent=true
 Unit=cv-mail-watch.service
