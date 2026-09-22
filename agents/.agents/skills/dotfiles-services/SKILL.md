@@ -1,6 +1,6 @@
 ---
 name: dotfiles-services
-description: Patrón para agregar, modificar o depurar servicios y daemons en el repo de dotfiles de Luis (~/dotfiles/services, paquete stow enlazado a ~/services). Usar SIEMPRE que se pida instalar, levantar, respaldar, configurar o eliminar un servicio persistente: docker-compose, unidades systemd user, daemons nativos, puertos, secretos de servicios, restart policies, logs de un servicio (journalctl/docker logs), o preguntas sobre cómo corre X en este setup (paseo, searxng, activitywatch, nfs-server, telegram-bridge, dotfiles-sync, cv-mail-watch). También al mover a systemd un proceso que se arrancaba a mano.
+description: "Patrón para agregar, modificar o depurar servicios y daemons en el repo de dotfiles de Luis (~/dotfiles/services, paquete stow enlazado a ~/services). Usar SIEMPRE que se pida instalar, levantar, respaldar, configurar o eliminar un servicio persistente: docker-compose, unidades systemd user, daemons nativos, puertos, secretos de servicios, restart policies, logs de un servicio (journalctl/docker logs), o preguntas sobre cómo corre X en este setup (paseo, searxng, activitywatch, nfs-server, telegram-bridge, dotfiles-sync, cv-mail-watch). También al mover a systemd un proceso que se arrancaba a mano."
 ---
 
 # Servicios y daemons del setup (~/dotfiles/services)
