@@ -35,3 +35,7 @@ Logs: `journalctl --user -u cv-mail-watch.service -f`
   el script reintenta 3× y deja el aviso en dead-letter; se puede activar un
   correo de respaldo con `CVMAIL_FALLBACK_EMAIL`.
 - El timer no envía nada si no hay respuestas nuevas: es silencioso e idempotente.
+- **Ruido explícito** (`CVMAIL_NOISE_SENDERS`): alertas automatizadas de LinkedIn
+  (security/notifications/invitations/jobs) se registran sin notificar al bot y
+  sin tocar el buzón — quedan visibles en el Inbox de Gmail. Va antes de la
+  clasificación para que `%linkedin.com` (reclutadores) no las capture.
