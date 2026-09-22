@@ -46,6 +46,14 @@
   - **Accesos desde omarchy**: SSH `home-server` (~/.ssh/config → archlinux, user `user`, vía Tailscale) + NFS v4 en `/mnt/home-server` (export `archlinux:/home/user`). El 2026-09-17 se eliminó el duplicado manual `/mnt/servidor` (mismo export, no estaba en fstab) y fstab quedó con `x-systemd.automount` + `idle-timeout=60` (antes `hard` puro: procesos se colgaban si el server no respondía). fstab respaldo: `/etc/fstab.bak-20260917`.
 
 
+<!-- 2026-09-20 16:28:06 [01a0c046] -->
+<!-- 2026-09-20 -->
+- [[cv-flow]] Flujo de adaptación de CV simplificado (decisión de Luis, 2026-09-20, repo ~/Projetos/CV): **no preguntar nunca por tecnologías/herramientas ni años** — el bloque de Skills es optimización ATS y Luis defiende en entrevista cualquier tecnología adyacente a su trayectoria; las del JD que no consten en experience/ entran igual y se listan como "novedades para ATS" (solo se retiran si él las tacha). Las preguntas son **solo de experiencias/enfoque** (qué enfatizar, bullets defendibles, experiencia no respaldada) y hay **exactamente 2 rondas**: plan de enfoque → entrega completa (CV adaptado + PDF + texto extraído + draft de correo) → aprobar envío. Defaults automáticos: idioma = del JD, extensión = la de la base, título = alineado al JD, carpeta deducida, datos de envío se preguntan con el correo. Documentado en AGENTS.md, README.md y .pi/prompts/adapt-cv.md del repo. Nota: prep-interview SÍ sigue preguntando tecnología por tecnología (es para preparar la entrevista, no para el CV). #cv #preference #decision
+
+<!-- 2026-09-20 16:33:22 [01a0c046] -->
+<!-- 2026-09-20 -->
+- [[cv-flow]] Extensión (Luis, 2026-09-20): semántica de tecnologías = **sí por defecto**. Cuando Luis diga "no" a una tecnología, registrarlo como veto en `experience/tech-vetoes.md` del repo CV (append-only, con fecha y contexto, nunca se borra sin confirmación) y descartarla por defecto en todas las adaptaciones futuras sin volver a preguntar. Antes de armar Skills/novedades ATS, revisar ese archivo. Detectar vetos también en conversación general (mismo registro automático que los aportes de experiencia). #cv #preference #decision
+
 <!-- 2026-09-22 09:02:39 [01a0c8ef] -->
 - [[paseo-daemon]] Setup remoto de Paseo en omarchy (2026-09-22): `~/.paseo/config.json` ahora tiene `daemon.listen: "0.0.0.0:6767"`, `daemon.auth.password` (bcrypt) y `daemon.hostnames: ["omarchy"]` (allowlist del header Host; `allowedHosts` es alias deprecado; es runtime-safe → `paseo reload`). Clientes (celular y Desktop) conectan con host `omarchy` (MagicDNS/Tailscale) : 6767. #infra
   - CAUSA RAÍZ del outage: el daemon anterior tenía los overrides por ENV del proceso (`PASEO_PASSWORD`, `PASEO_HOSTNAMES`) que no estaban en config.json; al re-crearse el proceso el 2026-09-22 volvió a defaults (127.0.0.1, sin auth) y nada remoto conectaba. Ahora todo está persistido en config.json (backup: `~/.paseo/config.json.bak-20260922`).
