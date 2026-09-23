@@ -58,3 +58,11 @@
 - [[paseo-daemon]] Setup remoto de Paseo en omarchy (2026-09-22): `~/.paseo/config.json` ahora tiene `daemon.listen: "0.0.0.0:6767"`, `daemon.auth.password` (bcrypt) y `daemon.hostnames: ["omarchy"]` (allowlist del header Host; `allowedHosts` es alias deprecado; es runtime-safe → `paseo reload`). Clientes (celular y Desktop) conectan con host `omarchy` (MagicDNS/Tailscale) : 6767. #infra
   - CAUSA RAÍZ del outage: el daemon anterior tenía los overrides por ENV del proceso (`PASEO_PASSWORD`, `PASEO_HOSTNAMES`) que no estaban en config.json; al re-crearse el proceso el 2026-09-22 volvió a defaults (127.0.0.1, sin auth) y nada remoto conectaba. Ahora todo está persistido en config.json (backup: `~/.paseo/config.json.bak-20260922`).
   - Quirk del CLI empaquetado: `paseo daemon start` falla desde shell (Electron pierde modo Node). Spawn que funciona: `ELECTRON_RUN_AS_NODE=1 /opt/Paseo/Paseo --disable-warning=DEP0040 /opt/Paseo/resources/app.asar.unpacked/dist/daemon/node-entrypoint-runner.js node-script /opt/Paseo/resources/app.asar/node_modules/@getpaseo/server/dist/scripts/supervisor-entrypoint.js` (setsid/nohup). Con auth activa, los comandos CLI de cliente necesitan `PASEO_PASSWORD=... paseo ...`.
+
+
+<!-- 2026-09-23 16:21:48 [01a0cf93] -->
+- #preference #estilo Regla de escritura (Luis, 2026-09-23): **prohibido el em dash (—)** en cualquier texto que genere — reemplazar con coma, dos puntos, paréntesis o reescribir. Aplica a respuestas del chat, CVs, correos, formularios y documentos. El en dash (–) con espacios queda reservado para rangos de fechas (convención del repo CV, `Mar 2025 – Present`). Verificado al exportar cualquier PDF (grep de —).
+
+
+<!-- 2026-09-23 16:22:50 [01a0cfa5] -->
+- [[perm-gate]] Sandbox /tmp en permission-gate.ts (2026-09-23, commit 30c18ee): comandos peligrosos (rm -rf, chmod/chown 777) cuyo alcance queda íntegramente dentro de /tmp NO piden confirmación (ni en modo -p). Paths absolutos bajo /tmp o relativos si ctx.cwd está en /tmp; realpath escapa symlinks. Siempre preguntan: intérpretes/scripts (bash /tmp/x.sh, sh -c, python, xargs...), expansiones ($VAR, ~, backticks), y compuestos que tocan paths fuera de /tmp (redirects, dd if/of). Helper `isTmpOnly()` exportado para testear. #infra #decision
