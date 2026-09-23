@@ -9,12 +9,22 @@
  *
  * Patterns checked: rm -rf, chmod/chown 777
  *
+ * Sandbox /tmp: si TODO el alcance del comando queda dentro de /tmp (paths
+ * absolutos bajo /tmp, o relativos con cwd de la sesión dentro de /tmp), no se
+ * pide confirmación. Siempre piden confirmación aunque apunten a /tmp:
+ *   - Intérpretes/scripts (bash /tmp/x.sh, python /tmp/x.py, sh -c, eval…):
+ *     un archivo en /tmp puede hacer cualquier cosa.
+ *   - Expansiones no verificables: $VAR, $(...), `...`, ~.
+ *   - Comandos compuestos donde la otra parte toca paths fuera de /tmp.
+ *
  * Note: `sudo` is not gated on its own — NOPASSWD sudo is part of the normal
  * workflow (e.g. managing the home-server over SSH).
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import type { Context, Message } from "@earendil-works/pi-ai";
+import { realpathSync } from "node:fs";
+import { resolve as resolvePath } from "node:path";
 
 // ---------------------------------------------------------------------------
 // Fallback heuristic (used when the LLM call fails or times out)
@@ -86,6 +96,116 @@ function heuristicDescription(command: string): string {
 		.filter(Boolean);
 	const descriptions = [...new Set(segments.map(describeSegment).filter(Boolean))];
 	return descriptions.join("; ") || "ejecuta un comando potencialmente peligroso";
+}
+
+// ---------------------------------------------------------------------------
+// Sandbox /tmp: comandos con alcance íntegramente dentro de /tmp no preguntan
+// ---------------------------------------------------------------------------
+
+const TMP_ROOT = realpathSync("/tmp");
+
+// Wrappers que no cambian el alcance del comando real que les sigue.
+const TRANSPARENT_PREFIXES = new Set(["sudo", "env", "nice", "nohup", "time", "timeout", "stdbuf", "command"]);
+
+// Ejecutan código arbitrario: aunque el archivo viva en /tmp, puede tocar
+// cualquier cosa → siempre piden confirmación.
+const INTERPRETER_COMMANDS = new Set([
+	"bash", "sh", "ash", "dash", "zsh", "ksh", "fish",
+	"eval", "exec", "source", ".",
+	"python", "python3", "node", "deno", "bun", "ruby", "perl", "php", "lua",
+	"xargs",
+]);
+
+// Comandos que operan sobre archivos: SUS argumentos se tratan siempre como
+// posibles rutas (incluso palabras sueltas), porque pueden escribir fuera.
+const FILE_COMMANDS = new Set([
+	"rm", "rmdir", "mv", "cp", "ln", "mkdir", "touch", "chmod", "chown", "chgrp",
+	"shred", "truncate", "install", "tee", "dd", "unlink", "mkfifo", "mknod",
+	"unzip", "gunzip",
+]);
+
+function realpathSafe(p: string): string {
+	try {
+		return realpathSync(p);
+	} catch {
+		return p; // aún no existe
+	}
+}
+
+function isInsideTmp(p: string): boolean {
+	return p === TMP_ROOT || p.startsWith(`${TMP_ROOT}/`);
+}
+
+/** true si el token es una ruta verificable y queda dentro de /tmp. */
+function isTmpPath(token: string, cwd: string | undefined): boolean {
+	// Expansiones del shell (~, $VAR, $(...), `...`) y paréntesis: no verificables.
+	if (token.startsWith("~") || token.includes("$") || token.includes("`") || token.includes("(")) return false;
+	const resolved = token.startsWith("/") ? resolvePath(token) : cwd ? resolvePath(cwd, token) : null;
+	if (!resolved) return false;
+	// realpath escapa symlinks existentes (rm/chmod los cruzan o los siguen);
+	// si el path no existe todavía, realpathSafe devuelve la resolución léxica.
+	return isInsideTmp(realpathSafe(resolved));
+}
+
+function segmentIsTmpOnly(segment: string, cwd: string | undefined): boolean {
+	// Separa redirectores pegados (2>/dev/null, >out, <in) y tokeniza.
+	const tokens = segment
+		.replace(/(\d+>>|&>>|>&|>|<)/g, " $1 ")
+		.split(/\s+/)
+		.map((t) => t.replace(/^["']+|["']+$/g, ""))
+		.filter(Boolean);
+
+	let expectCommand = true;
+	let isFileCmd = false;
+	let cmdWord = "";
+	for (const token of tokens) {
+		if (token.startsWith("#")) break; // comentario: lo que sigue no cuenta
+		if (/^(\d+>>|&>>|>&|>|<)$/.test(token)) continue; // redirector
+		if (/^\d+$/.test(token)) continue; // duraciones, conteos
+		if (expectCommand && token.startsWith("-")) continue; // flags del wrapper (nice -n)
+		// dd usa if=/of= como args: verificarlos ANTES de la regla de asignaciones.
+		if (cmdWord === "dd" && /^(if|of)=/.test(token)) {
+			if (!isTmpPath(token.slice(3), cwd)) return false;
+			continue;
+		}
+		if (/^[A-Za-z_][A-Za-z0-9_]*=/.test(token)) continue; // asignaciones FOO=bar
+
+		if (expectCommand) {
+			const base = token.replace(/^\/.*\//, ""); // /usr/bin/rm -> rm
+			if (TRANSPARENT_PREFIXES.has(base)) continue;
+			if (INTERPRETER_COMMANDS.has(base)) return false;
+			expectCommand = false;
+			cmdWord = base;
+			isFileCmd = FILE_COMMANDS.has(base);
+			continue;
+		}
+
+		if (token.startsWith("-")) {
+			// --flag=valor puede llevar una ruta en el valor.
+			const eq = token.indexOf("=");
+			if (eq !== -1 && !isTmpPath(token.slice(eq + 1), cwd)) return false;
+			continue;
+		}
+		if (/^[ugoa]*[+-=][rwxXstGo]*,?$/.test(token)) continue; // modos simbólicos de chmod
+		if (token.includes(":")) continue; // user:grupo de chown, URLs
+		if (token === "/dev/null") continue;
+
+		// En comandos de archivos todo argumento es candidata a ruta; en otros
+		// comandos solo cuentan los tokens con forma de ruta ("echo listo" pasa).
+		const looksLikePath = token.includes("/") || token === "." || token === "..";
+		if ((isFileCmd || looksLikePath) && !isTmpPath(token, cwd)) return false;
+	}
+	return true;
+}
+
+/** true si el comando completo queda dentro del sandbox /tmp. */
+export function isTmpOnly(command: string, cwd: string | undefined): boolean {
+	const segments = command
+		.split(/\|\||&&|;|\||\n|&/)
+		.map((s) => s.trim())
+		.filter(Boolean);
+	if (segments.length === 0) return false;
+	return segments.every((s) => segmentIsTmpOnly(s, cwd));
 }
 
 // ---------------------------------------------------------------------------
@@ -180,6 +300,13 @@ export default function (pi: ExtensionAPI) {
 		const isDangerous = dangerousPatterns.some((p) => p.test(command));
 
 		if (isDangerous) {
+			// Sandbox /tmp: nada cuyo alcance quede dentro de /tmp pide confirmación,
+			// tampoco en modo no interactivo.
+			if (isTmpOnly(command, typeof ctx.cwd === "string" ? ctx.cwd : undefined)) {
+				await debugLog({ tmpSandbox: true, command });
+				return undefined;
+			}
+
 			if (!ctx.hasUI) {
 				// In non-interactive mode, block by default
 				return { block: true, reason: "Dangerous command blocked (no UI for confirmation)" };
