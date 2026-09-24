@@ -21,6 +21,7 @@
   "defaultProjectTrust": "always",
   "packages": [
     "npm:@jl1990/pi-scheduler",
-    "npm:pi-memory"
+    "npm:pi-memory",
+    "npm:pi-mcp-adapter"
   ]
 }
