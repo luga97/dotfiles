@@ -3,7 +3,7 @@
   "defaultProvider": "zai",
   "defaultModel": "glm-5.3-flash",
   "defaultThinkingLevel": "medium",
-  "hideThinkingBlock": true,
+  "hideThinkingBlock": false,
   "externalEditor": "nvim",
   "enabledModels": [
     "zai/glm-5.3",
