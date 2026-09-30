@@ -66,3 +66,7 @@
 
 <!-- 2026-09-23 16:22:50 [01a0cfa5] -->
 - [[perm-gate]] Sandbox /tmp en permission-gate.ts (2026-09-23, commit 30c18ee): comandos peligrosos (rm -rf, chmod/chown 777) cuyo alcance queda íntegramente dentro de /tmp NO piden confirmación (ni en modo -p). Paths absolutos bajo /tmp o relativos si ctx.cwd está en /tmp; realpath escapa symlinks. Siempre preguntan: intérpretes/scripts (bash /tmp/x.sh, sh -c, python, xargs...), expansiones ($VAR, ~, backticks), y compuestos que tocan paths fuera de /tmp (redirects, dd if/of). Helper `isTmpOnly()` exportado para testear. #infra #decision
+
+<!-- 2026-09-30 16:49:13 [01a0f33e] -->
+<!-- 2026-09-30 -->
+- [[presupuesto-logos]] Presupuesto para grupo Logos/Global5 (mismo dueño): memoria maestra del proyecto en `~/presupuesto-logos/CONTEXTO.md` (contexto, decisiones, incógnitas, preguntas al cliente). Dos propuestas separadas por fases, ejecución solo por Luis. Logos: testing + CI/CD (GitHub Actions self-hosted, no Azure) + agente PR review + vertiente agéntica en portugués (LGPD a considerar). Global5: verificación agéntica de dispositivos GPS + triage de riesgo/strikes (posible Jev), con etapas de descubrimiento. Base de credibilidad: Luis fue dev en Global5 2023-2025 (telemetría Go, 6k vehículos, 20 gps/seg). #project
