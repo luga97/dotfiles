@@ -70,3 +70,7 @@
 <!-- 2026-09-30 16:49:13 [01a0f33e] -->
 <!-- 2026-09-30 -->
 - [[presupuesto-logos]] Presupuesto para grupo Logos/Global5 (mismo dueño): memoria maestra del proyecto en `~/presupuesto-logos/CONTEXTO.md` (contexto, decisiones, incógnitas, preguntas al cliente). Dos propuestas separadas por fases, ejecución solo por Luis. Logos: testing + CI/CD (GitHub Actions self-hosted, no Azure) + agente PR review + vertiente agéntica en portugués (LGPD a considerar). Global5: verificación agéntica de dispositivos GPS + triage de riesgo/strikes (posible Jev), con etapas de descubrimiento. Base de credibilidad: Luis fue dev en Global5 2023-2025 (telemetría Go, 6k vehículos, 20 gps/seg). #project
+
+<!-- 2026-09-30 18:05:21 [01a0f40e] -->
+<!-- 2026-09-30 -->
+- [[cv-repo]] Decisión CV (Luis, 2026-09-30): el bullet de Avalara "herramienta de evaluación con búsqueda por palabras clave y semántica / 1.900+ productos" NO se usa más en ningún CV (pidió eliminarlo definitivamente). Registrado en experience/contributions-log.md y como nota de uso en § Avalara del doc de experiencia. #decision #cv
