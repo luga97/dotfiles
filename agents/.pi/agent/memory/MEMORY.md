@@ -74,3 +74,7 @@
 <!-- 2026-09-30 18:05:21 [01a0f40e] -->
 <!-- 2026-09-30 -->
 - [[cv-repo]] Decisión CV (Luis, 2026-09-30): el bullet de Avalara "herramienta de evaluación con búsqueda por palabras clave y semántica / 1.900+ productos" NO se usa más en ningún CV (pidió eliminarlo definitivamente). Registrado en experience/contributions-log.md y como nota de uso en § Avalara del doc de experiencia. #decision #cv
+
+
+<!-- 2026-10-02 22:59:20 [01a0ff2a] -->
+- [[infra-tunnel]] El backend searxng de ketch (~/.config/ketch/config.json, localhost:8081) apunta al docker searxng de home-server. Si ketch da "connection refused": levantar túnel `ssh -N -L 8081:localhost:8081 home-server` (el servicio docker está Up, lo que falta es el túnel en omarchy). Verificado 2026-10-02. #infra
