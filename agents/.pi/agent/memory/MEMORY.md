@@ -78,3 +78,6 @@
 
 <!-- 2026-10-02 22:59:20 [01a0ff2a] -->
 - [[infra-tunnel]] El backend searxng de ketch (~/.config/ketch/config.json, localhost:8081) apunta al docker searxng de home-server. Si ketch da "connection refused": levantar túnel `ssh -N -L 8081:localhost:8081 home-server` (el servicio docker está Up, lo que falta es el túnel en omarchy). Verificado 2026-10-02. #infra
+
+<!-- 2026-10-06 11:57:23 [01a0f33e] -->
+- [[presupuesto-logos]] Técnica útil (2026-10-06): cuando el modelo de la sesión no soporta imágenes, usar `pi --model '~z-ai/glm-flash-latest' --print "prompt" @/ruta/img.png` (vía OpenRouter, imágenes sí) para análisis visual: funcionó muy bien para diagnosticar slides de la presentación y analizar el mapa (colores dominantes, trazada de la BR-101 en João Neiva, recomendación de contraste). Usarlo para revisar capturas de UI/diagramas en lo sucesivo. #tooling #lesson
