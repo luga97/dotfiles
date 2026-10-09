@@ -81,3 +81,6 @@
 
 <!-- 2026-10-06 11:57:23 [01a0f33e] -->
 - [[presupuesto-logos]] Técnica útil (2026-10-06): cuando el modelo de la sesión no soporta imágenes, usar `pi --model '~z-ai/glm-flash-latest' --print "prompt" @/ruta/img.png` (vía OpenRouter, imágenes sí) para análisis visual: funcionó muy bien para diagnosticar slides de la presentación y analizar el mapa (colores dominantes, trazada de la BR-101 en João Neiva, recomendación de contraste). Usarlo para revisar capturas de UI/diagramas en lo sucesivo. #tooling #lesson
+
+<!-- 2026-10-08 23:14:59 [01a11e6c] -->
+- Dual boot Windows en omarchy: disco `sda` (sda2 = C: NTFS, sin ESP propia — el bootmgfw.efi de Windows vive en la ESP compartida nvme0n1p1 con Limine). Entrada "Windows Boot Manager" agregada al menú de Limine vía `limine-entry-tool --scan` (entrada auto-generada, order-priority=20, persiste a updates). Timeout de Limine comentado → arranca directo a Omarchy; menú con tecla en boot. #infra
