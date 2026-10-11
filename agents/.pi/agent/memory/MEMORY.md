@@ -97,3 +97,7 @@
 
 <!-- 2026-10-11 16:51:59 [01a12ba3] -->
 - [[barbershop-saas]] Git (2026-10-11): GitLab es remote primario (`origin` = gitlab.com:luga97/barbershop-saas, proyecto id 87497446), GitHub es solo espejo/respaldo sin CI (`github`, sync manual `git push github main --tags`). `main` protegida en GitLab: push=0 (solo vía MR), merge=30, "pipelines must succeed" ON → NUNCA pushear directo a main, usar `git checkout -b <rama> && glab mr create --fill && glab mr merge`. Auth GitLab: glab CLI, token en OS keyring (luis hizo `glab auth login`, host gitlab.com, protocolo SSH; clave SSH id 21796521). CI: `.gitlab-ci.yml` (jobs paralelos backend/client-ui, ~2 min en shared runners); workflow de GitHub Actions eliminado. #infra #project
+
+
+<!-- 2026-10-11 19:08:40 [01a12cff] -->
+- main-branch-guard.ts (extensión pi) bloquea CUALQUIER comando bash que contenga `git commit|push|merge` mientras la sesión está en `main` de un repo con origin gitlab.com: inspecciona el string del comando (no es hook de git), así que `--no-verify` NO lo saltea y un comando compuesto (`git switch ... && git commit`) también cae aunque el switch sea legítimo. Flujo que funciona: rama semántica en una llamada aparte, luego commit en la siguiente. GitLab del namespace personal auto-crea proyectos privados on-push (push a remote inexistente lo crea con la rama pusheada como default; corregir con PUT api `default_branch=main`). #infra #lesson
