@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "id": "f2ac3fa7-e802-4fde-973b-93c10d8706fd",
+  "createdAt": "2026-10-11T23:05:50.074Z",
+  "target": "long_term",
+  "removedContent": [
+    "<!-- 2026-10-11 19:58:18 [01a12d15] -->\n- [[barbershop-saas]] Runner propio de CI instalado (2026-10-11): gitlab-runner docker-compose en home-server (`~/dotfiles/services/services/gitlab-runner/`, service en `~/services/gitlab-runner`), executor docker imagen node:20, `concurrent=2`, `request_concurrency=2`. Runner GitLab id 57297793, tag `home-server`, locked al proyecto (id 87497446), token en `.env`/`data/config/config.toml` (gitignored). Pipeline verificado: backend 76s / client-ui 59s vs ~90s por job en shared runners. Jobs enrutados con `tags: [home-server]` (sin tag, los shared k8s de gitlab.com ganan la carrera). Pendiente: MR para llevar los tags a main (commit be66cb9 está en rama ci/test-home-runner, que también contiene d59e9fb — commit de OTRA sesión/agente de review con docs/fase0-dummy.md; cherry-pick limpio recomendado). #project #infra\n- Lección runners GitLab: token glrt transcrito a mano → \"Verifying runner... is not valid\"; regenerar programáticamente (`glab api POST user/runners | jq -r .token | ssh … > .env`). El registro en contenedor escribe `data/config/` como root → `chown` tras registrar. `request_concurrency` no aparece en config.toml por defecto (default 1, warning de long polling) — hay que agregarlo bajo `[[runners]]`. #lesson #infra"
+  ]
+}

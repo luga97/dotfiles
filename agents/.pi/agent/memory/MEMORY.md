@@ -37,14 +37,12 @@
 <!-- 2026-09-17 -->
 - [[pi-scheduler-bug]] ACTUALIZACIÓN: `~/.pi/agent/npm/` NO es symlink al repo de dotfiles — es directorio real POR MÁQUINA. El parche de proper-lockfile existía solo en omarchy; **home-server fue parcheado también el 2026-09-17** (mismo fix, respaldo `.orig`, verificado: create+list+list+cancel sin crash, exit 0). Regla: cualquier reinstalación/actualización de pi-scheduler en CUALQUIER máquina borra el parche. Issue upstream redactado y verificado en `/tmp/pi-scheduler-issue.md` (repro mínimo Node con TypeError exacto de la spec de proxies) — Luis decidió publicarlo LUEGO, no todavía. #infra #bug
 
-
 <!-- 2026-09-17 06:34:52 [01a0ae9f] -->
 <!-- 2026-09-17 -->
 - **Setup 2 máquinas — división de propósitos (aclarado por Luis 2026-09-17)** #infra
   - **omarchy (esta PC)**: la más potente; para trabajo que USA esta máquina y su hardware (GPU, monitores DDC/CI, ActivityWatch mide ESTA pc, builds pesados). Trabajo interactivo que NO necesariamente persiste.
   - **home-server** ([[home-server]]): donde corren los servicios PERSISTENTES, salvo los atados al hardware de omarchy. Regla práctica: daemon permanente sin dependencia de hardware → home-server; necesita hardware de acá → omarchy (ej.: aw-awatcher, paseo para controlar el pi LOCAL, ddc-monitors). Regla documentada también en AGENTS.md y en la skill `dotfiles-services` (commit 31d65da).
   - **Accesos desde omarchy**: SSH `home-server` (~/.ssh/config → archlinux, user `user`, vía Tailscale) + NFS v4 en `/mnt/home-server` (export `archlinux:/home/user`). El 2026-09-17 se eliminó el duplicado manual `/mnt/servidor` (mismo export, no estaba en fstab) y fstab quedó con `x-systemd.automount` + `idle-timeout=60` (antes `hard` puro: procesos se colgaban si el server no respondía). fstab respaldo: `/etc/fstab.bak-20260917`.
-
 
 <!-- 2026-09-20 16:28:06 [01a0c046] -->
 <!-- 2026-09-20 -->
@@ -59,10 +57,8 @@
   - CAUSA RAÍZ del outage: el daemon anterior tenía los overrides por ENV del proceso (`PASEO_PASSWORD`, `PASEO_HOSTNAMES`) que no estaban en config.json; al re-crearse el proceso el 2026-09-22 volvió a defaults (127.0.0.1, sin auth) y nada remoto conectaba. Ahora todo está persistido en config.json (backup: `~/.paseo/config.json.bak-20260922`).
   - Quirk del CLI empaquetado: `paseo daemon start` falla desde shell (Electron pierde modo Node). Spawn que funciona: `ELECTRON_RUN_AS_NODE=1 /opt/Paseo/Paseo --disable-warning=DEP0040 /opt/Paseo/resources/app.asar.unpacked/dist/daemon/node-entrypoint-runner.js node-script /opt/Paseo/resources/app.asar/node_modules/@getpaseo/server/dist/scripts/supervisor-entrypoint.js` (setsid/nohup). Con auth activa, los comandos CLI de cliente necesitan `PASEO_PASSWORD=... paseo ...`.
 
-
 <!-- 2026-09-23 16:21:48 [01a0cf93] -->
 - #preference #estilo Regla de escritura (Luis, 2026-09-23): **prohibido el em dash (—)** en cualquier texto que genere — reemplazar con coma, dos puntos, paréntesis o reescribir. Aplica a respuestas del chat, CVs, correos, formularios y documentos. El en dash (–) con espacios queda reservado para rangos de fechas (convención del repo CV, `Mar 2025 – Present`). Verificado al exportar cualquier PDF (grep de —).
-
 
 <!-- 2026-09-23 16:22:50 [01a0cfa5] -->
 - [[perm-gate]] Sandbox /tmp en permission-gate.ts (2026-09-23, commit 30c18ee): comandos peligrosos (rm -rf, chmod/chown 777) cuyo alcance queda íntegramente dentro de /tmp NO piden confirmación (ni en modo -p). Paths absolutos bajo /tmp o relativos si ctx.cwd está en /tmp; realpath escapa symlinks. Siempre preguntan: intérpretes/scripts (bash /tmp/x.sh, sh -c, python, xargs...), expansiones ($VAR, ~, backticks), y compuestos que tocan paths fuera de /tmp (redirects, dd if/of). Helper `isTmpOnly()` exportado para testear. #infra #decision
@@ -74,7 +70,6 @@
 <!-- 2026-09-30 18:05:21 [01a0f40e] -->
 <!-- 2026-09-30 -->
 - [[cv-repo]] Decisión CV (Luis, 2026-09-30): el bullet de Avalara "herramienta de evaluación con búsqueda por palabras clave y semántica / 1.900+ productos" NO se usa más en ningún CV (pidió eliminarlo definitivamente). Registrado en experience/contributions-log.md y como nota de uso en § Avalara del doc de experiencia. #decision #cv
-
 
 <!-- 2026-10-02 22:59:20 [01a0ff2a] -->
 - [[infra-tunnel]] El backend searxng de ketch (~/.config/ketch/config.json, localhost:8081) apunta al docker searxng de home-server. Si ketch da "connection refused": levantar túnel `ssh -N -L 8081:localhost:8081 home-server` (el servicio docker está Up, lo que falta es el túnel en omarchy). Verificado 2026-10-02. #infra
@@ -94,14 +89,16 @@
 <!-- 2026-10-11 -->
 - sudo en omarchy: Luis NUNCA puede ser ejecutado directamente por pi (shell no interactiva, no hay tty para la contraseña). Ante cualquier necesidad de sudo: SIEMPRE pedirle a Luis que lo ejecute él en su terminal, dándole el comando exacto. Aplica a instalaciones pacman/paru, systemctl system, montajes, etc. #infra #lesson
 
-
 <!-- 2026-10-11 16:51:59 [01a12ba3] -->
 - [[barbershop-saas]] Git (2026-10-11): GitLab es remote primario (`origin` = gitlab.com:luga97/barbershop-saas, proyecto id 87497446), GitHub es solo espejo/respaldo sin CI (`github`, sync manual `git push github main --tags`). `main` protegida en GitLab: push=0 (solo vía MR), merge=30, "pipelines must succeed" ON → NUNCA pushear directo a main, usar `git checkout -b <rama> && glab mr create --fill && glab mr merge`. Auth GitLab: glab CLI, token en OS keyring (luis hizo `glab auth login`, host gitlab.com, protocolo SSH; clave SSH id 21796521). CI: `.gitlab-ci.yml` (jobs paralelos backend/client-ui, ~2 min en shared runners); workflow de GitHub Actions eliminado. #infra #project
-
 
 <!-- 2026-10-11 19:08:40 [01a12cff] -->
 - main-branch-guard.ts (extensión pi) bloquea CUALQUIER comando bash que contenga `git commit|push|merge` mientras la sesión está en `main` de un repo con origin gitlab.com: inspecciona el string del comando (no es hook de git), así que `--no-verify` NO lo saltea y un comando compuesto (`git switch ... && git commit`) también cae aunque el switch sea legítimo. Flujo que funciona: rama semántica en una llamada aparte, luego commit en la siguiente. GitLab del namespace personal auto-crea proyectos privados on-push (push a remote inexistente lo crea con la rama pusheada como default; corregir con PUT api `default_branch=main`). #infra #lesson
 
-
 <!-- 2026-10-11 19:36:10 [01a12bdc] -->
 - [[barbershop-saas]] Agente de review de MRs (2026-10-11, spec en `spec-agent-review.md` del repo): webhook de GitLab → receiver en home-server via **Tailscale Funnel** (NO pipeline job, NO polling — Luis descartó polling explícitamente). Gate por **threads resolvibles** de GitLab (`only_allow_merge_if_all_threads_are_resolved`), SIN approvals (auto-aprobación de autor bloqueada a nivel instancia, PUT da 404). Comentario "🤖 revisando..." al iniciar que se EDITA con veredicto/error (confirmación de webhook). Fase 1: A/B Pi vs PR-Agent 2-3 semanas. Verificado: lugadev.com aparcado en Hostinger (no CF), home-server tiene Tailscale sin funnel aún, pi via mise allá. Override del agente = responder thread y resolverlo. #project #decision
+
+
+<!-- 2026-10-11 20:05:57 [01a12d15] -->
+- [[barbershop-saas]] Runner propio de CI **OPERATIVO en main** (2026-10-11): gitlab-runner docker-compose en home-server (`~/dotfiles/services/services/gitlab-runner/`, service en `~/services/gitlab-runner`), executor docker imagen node:20, `concurrent=2`, `request_concurrency=2`. Runner GitLab id 57297793, tag `home-server`, locked al proyecto (id 87497446), token en `.env`/`data/config/config.toml` (gitignored). MR !5 mergeada (711f537): `.gitlab-ci.yml` con `tags: [home-server]` en ambos jobs (sin tag, los shared k8s de gitlab.com ganan la carrera). Pipeline de main verificado en el runner: backend 61s / client-ui 50s vs ~90s/job en shared. Nota: rama remota `ci/test-home-runner` NO borrar — contiene d59e9fb (dummy de la sesión de agente review) que no está en ninguna otra rama. #project #infra
+- Lección runners GitLab: token glrt transcrito a mano → "Verifying runner... is not valid"; regenerar programáticamente (`glab api POST user/runners | jq -r .token | ssh … > .env`). El registro en contenedor escribe `data/config/` como root → `chown` tras registrar. `request_concurrency` no aparece en config.toml por defecto (default 1, warning de long polling) — hay que agregarlo bajo `[[runners]]`. `glab mr create` sin TTY (sesiones de agente) crashea en prompt — crear MR directo por API: `glab api -X POST projects/:id/merge_requests -f source_branch=… -f target_branch=main -f title=…` y merge con `PUT …/merge_requests/:iid/merge`. #lesson #infra

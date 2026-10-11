@@ -5,9 +5,9 @@ que se le asigne). Corre en **home-server** como contenedor docker con el socket
 de Docker montado: el executor `docker` levanta cada job como contenedor hermano
 (imagen por defecto `node:20`, igual que el CI del repo).
 
-Motivo: benchmark 2026-10-11 — los 2 jobs del pipeline bajan de ~90 s (shared
-runners) a 45–67 s, y los runners propios no consumen los 400 compute-minutes
-del tier free de gitlab.com.
+Motivo: benchmark 2026-10-11 — pipeline real verificado: backend 76 s / client-ui 59 s
+(vs ~90 s por job en shared runners), y los runners propios no consumen los
+400 compute-minutes del tier free de gitlab.com.
 
 ## Setup (una vez por registro nuevo)
 
@@ -43,7 +43,8 @@ Ver estado en GitLab: proyecto → Settings → CI/CD → Runners (debe figurar
 
 ## Notas
 
-- Runner **locked** al proyecto y con tag `home-server`, pero corre jobs sin tag
+- Los jobs del CI llevan `tags: [home-server]` (routing determinista: sin tag,
+la flota shared de GitLab gana la carrera por los jobs).- Runner **locked** al proyecto y con tag `home-server`, pero corre jobs sin tag
   (untagged): se lleva todo el pipeline del proyecto; los shared runners de
   gitlab.com quedan solo como testigo. Si home-server está caído, los jobs
   quedan pending hasta que vuelva (sin fallback automático a shared).
