@@ -93,3 +93,7 @@
 <!-- 2026-10-11 15:41:54 [01a12ba3] -->
 <!-- 2026-10-11 -->
 - sudo en omarchy: Luis NUNCA puede ser ejecutado directamente por pi (shell no interactiva, no hay tty para la contraseña). Ante cualquier necesidad de sudo: SIEMPRE pedirle a Luis que lo ejecute él en su terminal, dándole el comando exacto. Aplica a instalaciones pacman/paru, systemctl system, montajes, etc. #infra #lesson
+
+
+<!-- 2026-10-11 16:51:59 [01a12ba3] -->
+- [[barbershop-saas]] Git (2026-10-11): GitLab es remote primario (`origin` = gitlab.com:luga97/barbershop-saas, proyecto id 87497446), GitHub es solo espejo/respaldo sin CI (`github`, sync manual `git push github main --tags`). `main` protegida en GitLab: push=0 (solo vía MR), merge=30, "pipelines must succeed" ON → NUNCA pushear directo a main, usar `git checkout -b <rama> && glab mr create --fill && glab mr merge`. Auth GitLab: glab CLI, token en OS keyring (luis hizo `glab auth login`, host gitlab.com, protocolo SSH; clave SSH id 21796521). CI: `.gitlab-ci.yml` (jobs paralelos backend/client-ui, ~2 min en shared runners); workflow de GitHub Actions eliminado. #infra #project
