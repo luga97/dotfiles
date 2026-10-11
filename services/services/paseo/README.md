@@ -14,6 +14,15 @@ systemd user para que tenga acceso a pi, `~/.pi` y git del host.
 | `.local/bin/paseo-daemon` | `~/.local/bin/paseo-daemon` | wrapper del binario (ver abajo) |
 | `services/paseo/README.md` | `~/services/paseo/README.md` | este README |
 
+## Versión del CLI: fijada en 0.8.0
+
+NO subir `@getpaseo/cli` sin plan de migración: la 0.11.2 **eliminó `--listen`**
+(y el resto de flags de `paseo start`) — ahora van en `paseo daemon config set
+daemon.listen ...`. Ambas instancias corren 0.8.0 para que la unit compartida
+sea válida en las dos máquinas. Cuando se migre: actualizar flags de la unit,
+`paseo daemon config set` en cada host y reiniciar AMBOS daemons (ojo: en
+home-server el restart mata las sesiones de agentes que corre paseo).
+
 ## Por qué el wrapper `paseo-daemon`
 
 La unidad NO ejecuta `mise/installs/node/latest/bin/paseo` directo: al instalar

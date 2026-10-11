@@ -84,3 +84,8 @@
 
 <!-- 2026-10-08 23:14:59 [01a11e6c] -->
 - Dual boot Windows en omarchy: disco `sda` (sda2 = C: NTFS, sin ESP propia — el bootmgfw.efi de Windows vive en la ESP compartida nvme0n1p1 con Limine). Entrada "Windows Boot Manager" agregada al menú de Limine vía `limine-entry-tool --scan` (entrada auto-generada, order-priority=20, persiste a updates). Timeout de Limine comentado → arranca directo a Omarchy; menú con tecla en boot. #infra
+
+<!-- 2026-10-11 10:27:19 [01a12b16] -->
+- SSH a omarchy desde home-server: `ssh -i ~/.ssh/id_ed25519 luis@omarchy` (el usuario allá es `luis`, NO `user`; con `user` da Permission denied). Session por systemctl --user requiere `XDG_RUNTIME_DIR=/run/user/$(id -u)`. #infra
+
+- Paseo: CLI fijado en 0.8.0 en AMBAS máquinas — la 0.11.2 eliminó `--listen` (flags van a `paseo daemon config`). La unit user de paseo NO apunta a mise/installs/node/latest: usa wrapper `~/.local/bin/paseo-daemon` (repo: services/.local/bin/paseo-daemon) que cae a la versión de node que tenga el CLI — mise mueve `latest` al instalar node nuevo y dejó a omarchy en bucle 203/EXEC del 2026-09-21 al 2026-10-11 (el daemon no estaba caído: reiniciaba cada 5s fallando). En omarchy NO reiniciar paseo a la ligera; en home-server JAMÁS sin avisar: el daemon de home-server corre las sesiones de agentes de paseo (restart = mata sesiones). #infra #lesson
