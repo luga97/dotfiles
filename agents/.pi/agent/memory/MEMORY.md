@@ -89,3 +89,7 @@
 - SSH a omarchy desde home-server: `ssh -i ~/.ssh/id_ed25519 luis@omarchy` (el usuario allá es `luis`, NO `user`; con `user` da Permission denied). Session por systemctl --user requiere `XDG_RUNTIME_DIR=/run/user/$(id -u)`. #infra
 
 - Paseo: CLI fijado en 0.8.0 en AMBAS máquinas — la 0.11.2 eliminó `--listen` (flags van a `paseo daemon config`). La unit user de paseo NO apunta a mise/installs/node/latest: usa wrapper `~/.local/bin/paseo-daemon` (repo: services/.local/bin/paseo-daemon) que cae a la versión de node que tenga el CLI — mise mueve `latest` al instalar node nuevo y dejó a omarchy en bucle 203/EXEC del 2026-09-21 al 2026-10-11 (el daemon no estaba caído: reiniciaba cada 5s fallando). En omarchy NO reiniciar paseo a la ligera; en home-server JAMÁS sin avisar: el daemon de home-server corre las sesiones de agentes de paseo (restart = mata sesiones). #infra #lesson
+
+<!-- 2026-10-11 15:41:54 [01a12ba3] -->
+<!-- 2026-10-11 -->
+- sudo en omarchy: Luis NUNCA puede ser ejecutado directamente por pi (shell no interactiva, no hay tty para la contraseña). Ante cualquier necesidad de sudo: SIEMPRE pedirle a Luis que lo ejecute él en su terminal, dándole el comando exacto. Aplica a instalaciones pacman/paru, systemctl system, montajes, etc. #infra #lesson
