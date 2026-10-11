@@ -101,3 +101,7 @@
 
 <!-- 2026-10-11 19:08:40 [01a12cff] -->
 - main-branch-guard.ts (extensión pi) bloquea CUALQUIER comando bash que contenga `git commit|push|merge` mientras la sesión está en `main` de un repo con origin gitlab.com: inspecciona el string del comando (no es hook de git), así que `--no-verify` NO lo saltea y un comando compuesto (`git switch ... && git commit`) también cae aunque el switch sea legítimo. Flujo que funciona: rama semántica en una llamada aparte, luego commit en la siguiente. GitLab del namespace personal auto-crea proyectos privados on-push (push a remote inexistente lo crea con la rama pusheada como default; corregir con PUT api `default_branch=main`). #infra #lesson
+
+
+<!-- 2026-10-11 19:36:10 [01a12bdc] -->
+- [[barbershop-saas]] Agente de review de MRs (2026-10-11, spec en `spec-agent-review.md` del repo): webhook de GitLab → receiver en home-server via **Tailscale Funnel** (NO pipeline job, NO polling — Luis descartó polling explícitamente). Gate por **threads resolvibles** de GitLab (`only_allow_merge_if_all_threads_are_resolved`), SIN approvals (auto-aprobación de autor bloqueada a nivel instancia, PUT da 404). Comentario "🤖 revisando..." al iniciar que se EDITA con veredicto/error (confirmación de webhook). Fase 1: A/B Pi vs PR-Agent 2-3 semanas. Verificado: lugadev.com aparcado en Hostinger (no CF), home-server tiene Tailscale sin funnel aún, pi via mise allá. Override del agente = responder thread y resolverlo. #project #decision

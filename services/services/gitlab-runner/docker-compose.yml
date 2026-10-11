@@ -1,0 +1,15 @@
+services:
+  gitlab-runner:
+    image: gitlab/gitlab-runner:latest
+    container_name: gitlab-runner
+    restart: unless-stopped
+    volumes:
+      # Config del runner (config.toml con el token — gitignored vía ./.gitignore)
+      - ./data/config:/etc/gitlab-runner
+      # El executor docker levanta los jobs como contenedores hermanos
+      - /var/run/docker.sock:/var/run/docker.sock
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
