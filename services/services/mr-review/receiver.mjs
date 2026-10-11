@@ -1,0 +1,301 @@
+#!/usr/bin/env node
+/**
+ * mr-review receiver — agente de review de MRs (barbershop-saas)
+ *
+ * Recibe webhooks de GitLab (via Tailscale Funnel → 127.0.0.1:8080), corre
+ * reviews con pi (y PR-Agent docker en A/B) y postea veredictos en los MRs.
+ *
+ * Env (EnvironmentFile ~/.config/mr-review/secrets.env):
+ *   WEBHOOK_SECRET  — secreto compartido del webhook de GitLab
+ *   GITLAB_TOKEN    — project access token (scope api) del bot
+ *
+ * Ver spec-agent-review.md en el repo del proyecto.
+ */
+import http from "node:http";
+import crypto from "node:crypto";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
+
+const pexec = promisify(execFile);
+
+// ─── Config ─────────────────────────────────────────────────────────────────
+const PORT = parseInt(process.env.MR_REVIEW_PORT || "8080", 10);
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || "";
+const GITLAB_TOKEN = process.env.GITLAB_TOKEN || "";
+const GITLAB_API = "https://gitlab.com/api/v4";
+const PROJECT_ID = 87497446; // luga97/barbershop-saas
+const REPO_DIR = path.join(os.homedir(), "repos/mr-review/barbershop-saas");
+const STATE_DIR = path.join(os.homedir(), ".local/state/mr-review");
+const STATE_FILE = path.join(STATE_DIR, "state.json");
+const ZAI_AUTH = path.join(os.homedir(), ".pi/agent/auth.json");
+const ENABLE_PR_AGENT = process.env.MR_REVIEW_PR_AGENT !== "0"; // A/B Fase 1
+const THREADS_MODE = process.env.MR_REVIEW_THREADS === "1"; // Fase 2: threads resolvibles
+const PI_TIMEOUT_MS = 5 * 60 * 1000;
+const PR_AGENT_TIMEOUT_MS = 5 * 60 * 1000;
+const DIFF_MAX_CHARS = 50000;
+const DOC_MAX_CHARS = 8000;
+const MAX_FINDINGS = 8;
+
+const BOT_NAME = "Pi";
+
+if (!WEBHOOK_SECRET || !GITLAB_TOKEN) {
+  console.error("[fatal] WEBHOOK_SECRET/GITLAB_TOKEN no definidos (EnvironmentFile?)");
+  process.exit(1);
+}
+
+// ─── Utilidades ─────────────────────────────────────────────────────────────
+const log = (...a) => console.log(new Date().toISOString(), ...a);
+
+async function git(args, opts = {}) {
+  return pexec("git", args, { cwd: REPO_DIR, maxBuffer: 20 * 1024 * 1024, ...opts }).then(r => r.stdout);
+}
+
+async function gitlab(method, endpoint, body) {
+  const res = await fetch(`${GITLAB_API}/projects/${PROJECT_ID}${endpoint}`, {
+    method,
+    headers: { "PRIVATE-TOKEN": GITLAB_TOKEN, "Content-Type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`GitLab ${method} ${endpoint} → ${res.status}: ${text.slice(0, 300)}`);
+  return text ? JSON.parse(text) : null;
+}
+
+function safeJson(text) {
+  // pi antepone secuencias OSC de terminal; extraer el JSON entre llaves.
+  const clean = text.replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, "");
+  const i = clean.indexOf("{");
+  const j = clean.lastIndexOf("}");
+  if (i === -1 || j <= i) throw new Error("sin JSON en la salida");
+  return JSON.parse(clean.slice(i, j + 1));
+}
+
+function normalizeVerdict(v) {
+  const s = String(v || "").toLowerCase();
+  if (s.includes("request") || s.includes("changes")) return "request_changes";
+  if (s.includes("approve")) return "approve";
+  return null;
+}
+
+// ─── Estado ─────────────────────────────────────────────────────────────────
+let state = {};
+try { state = JSON.parse(fs.readFileSync(STATE_FILE, "utf8")); } catch { /* primera vez */ }
+function saveState() {
+  fs.mkdirSync(STATE_DIR, { recursive: true });
+  fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
+}
+
+// ─── Cola serial (último SHA por MR gana) ───────────────────────────────────
+const pending = new Map(); // iid → {sha}
+let working = false;
+
+function enqueue(iid, sha) {
+  pending.set(iid, sha);
+  log(`encolado MR !${iid} @ ${sha.slice(0, 8)} (cola: ${pending.size})`);
+  drain();
+}
+
+async function drain() {
+  if (working) return;
+  working = true;
+  try {
+    while (pending.size > 0) {
+      const [iid, sha] = pending.entries().next().value;
+      pending.delete(iid);
+      try {
+        await reviewMr(iid, sha);
+      } catch (e) {
+        log(`ERROR revisando MR !${iid}:`, e.message);
+        await reportFailure(iid, sha, e.message).catch(() => {});
+      }
+    }
+  } finally {
+    working = false;
+  }
+}
+
+// ─── Repo local ─────────────────────────────────────────────────────────────
+async function ensureRepo() {
+  if (!fs.existsSync(path.join(REPO_DIR, ".git"))) {
+    fs.mkdirSync(path.dirname(REPO_DIR), { recursive: true });
+    log("clonando repo…");
+    await pexec("git", ["clone", `https://oauth2:${GITLAB_TOKEN}@gitlab.com/luga97/barbershop-saas.git`, REPO_DIR],
+      { maxBuffer: 20 * 1024 * 1024 });
+  }
+  await git(["fetch", "-q", "origin",
+    "+refs/merge-requests/*/head:refs/remotes/mr/*",
+    "+refs/heads/main:refs/remotes/origin/main"]);
+}
+
+async function reviewMr(iid, sha) {
+  const t0 = Date.now();
+  log(`revisando MR !${iid} @ ${sha.slice(0, 8)} (pi${ENABLE_PR_AGENT ? " + pr-agent" : ""})`);
+
+  // Comentario de inicio — la confirmación visible de que el webhook llegó.
+  const startNote = await gitlab("POST", `/merge_requests/${iid}/notes`, {
+    body: `🤖 ${BOT_NAME} Review — revisando… (\`${sha.slice(0, 8)}\`)`,
+  });
+
+  await ensureRepo();
+  await git(["checkout", "-q", "--detach", `refs/remotes/mr/${iid}/head`]);
+
+  const diff = (await git(["diff", "--find-renames", "origin/main...HEAD"])).slice(0, DIFF_MAX_CHARS);
+  if (!diff.trim()) {
+    await editNote(iid, startNote.id, `🤖 ${BOT_NAME} Review — sin diff contra main, nada que revisar.`);
+    return;
+  }
+
+  // Contexto del repo: convenciones documentadas
+  const docs = [];
+  for (const f of ["AGENTS.md", "backend/AGENTS.md", "client-ui/AGENTS.md"]) {
+    try {
+      const p = path.join(REPO_DIR, f);
+      docs.push(`### ${f}\n\n${fs.readFileSync(p, "utf8").slice(0, DOC_MAX_CHARS)}`);
+    } catch { /* no existe */ }
+  }
+
+  const prompt = [
+    "Sos el code reviewer oficial de este proyecto (monorepo npm workspaces: backend NestJS 11 + client-ui React 19).",
+    "Revisá el diff del MR contra main con criterio de ingeniería senior: bugs reales, seguridad, errores de diseño,",
+    "incumplimiento de las convenciones del repo, y coherencia con la estructura existente (DDD en backend/src/apps/,",
+    "módulos por feature en client-ui, i18n trilingüe es/en/pt-BR, Conventional Commits).",
+    "No señales detalles de estilo menor. Máximo 8 findings, solo los que valen.",
+    "",
+    "Respondé EXCLUSIVAMENTE un JSON válido (sin markdown, sin texto antes ni después) con esta forma exacta:",
+    '{"verdict": "approve" | "request_changes", "summary": "resumen en español (2-5 oraciones, lenguaje natural)", "findings": [{"severity": "high|medium|low", "file": "ruta", "comment": "hallazgo concreto y accionable"}]}',
+    "",
+    "=== CONVENCIONES DEL PROYECTO ===",
+    ...docs,
+    "",
+    "=== DIFF DEL MR ===",
+    diff,
+  ].join("\n");
+
+  // ── Review con pi ──
+  const { stdout } = await pexec("pi", ["-p", prompt], {
+    cwd: REPO_DIR,
+    timeout: PI_TIMEOUT_MS,
+    maxBuffer: 20 * 1024 * 1024,
+    env: { ...process.env, HOME: os.homedir() },
+  });
+  let review = safeJson(stdout);
+  let verdict = normalizeVerdict(review.verdict);
+  if (!verdict) throw new Error(`verdict inválido: ${JSON.stringify(review.verdict).slice(0, 100)}`);
+  const findings = Array.isArray(review.findings) ? review.findings.slice(0, MAX_FINDINGS) : [];
+
+  // ── Comentario final (se edita sobre el de inicio) ──
+  const icon = verdict === "approve" ? "✅" : "⚠️";
+  const title = verdict === "approve" ? "Aprobado" : "Cambios solicitados";
+  let body = [
+    `## 🤖 ${BOT_NAME} Review — ${icon} ${title}`,
+    "",
+    review.summary || "",
+    "",
+  ];
+  if (findings.length) {
+    body.push("**Hallazgos:**");
+    for (const f of findings) {
+      body.push(`- **[${f.severity || "low"}]** \`${f.file}\`: ${f.comment}`);
+    }
+    body.push("");
+  }
+  body.push(`---`, `<sub>revisado \`${sha.slice(0, 8)}\` · ${((Date.now() - t0) / 1000).toFixed(0)}s · el veredicto del agente es insumo: la decisión de mergear es humana</sub>`);
+  await editNote(iid, startNote.id, body.join("\n"));
+
+  // Fase 2 (THREADS_MODE=1): un thread resolvible por finding (bloquea merge).
+  if (THREADS_MODE && verdict === "request_changes") {
+    for (const f of findings) {
+      await gitlab("POST", `/merge_requests/${iid}/discussions`, {
+        body: `🤖 **[${f.severity || "low"}]** \`${f.file}\`: ${f.comment}`,
+      }).catch(e => log("thread falló:", e.message));
+    }
+  }
+
+  state[iid] = { sha, verdict, reviewedAt: new Date().toISOString(), secs: ((Date.now() - t0) / 1000).toFixed(0) };
+  saveState();
+  log(`MR !${iid} revisado: ${verdict} (${state[iid].secs}s, ${findings.length} findings)`);
+
+  // ── PR-Agent (A/B Fase 1) — postea su propio comentario etiquetado ──
+  if (ENABLE_PR_AGENT) {
+    await runPrAgent(iid).catch(e => log(`pr-agent falló en !${iid}:`, e.message));
+  }
+}
+
+async function runPrAgent(iid) {
+  const zai = JSON.parse(fs.readFileSync(ZAI_AUTH, "utf8"));
+  const t0 = Date.now();
+  await pexec("docker", [
+    "run", "--rm",
+    "-e", "GITLAB__URL=https://gitlab.com",
+    "-e", `GITLAB__PERSONAL_ACCESS_TOKEN=${GITLAB_TOKEN}`,
+    "-e", "CONFIG__GIT_PROVIDER=gitlab",
+    "-e", "ANTHROPIC_API_KEY=" + zai.zai.key,
+    "-e", "ANTHROPIC_API_BASE=https://api.z.ai/api/anthropic",
+    "-e", "CONFIG__MODEL=anthropic/glm-4.6",
+    "-e", "CONFIG__CUSTOM_MODEL_MAX_TOKENS=64000",
+    "pragent/pr-agent",
+    "--pr_url", `https://gitlab.com/luga97/barbershop-saas/-/merge_requests/${iid}`,
+    "review",
+  ], { timeout: PR_AGENT_TIMEOUT_MS, maxBuffer: 10 * 1024 * 1024 });
+  log(`pr-agent terminó !${iid} (${((Date.now() - t0) / 1000).toFixed(0)}s)`);
+}
+
+// ─── Notas ──────────────────────────────────────────────────────────────────
+async function editNote(iid, noteId, body) {
+  return gitlab("PUT", `/merge_requests/${iid}/notes/${noteId}`, { body });
+}
+
+async function reportFailure(iid, sha, reason) {
+  // Si el comentario de inicio existe de un intento fallido, editarlo; si no, crear uno.
+  const notes = await gitlab("GET", `/merge_requests/${iid}/notes?per_page=10&sort=desc`);
+  const mine = (notes || []).find(n =>
+    n.author && n.author.username.startsWith(`project_${PROJECT_ID}_bot`) && n.body.includes("revisando…"));
+  const body = `🤖 ${BOT_NAME} Review — ❌ Review falló: ${String(reason).slice(0, 400)}`;
+  if (mine) return editNote(iid, mine.id, body);
+  return gitlab("POST", `/merge_requests/${iid}/notes`, { body });
+}
+
+// ─── HTTP ───────────────────────────────────────────────────────────────────
+const server = http.createServer((req, res) => {
+  if (req.method === "GET" && req.url === "/health") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({ ok: true, working, queue: [...pending.keys()] }));
+  }
+  if (req.method !== "POST" || req.url !== "/webhook") {
+    res.writeHead(404); return res.end();
+  }
+  let chunks = [];
+  req.on("data", c => chunks.push(c));
+  req.on("end", () => {
+    const ok = crypto.timingSafeEqual(
+      crypto.createHash("sha256").update(req.headers["x-gitlab-token"] || "").digest(),
+      crypto.createHash("sha256").update(WEBHOOK_SECRET).digest(),
+    );
+    if (!ok) { log("webhook con secreto inválido — ignorado"); res.writeHead(403); return res.end(); }
+    res.writeHead(200); res.end("ok");
+
+    try {
+      const ev = JSON.parse(Buffer.concat(chunks).toString());
+      if (ev.object_kind !== "merge_request") return;
+      const oa = ev.object_attributes || {};
+      const iid = oa.iid;
+      const sha = oa.last_commit?.id;
+      if (!iid || !sha) return;
+      if (ev.project?.id !== PROJECT_ID) return;
+      if (oa.work_in_progress) return log(`!${iid} es draft — skip`);
+      if (oa.state_id !== undefined && oa.state_id !== 1) return log(`!${iid} no está abierto (state ${oa.state_id}) — skip`);
+      const action = oa.action || "open";
+      if (action === "update" && !oa.oldrev) return log(`!${iid} update sin commits (metadatos) — skip`);
+      if (!["open", "reopen", "update"].includes(action)) return log(`!${iid} action=${action} — skip`);
+      if (state[iid]?.sha === sha) return log(`!${iid} @ ${sha.slice(0, 8)} ya revisado — skip`);
+      enqueue(iid, sha);
+    } catch (e) {
+      log("payload inválido:", e.message);
+    }
+  });
+});
+
+server.listen(PORT, "127.0.0.1", () => log(`receiver escuchando en 127.0.0.1:${PORT} (pr-agent: ${ENABLE_PR_AGENT ? "on" : "off"}, threads: ${THREADS_MODE ? "on" : "off"})`));
