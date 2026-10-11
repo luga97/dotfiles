@@ -81,3 +81,9 @@ estado en `~/.paseo`, Web UI en http://localhost:6767.
   termina, quedando como huérfanos fuera de systemd. Usar siempre las unidades;
   si es una prueba puntual, redirigir stdout/stderr a un archivo o /dev/null y
   matar el proceso al terminar.
+- **Globales de npm + mise `latest`**: si una unidad apunta a
+  `~/.local/share/mise/installs/node/latest/bin/<paquete>`, al instalar un node
+  más nuevo mise mueve `latest` y el paquete queda huérfano → bucle `203/EXEC`
+  (paseo quedó así días en omarchy, 2026-09/10). No apuntar directo a `latest`:
+  usar el wrapper `services/.local/bin/paseo-daemon` (cae a la versión que tenga
+  el CLI) y reinstalar el global tras cada upgrade de node.

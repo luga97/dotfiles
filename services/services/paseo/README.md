@@ -11,7 +11,18 @@ systemd user para que tenga acceso a pi, `~/.pi` y git del host.
 | Archivo | Destino (stow) | Qué es |
 |---------|----------------|--------|
 | `.config/systemd/user/paseo.service` | `~/.config/systemd/user/paseo.service` | unidad systemd user |
+| `.local/bin/paseo-daemon` | `~/.local/bin/paseo-daemon` | wrapper del binario (ver abajo) |
 | `services/paseo/README.md` | `~/services/paseo/README.md` | este README |
+
+## Por qué el wrapper `paseo-daemon`
+
+La unidad NO ejecuta `mise/installs/node/latest/bin/paseo` directo: al instalar
+un node más nuevo, **mise mueve el symlink `latest`** y el CLI (instalado con
+`npm i -g` en una versión concreta) queda huérfano → el daemon entra en bucle
+`203/EXEC` (le pasó a omarchy del 2026-09-21 al 2026-10-11: alguien instaló
+node 26.9.0 y el CLI estaba solo en 26.8.2). El wrapper prueba `latest` y, si
+no está, cae a la versión más nueva que tenga el CLI. Tras un upgrade de node
+igual conviene reinstalar: `mise exec node@latest -- npm install -g @getpaseo/cli --allow-scripts=esbuild,node-pty`
 
 ## Instalación en una máquina nueva
 

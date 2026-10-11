@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Lanzador del daemon de paseo, inmune a los upgrades de node de mise.
+#
+# La unidad systemd apunta acá (ExecStart=%h/.local/bin/paseo-daemon) en vez de
+# a mise/installs/node/latest/bin/paseo directamente: al instalar un node más
+# nuevo, mise mueve el symlink "latest" y el CLI puede quedar huérfano en la
+# versión vieja (así quedó el daemon de omarchy en bucle 203/EXEC desde
+# 2026-09-21 hasta 2026-10-11). Estrategia: probar "latest" primero y, si el
+# binario no está, caer a la versión más nueva que tenga @getpaseo/cli.
+set -euo pipefail
+
+NODE_ROOT="$HOME/.local/share/mise/installs/node"
+
+# Versiones de node que tienen el CLI, más nueva primero (sort -V = semver-ish)
+mapfile -t versioned < <(ls -1d "$NODE_ROOT"/*/bin/paseo 2>/dev/null | sort -rV)
+
+for candidate in "$NODE_ROOT/latest/bin/paseo" "${versioned[@]}"; do
+    if [[ -x "$candidate" ]]; then
+        exec "$candidate" "$@"
+    fi
+done
+
+echo "paseo-daemon: @getpaseo/cli no encontrado en ninguna versión de node de mise." >&2
+echo "  Instalarlo con: mise exec node@latest -- npm install -g @getpaseo/cli --allow-scripts=esbuild,node-pty" >&2
+exit 127
