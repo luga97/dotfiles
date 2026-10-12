@@ -33,6 +33,7 @@ const STATE_FILE = path.join(STATE_DIR, "state.json");
 const ZAI_AUTH = path.join(os.homedir(), ".pi/agent/auth.json");
 const ENABLE_PR_AGENT = process.env.MR_REVIEW_PR_AGENT !== "0"; // A/B Fase 1
 const THREADS_MODE = process.env.MR_REVIEW_THREADS === "1"; // Fase 2: threads resolvibles
+const PR_AGENT_MODEL = "glm-4.6"; // el A/B compara tools con su config natural: pi usa su default (ver comentario)
 const PI_TIMEOUT_MS = 10 * 60 * 1000;
 const PR_AGENT_TIMEOUT_MS = 5 * 60 * 1000;
 const DIFF_MAX_CHARS = 50000;
@@ -59,7 +60,7 @@ fs.writeFileSync(PR_AGENT_ENV_FILE, [
   "CONFIG__GIT_PROVIDER=gitlab",
   `ANTHROPIC_API_KEY=${ZAI_KEY}`,
   "ANTHROPIC_API_BASE=https://api.z.ai/api/anthropic",
-  "CONFIG__MODEL=anthropic/glm-4.6",
+  `CONFIG__MODEL=anthropic/${PR_AGENT_MODEL}`,
   "CONFIG__CUSTOM_MODEL_MAX_TOKENS=64000",
 ].join("\n") + "\n", { mode: 0o600 });
 
@@ -127,6 +128,29 @@ function normalizeVerdict(v) {
   return null;
 }
 
+/** NDJSON de `pi -p --mode json`: extrae texto del review + usage + modelo. */
+function parsePiOutput(stdout) {
+  let text = "", usage = null, model = "";
+  for (const l of stdout.split("\n")) {
+    if (!l.startsWith("{")) continue;
+    try {
+      const d = JSON.parse(l);
+      if (d.type === "message_end" && d.message) {
+        const c = d.message.content;
+        text = Array.isArray(c) ? c.map(b => b.text || "").join("") : String(c || "");
+        usage = d.message.usage || null;
+        model = d.message.model || "";
+      }
+    } catch { /* línea parcial */ }
+  }
+  if (!text) throw new Error("sin salida de pi en modo json");
+  return { text, usage, model };
+}
+
+function fmtK(n) {
+  return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
+}
+
 function errText(e) {
   if (e.killed) return `timeout tras ${Math.round(PI_TIMEOUT_MS / 60000)} min`;
   if (e.stderr) return redact(String(e.stderr).slice(-350));
@@ -178,6 +202,8 @@ async function ensureRepo() {
     await pexec("git", ["clone", `https://oauth2:${GITLAB_TOKEN}@gitlab.com/luga97/barbershop-saas.git`, REPO_DIR],
       { maxBuffer: 20 * 1024 * 1024 });
   }
+  // Auto-reparación ante rotación de token: el remote siempre lleva el token vigente.
+  await git(["remote", "set-url", "origin", `https://oauth2:${GITLAB_TOKEN}@gitlab.com/luga97/barbershop-saas.git`]);
   await git(["fetch", "-q", "origin",
     "+refs/merge-requests/*/head:refs/remotes/mr/*",
     "+refs/heads/main:refs/remotes/origin/main"]);
@@ -243,13 +269,14 @@ async function reviewMr(iid, sha, only) {
       diff,
     ].join("\n");
 
-    // ── Review con pi ──
-    const { stdout } = await run("pi", ["-p", prompt, "--thinking", "medium"], {
+    // ── Review con pi (modo json: usage y modelo exactos) ──
+    const { stdout } = await run("pi", ["-p", "--mode", "json", "--thinking", "medium", prompt], {
       cwd: REPO_DIR,
       timeoutMs: PI_TIMEOUT_MS,
       env: { ...process.env, HOME: os.homedir() },
     });
-    const review = safeJson(stdout);
+    const piOut = parsePiOutput(stdout);
+    const review = safeJson(piOut.text);
     const verdict = normalizeVerdict(review.verdict);
     if (!verdict) throw new Error(`verdict inválido: ${JSON.stringify(review.verdict).slice(0, 100)}`);
     const findings = Array.isArray(review.findings) ? review.findings.slice(0, MAX_FINDINGS) : [];
@@ -257,6 +284,10 @@ async function reviewMr(iid, sha, only) {
     // ── Comentario final (se edita sobre el de inicio) ──
     const icon = verdict === "approve" ? "✅" : "⚠️";
     const title = verdict === "approve" ? "Aprobado" : "Cambios solicitados";
+    const usageStr = piOut.usage
+      ? ` · ${fmtK(piOut.usage.totalTokens)} tokens · $${(piOut.usage.cost?.total ?? 0).toFixed(4)}`
+      : "";
+    const modelStr = piOut.model ? ` · \`${piOut.model}\`` : "";
     const body = [
       `## 🤖 ${BOT_NAME} Review — ${icon} ${title}`,
       "",
@@ -270,7 +301,7 @@ async function reviewMr(iid, sha, only) {
       }
       body.push("");
     }
-    body.push(`---`, `<sub>revisado \`${sha.slice(0, 8)}\` · ${((Date.now() - t0) / 1000).toFixed(0)}s · el veredicto del agente es insumo: la decisión de mergear es humana</sub>`);
+    body.push(`---`, `<sub>${BOT_NAME}${modelStr} · revisado \`${sha.slice(0, 8)}\` · ${((Date.now() - t0) / 1000).toFixed(0)}s${usageStr} · el veredicto del agente es insumo: la decisión de mergear es humana</sub>`);
     await editNote(iid, startNote.id, body.join("\n"));
 
     // Fase 2 (THREADS_MODE=1): un thread resolvible por finding (bloquea merge).
@@ -295,9 +326,10 @@ async function reviewMr(iid, sha, only) {
       body: `🤖 PR-Agent Review (Qodo) — revisando… (\`${sha.slice(0, 8)}\`)`,
     });
     try {
-      await runPrAgent(iid);
+      const maxTok = await runPrAgent(iid);
+      const tokStr = maxTok ? ` · ~${fmtK(maxTok)} tokens de contexto` : "";
       await editNote(iid, paNote.id,
-        `🤖 PR-Agent Review (Qodo) — ✅ terminó: su review es el comentario **"PR Reviewer Guide 🔍"** de arriba (\`${sha.slice(0, 8)}\`).`);
+        `🤖 PR-Agent Review (Qodo) — ✅ terminó: su review es el comentario **"PR Reviewer Guide 🔍"** de arriba (\`${sha.slice(0, 8)}\` · glm-4.6${tokStr}).`);
     } catch (e) {
       await editNote(iid, paNote.id,
         `🤖 PR-Agent Review (Qodo) — ❌ falló: ${String(errText(e)).slice(0, 300)}`);
@@ -311,13 +343,16 @@ async function runPrAgent(iid) {
   // El user manager puede tener un view viejo de los grupos suplementarios
   // (docker se agregó después del arranque de sesión): sudo -g lo resuelve.
   // -n = non-interactive (falla en vez de colgarse pidiendo contraseña).
-  await pexec("sudo", ["-n", "-g", "docker", "docker", "run", "--rm",
+  const { stdout } = await pexec("sudo", ["-n", "-g", "docker", "docker", "run", "--rm",
     "--env-file", PR_AGENT_ENV_FILE,
     "pragent/pr-agent",
     "--pr_url", `https://gitlab.com/luga97/barbershop-saas/-/merge_requests/${iid}`,
     "review",
   ], { timeout: PR_AGENT_TIMEOUT_MS, maxBuffer: 10 * 1024 * 1024 });
-  log(`pr-agent terminó !${iid} (${((Date.now() - t0) / 1000).toFixed(0)}s)`);
+  const toks = [...String(stdout).matchAll(/Tokens?:?\s*([\d,]+)/g)].map(m => parseInt(m[1].replace(/,/g, "")));
+  const maxTok = toks.length ? Math.max(...toks) : null;
+  log(`pr-agent terminó !${iid} (${((Date.now() - t0) / 1000).toFixed(0)}s${maxTok ? `, contexto ~${fmtK(maxTok)} tokens` : ""})`);
+  return maxTok;
 }
 
 // ─── Notas ──────────────────────────────────────────────────────────────────
