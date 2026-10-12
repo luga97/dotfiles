@@ -308,8 +308,10 @@ async function reviewMr(iid, sha, only) {
 
 async function runPrAgent(iid) {
   const t0 = Date.now();
-  await pexec("docker", [
-    "run", "--rm",
+  // El user manager puede tener un view viejo de los grupos suplementarios
+  // (docker se agregó después del arranque de sesión): sudo -g lo resuelve.
+  // -n = non-interactive (falla en vez de colgarse pidiendo contraseña).
+  await pexec("sudo", ["-n", "-g", "docker", "docker", "run", "--rm",
     "--env-file", PR_AGENT_ENV_FILE,
     "pragent/pr-agent",
     "--pr_url", `https://gitlab.com/luga97/barbershop-saas/-/merge_requests/${iid}`,
