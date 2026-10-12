@@ -305,12 +305,18 @@ async function reviewMr(iid, sha, only) {
     body.push(`---`, `<sub>${BOT_NAME}${modelStr} · revisado \`${sha.slice(0, 8)}\` · ${((Date.now() - t0) / 1000).toFixed(0)}s${usageStr} · el veredicto del agente es insumo: la decisión de mergear es humana</sub>`);
     await editNote(iid, startNote.id, body.join("\n"));
 
-    // Fase 2 (THREADS_MODE=1): un thread resolvible por finding (bloquea merge).
-    if (THREADS_MODE && verdict === "request_changes") {
-      for (const f of findings) {
-        await gitlab("POST", `/merge_requests/${iid}/discussions`, {
-          body: `🤖 **[${f.severity || "low"}]** \`${f.file}\`: ${f.comment}`,
-        }).catch(e => log("thread falló:", e.message));
+    // Fase de gate (THREADS_MODE=1, activo desde el A/B por pedido de Luis):
+    // los findings son threads resolvibles → request_changes BLOQUEA el merge
+    // hasta que Luis los resuelva (arreglando o marcando falso positivo).
+    // Fail-safe: si el review falla, los threads viejos siguen bloqueando.
+    if (THREADS_MODE) {
+      await resolveBotThreads(iid); // push nuevo = hallazgos viejos invalidados
+      if (verdict === "request_changes") {
+        for (const f of findings) {
+          await gitlab("POST", `/merge_requests/${iid}/discussions`, {
+            body: `🤖 **[${f.severity || "low"}]** \`${f.file}\`: ${f.comment}`,
+          }).catch(e => log("thread falló:", e.message));
+        }
       }
     }
 
@@ -354,6 +360,25 @@ async function runPrAgent(iid) {
   const maxTok = toks.length ? Math.max(...toks) : null;
   log(`pr-agent terminó !${iid} (${((Date.now() - t0) / 1000).toFixed(0)}s${maxTok ? `, contexto ~${fmtK(maxTok)} tokens` : ""})`);
   return maxTok;
+}
+
+// ─── Threads ────────────────────────────────────────────────────────────────
+const FINDING_PREFIX = "🤖 **[";
+
+/** Resuelve los threads de findings abiertos del bot (invalidados por push nuevo
+ *  o por un veredicto approve posterior). Los de Luis quedan como estén. */
+async function resolveBotThreads(iid) {
+  const discussions = await gitlab("GET", `/merge_requests/${iid}/discussions?per_page=100`);
+  let n = 0;
+  for (const d of discussions || []) {
+    const note = d.notes?.[0];
+    if (!note?.resolvable || note.resolved) continue;
+    if (!note.author?.username.startsWith(`project_${PROJECT_ID}_bot`)) continue;
+    if (!note.body.startsWith(FINDING_PREFIX)) continue;
+    await gitlab("PUT", `/merge_requests/${iid}/discussions/${d.id}?resolved=true`)
+      .then(() => n++).catch(e => log("resolve falló:", errText(e)));
+  }
+  if (n) log(`resueltos ${n} threads viejos del bot en !${iid}`);
 }
 
 // ─── Notas ──────────────────────────────────────────────────────────────────

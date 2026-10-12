@@ -43,6 +43,23 @@ This way:
 
 `omarchy/` contains the minimal defaults that source user customization packages. This means omarchy can be updated without overwriting your personal settings.
 
+### Custom agent usage collector (Z.ai)
+
+`omarchy/.local/bin/omarchy-agent-usage-zai` feeds the omarchy shell "Agents" bar widget with a **Z.ai** tab (the widget only ships claude/codex/fireworks collectors).
+
+- **Limits**: live quota from `https://api.z.ai/api/monitor/usage/quota/limit` (plan level + per-window percentage/reset). Key read from `~/.pi/agent/auth.json` (`zai.key`) or `$ZAI_API_KEY`.
+- **Local stats**: tokens by day/model scanned from pi/omp sessions whose messages ran on the `zai` provider.
+
+It stows to `~/.local/bin/` and needs a one-time symlink so `omarchy-agent-usage-update` discovers it (it only scans `$OMARCHY_PATH/bin`):
+
+```bash
+sudo ln -s ~/.local/bin/omarchy-agent-usage-zai /usr/share/omarchy/bin/omarchy-agent-usage-zai
+omarchy-agent-usage-update zai   # regenerates ~/.local/state/omarchy/agents/usage/zai.json
+omarchy-shell omarchy.agents refresh
+```
+
+Note: `~/.local/bin` is itself a stowed symlink to this package, so editing the collector here updates it in place. The tab icon lives outside dotfiles (root-owned omarchy clone at `~/.local/share/omarchy/shell/plugins/agents/assets/zai.svg`); if it ever disappears, the widget falls back to the generic bar glyph.
+
 ## Stow order
 
 When stowing, hardware packages should be stowed **before** program packages so that hardware-specific files exist when program configs source them:

@@ -14,6 +14,7 @@ ExecStart=%h/.local/share/mise/shims/node %h/services/mr-review/receiver.mjs
 # PATH con shims de mise para que el receiver encuentre `pi` y `git`.
 Environment=PATH=%h/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin
 EnvironmentFile=%h/.config/mr-review/secrets.env
+Environment=MR_REVIEW_THREADS=1
 # Docker: el gestor user no hereda grupos suplementarios añadidos tras su arranque,
 # así que pr-agent se invoca vía `sg docker -c` (ver runPrAgent en receiver.mjs).
 # Opcionales (defaults en el código): MR_REVIEW_PR_AGENT=0 desactiva el A/B,
