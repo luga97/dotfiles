@@ -33,7 +33,7 @@ const STATE_FILE = path.join(STATE_DIR, "state.json");
 const ZAI_AUTH = path.join(os.homedir(), ".pi/agent/auth.json");
 const ENABLE_PR_AGENT = process.env.MR_REVIEW_PR_AGENT !== "0"; // A/B Fase 1
 const THREADS_MODE = process.env.MR_REVIEW_THREADS === "1"; // Fase 2: threads resolvibles
-const PI_TIMEOUT_MS = 5 * 60 * 1000;
+const PI_TIMEOUT_MS = 10 * 60 * 1000;
 const PR_AGENT_TIMEOUT_MS = 5 * 60 * 1000;
 const DIFF_MAX_CHARS = 50000;
 const DOC_MAX_CHARS = 8000;
@@ -73,6 +73,12 @@ function safeJson(text) {
   return JSON.parse(clean.slice(i, j + 1));
 }
 
+function errText(e) {
+  if (e.killed) return `timeout tras ${(PI_TIMEOUT_MS / 60000)} min`;
+  if (e.stderr) return String(e.stderr).slice(-350);
+  return String(e.message || e).slice(0, 250);
+}
+
 function normalizeVerdict(v) {
   const s = String(v || "").toLowerCase();
   if (s.includes("request") || s.includes("changes")) return "request_changes";
@@ -108,8 +114,8 @@ async function drain() {
       try {
         await reviewMr(iid, sha);
       } catch (e) {
-        log(`ERROR revisando MR !${iid}:`, e.message);
-        await reportFailure(iid, sha, e.message).catch(() => {});
+        log(`ERROR revisando MR !${iid}:`, errText(e));
+        await reportFailure(iid, sha, errText(e)).catch(() => {});
       }
     }
   } finally {
@@ -140,7 +146,7 @@ async function reviewMr(iid, sha) {
   });
 
   await ensureRepo();
-  await git(["checkout", "-q", "--detach", `refs/remotes/mr/${iid}/head`]);
+  await git(["checkout", "-q", "--detach", `refs/remotes/mr/${iid}`]);
 
   const diff = (await git(["diff", "--find-renames", "origin/main...HEAD"])).slice(0, DIFF_MAX_CHARS);
   if (!diff.trim()) {
@@ -218,9 +224,22 @@ async function reviewMr(iid, sha) {
   saveState();
   log(`MR !${iid} revisado: ${verdict} (${state[iid].secs}s, ${findings.length} findings)`);
 
-  // ── PR-Agent (A/B Fase 1) — postea su propio comentario etiquetado ──
+  // ── PR-Agent (A/B Fase 1) — postea su propio review ("PR Reviewer Guide").
+  // Además el receiver lleva un comentario de estado propio para atribución:
+  // siempre queda claro quién revisó y en qué estado está.
   if (ENABLE_PR_AGENT) {
-    await runPrAgent(iid).catch(e => log(`pr-agent falló en !${iid}:`, e.message));
+    const paNote = await gitlab("POST", `/merge_requests/${iid}/notes`, {
+      body: `🤖 PR-Agent Review (Qodo) — revisando… (\`${sha.slice(0, 8)}\`)`,
+    });
+    try {
+      await runPrAgent(iid);
+      await editNote(iid, paNote.id,
+        `🤖 PR-Agent Review (Qodo) — ✅ terminó: su review es el comentario **"PR Reviewer Guide 🔍"** de arriba (\`${sha.slice(0, 8)}\`).`);
+    } catch (e) {
+      await editNote(iid, paNote.id,
+        `🤖 PR-Agent Review (Qodo) — ❌ falló: ${String(e.message).slice(0, 300)}`);
+      log(`pr-agent falló en !${iid}:`, e.message);
+    }
   }
 }
 
@@ -252,7 +271,8 @@ async function reportFailure(iid, sha, reason) {
   // Si el comentario de inicio existe de un intento fallido, editarlo; si no, crear uno.
   const notes = await gitlab("GET", `/merge_requests/${iid}/notes?per_page=10&sort=desc`);
   const mine = (notes || []).find(n =>
-    n.author && n.author.username.startsWith(`project_${PROJECT_ID}_bot`) && n.body.includes("revisando…"));
+    n.author && n.author.username.startsWith(`project_${PROJECT_ID}_bot`)
+    && n.body.includes(`${BOT_NAME} Review — revisando…`));
   const body = `🤖 ${BOT_NAME} Review — ❌ Review falló: ${String(reason).slice(0, 400)}`;
   if (mine) return editNote(iid, mine.id, body);
   return gitlab("POST", `/merge_requests/${iid}/notes`, { body });
@@ -260,6 +280,30 @@ async function reportFailure(iid, sha, reason) {
 
 // ─── HTTP ───────────────────────────────────────────────────────────────────
 const server = http.createServer((req, res) => {
+  if (req.method === "POST" && req.url === "/retest") {
+    let chunks = [];
+    req.on("data", c => chunks.push(c));
+    req.on("end", async () => {
+      const ok = crypto.timingSafeEqual(
+        crypto.createHash("sha256").update(req.headers["x-gitlab-token"] || "").digest(),
+        crypto.createHash("sha256").update(WEBHOOK_SECRET).digest(),
+      );
+      if (!ok) { res.writeHead(403); return res.end(); }
+      try {
+        const { iid } = JSON.parse(Buffer.concat(chunks).toString());
+        const mr = await gitlab("GET", `/merge_requests/${iid}`);
+        if (mr.state !== "opened") throw new Error(`MR !${iid} no está abierto`);
+        delete state[iid]; saveState();
+        enqueue(iid, mr.sha);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ ok: true, iid, sha: mr.sha }));
+      } catch (e) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ ok: false, error: String(e.message).slice(0, 200) }));
+      }
+    });
+    return;
+  }
   if (req.method === "GET" && req.url === "/health") {
     res.writeHead(200, { "Content-Type": "application/json" });
     return res.end(JSON.stringify({ ok: true, working, queue: [...pending.keys()] }));

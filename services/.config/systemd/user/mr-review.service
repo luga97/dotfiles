@@ -1,0 +1,23 @@
+# Agente de review de MRs (barbershop-saas) — receiver de webhooks de GitLab.
+# GitLab → Tailscale Funnel (https://archlinux.tail27d0f2.ts.net) → 127.0.0.1:8080.
+# Corre reviews con pi (y PR-Agent docker en A/B) y postea veredictos en los MRs.
+# Secretos: ~/.config/mr-review/secrets.env (GITLAB_TOKEN, WEBHOOK_SECRET).
+# Spec completa: spec-agent-review.md en el repo del proyecto.
+
+[Unit]
+Description=MR review agent: webhook receiver + reviews con pi / PR-Agent (barbershop-saas)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=%h/.local/share/mise/shims/node %h/services/mr-review/receiver.mjs
+# PATH con shims de mise para que el receiver encuentre `pi` y `git`.
+Environment=PATH=%h/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=%h/.config/mr-review/secrets.env
+# Opcionales (defaults en el código): MR_REVIEW_PR_AGENT=0 desactiva el A/B,
+# MR_REVIEW_THREADS=1 activa threads resolvibles (Fase 2, bloquea merge).
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
