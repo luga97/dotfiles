@@ -11,4 +11,6 @@
 <!-- 2026-10-12 07:06:17 [01a12bdc] -->
 - [x] barbershop-saas: mergear MR !8 (spec restaurada completa), commit del receiver en ~/dotfiles (untracked), Luis rota key z.ai y se actualiza auth.json de home-server
 <!-- 2026-10-12 07:07:18 [01a12bdc] -->
-- [ ] barbershop-saas: mergear MR !8 (spec completa restaurada) + commit del receiver en ~/dotfiles (untracked) — rotación key z.ai ignorada por decisión de Luis (2026-10-12)
+- [x] barbershop-saas: mergear MR !8 (spec completa restaurada) + commit del receiver en ~/dotfiles (untracked) — rotación key z.ai ignorada por decisión de Luis (2026-10-12)
+<!-- 2026-10-12 07:40:07 [01a12bdc] -->
+- [x] barbershop-saas: mergear MR !8 (spec restaurada) — queda solo ese pendiente del agente de review; fallback chain (zai→codex→openrouter) desplegado 2026-10-12
