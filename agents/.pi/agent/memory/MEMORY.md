@@ -110,3 +110,12 @@
 <!-- 2026-10-12 06:50:58 [01a12f6b] -->
 - Widget Agents de omarchy (~/.local/share/omarchy/shell/plugins/agents): sigue suscripciones por CLI (claude/codex/fireworks), NO el agente default. Pestaña Codex incluye sesiones de pi con provider `openai-codex`; pi con z.ai no aparecía en ninguna pestaña. #omarchy #widget
 - Creado collector custom `omarchy-agent-usage-zai` (~/dotfiles/omarchy/.local/bin, stowed a ~/.local/bin + symlink root a /usr/share/omarchy/bin/): pestaña Z.ai en el widget. Limits desde https://api.z.ai/api/monitor/usage/quota/limit (Bearer key de ~/.pi/agent/auth.json `zai.key`; unit codes: 3=h, 4=d, 5=mo, 6=weekly; percent fracción 0-1 en el record). Stats: escanea sesiones pi provider `zai` con rg. Cache/flock igual que collector codex. Ícono en assets del plugin (root-owned, puede perderse con updates del repo omarchy — fallback genérico OK). stow omarchy tiene conflicto preexistente con .config/voxtype/config.toml → stowear con `--ignore='voxtype'`. #project
+
+
+<!-- 2026-10-12 07:06:17 [01a12bdc] -->
+<!-- 2026-10-12 06:45:00 [01a12d6f] -->
+- [[barbershop-saas]] Agente de review — ESTADO ACTUAL (2026-10-12): Fase 1 OPERATIVA con **gate de threads ACTIVO durante el A/B** (adelantado por Luis, no se espera a Fase 2). Pi = gate (findings → threads resolvibles que bloquean, receiver los crea/resolve); PR-Agent = advisory (comentario nativo, no bloquea — no sabe abrir threads). Ambos con glm-5.3-flash (mismo modelo, fijado explícito). Verificado con MR !7: credencial hardcodeada → [high] thread → merge bloqueado → resolución humana → mergeable. Servicios: `mr-review.service` systemd user home-server; receiver en `~/dotfiles/services/services/mr-review/` (UNTRACKED, pendiente commit). Pendientes: merge de **MR !8** (spec completa restaurada — estaba truncada a 28 líneas por commit API que sobrescribió el archivo; recuperada de git history aadc2bd), rotación key z.ai (Luis), commit dotfiles. `/retest` endpoint para re-disparar. #project
+
+<!-- 2026-10-12 07:07:18 [01a12bdc] -->
+<!-- 2026-10-12 07:10:00 [01a12d6f] -->
+- Corrección pendientes agente review (barbershop-saas): la **rotación de la key z.ai NO se hace** — decisión de Luis (2026-10-12). La key sigue en `~/.pi/agent/auth.json` de home-server; la exposición fue journal local + repo privado, riesgo aceptado. Restan: merge MR !8 y commit del receiver en dotfiles. #project

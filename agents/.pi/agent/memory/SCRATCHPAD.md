@@ -8,3 +8,7 @@
 - [x] Detalle Lotería del Zulia @ Bclouder pendiente para futuros CVs (Rialto se maneja por narrativa oral): fechas exactas, alcance/funcionalidades, tamaño de equipo, métricas. Coexistencia con línea PDM confirmada 2026-09-18.
 <!-- 2026-09-22 19:09:15 [01a0cb1c] -->
 - [ ] Lotería del Zulia: freelance independiente (NO Bclouder — corrección 2026-09-22). Pendiente para CVs: fechas exactas, alcance, equipo, métricas, naming del cliente.
+<!-- 2026-10-12 07:06:17 [01a12bdc] -->
+- [x] barbershop-saas: mergear MR !8 (spec restaurada completa), commit del receiver en ~/dotfiles (untracked), Luis rota key z.ai y se actualiza auth.json de home-server
+<!-- 2026-10-12 07:07:18 [01a12bdc] -->
+- [ ] barbershop-saas: mergear MR !8 (spec completa restaurada) + commit del receiver en ~/dotfiles (untracked) — rotación key z.ai ignorada por decisión de Luis (2026-10-12)
