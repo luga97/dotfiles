@@ -33,7 +33,8 @@ const STATE_FILE = path.join(STATE_DIR, "state.json");
 const ZAI_AUTH = path.join(os.homedir(), ".pi/agent/auth.json");
 const ENABLE_PR_AGENT = process.env.MR_REVIEW_PR_AGENT !== "0"; // A/B Fase 1
 const THREADS_MODE = process.env.MR_REVIEW_THREADS === "1"; // Fase 2: threads resolvibles
-const PR_AGENT_MODEL = "glm-4.6"; // el A/B compara tools con su config natural: pi usa su default (ver comentario)
+const PR_AGENT_MODEL = "glm-5.3-flash"; // mismo modelo que pi: A/B justo
+const PI_MODEL = "zai/glm-5.3-flash"; // fijado explícito para determinismo del A/B
 const PI_TIMEOUT_MS = 10 * 60 * 1000;
 const PR_AGENT_TIMEOUT_MS = 5 * 60 * 1000;
 const DIFF_MAX_CHARS = 50000;
@@ -270,7 +271,7 @@ async function reviewMr(iid, sha, only) {
     ].join("\n");
 
     // ── Review con pi (modo json: usage y modelo exactos) ──
-    const { stdout } = await run("pi", ["-p", "--mode", "json", "--thinking", "medium", prompt], {
+    const { stdout } = await run("pi", ["-p", "--mode", "json", "--model", PI_MODEL, "--thinking", "medium", prompt], {
       cwd: REPO_DIR,
       timeoutMs: PI_TIMEOUT_MS,
       env: { ...process.env, HOME: os.homedir() },
@@ -329,7 +330,7 @@ async function reviewMr(iid, sha, only) {
       const maxTok = await runPrAgent(iid);
       const tokStr = maxTok ? ` · ~${fmtK(maxTok)} tokens de contexto` : "";
       await editNote(iid, paNote.id,
-        `🤖 PR-Agent Review (Qodo) — ✅ terminó: su review es el comentario **"PR Reviewer Guide 🔍"** de arriba (\`${sha.slice(0, 8)}\` · glm-4.6${tokStr}).`);
+        `🤖 PR-Agent Review (Qodo) — ✅ terminó: su review es el comentario **"PR Reviewer Guide 🔍"** de arriba (\`${sha.slice(0, 8)}\` · ${PR_AGENT_MODEL}${tokStr}).`);
     } catch (e) {
       await editNote(iid, paNote.id,
         `🤖 PR-Agent Review (Qodo) — ❌ falló: ${String(errText(e)).slice(0, 300)}`);
