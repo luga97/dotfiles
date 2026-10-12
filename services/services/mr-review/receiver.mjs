@@ -13,7 +13,7 @@
  */
 import http from "node:http";
 import crypto from "node:crypto";
-import { execFile } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
 import { promisify } from "node:util";
 import fs from "node:fs";
 import path from "node:path";
@@ -46,8 +46,55 @@ if (!WEBHOOK_SECRET || !GITLAB_TOKEN) {
   process.exit(1);
 }
 
-// ─── Utilidades ─────────────────────────────────────────────────────────────
-const log = (...a) => console.log(new Date().toISOString(), ...a);
+// Key z.ai para PR-Agent (pi lee su auth.json por sí solo).
+const ZAI_KEY = (() => { try { return JSON.parse(fs.readFileSync(ZAI_AUTH, "utf8")).zai.key; } catch { return ""; } })();
+
+// Docker recibe secretos vía --env-file (nunca -e en argv: un error de exec
+// incluiría el comando completo y filtraría tokens al journal).
+const PR_AGENT_ENV_FILE = path.join(os.homedir(), ".config/mr-review/pr-agent.env");
+fs.mkdirSync(path.dirname(PR_AGENT_ENV_FILE), { recursive: true });
+fs.writeFileSync(PR_AGENT_ENV_FILE, [
+  "GITLAB__URL=https://gitlab.com",
+  `GITLAB__PERSONAL_ACCESS_TOKEN=${GITLAB_TOKEN}`,
+  "CONFIG__GIT_PROVIDER=gitlab",
+  `ANTHROPIC_API_KEY=${ZAI_KEY}`,
+  "ANTHROPIC_API_BASE=https://api.z.ai/api/anthropic",
+  "CONFIG__MODEL=anthropic/glm-4.6",
+  "CONFIG__CUSTOM_MODEL_MAX_TOKENS=64000",
+].join("\n") + "\n", { mode: 0o600 });
+
+function redact(s) {
+  let out = String(s);
+  if (GITLAB_TOKEN) out = out.split(GITLAB_TOKEN).join("«glpat»");
+  if (ZAI_KEY) out = out.split(ZAI_KEY).join("«zai»");
+  return out;
+}
+
+const log = (...a) => console.log(new Date().toISOString(), ...a.map(x => typeof x === "string" ? redact(x) : x));
+
+/** Spawn con stdin cerrado — pi -p queda colgado si el pipe de stdin queda abierto. */
+function run(cmd, args, opts = {}) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(cmd, args, {
+      cwd: opts.cwd,
+      env: opts.env,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    let out = "", err = "";
+    const t = setTimeout(() => {
+      child.kill("SIGKILL");
+      reject(Object.assign(new Error(`timeout tras ${Math.round(opts.timeoutMs / 60000)} min`), { killed: true }));
+    }, opts.timeoutMs);
+    child.stdout.on("data", d => (out += d));
+    child.stderr.on("data", d => (err += d));
+    child.on("error", e => { clearTimeout(t); reject(e); });
+    child.on("close", code => {
+      clearTimeout(t);
+      if (code === 0) resolve({ stdout: out });
+      else reject(Object.assign(new Error(`exit ${code}: ${err.slice(-300)}`), { stderr: err }));
+    });
+  });
+}
 
 async function git(args, opts = {}) {
   return pexec("git", args, { cwd: REPO_DIR, maxBuffer: 20 * 1024 * 1024, ...opts }).then(r => r.stdout);
@@ -73,17 +120,17 @@ function safeJson(text) {
   return JSON.parse(clean.slice(i, j + 1));
 }
 
-function errText(e) {
-  if (e.killed) return `timeout tras ${(PI_TIMEOUT_MS / 60000)} min`;
-  if (e.stderr) return String(e.stderr).slice(-350);
-  return String(e.message || e).slice(0, 250);
-}
-
 function normalizeVerdict(v) {
   const s = String(v || "").toLowerCase();
   if (s.includes("request") || s.includes("changes")) return "request_changes";
   if (s.includes("approve")) return "approve";
   return null;
+}
+
+function errText(e) {
+  if (e.killed) return `timeout tras ${Math.round(PI_TIMEOUT_MS / 60000)} min`;
+  if (e.stderr) return redact(String(e.stderr).slice(-350));
+  return redact(String(e.message || e).slice(0, 250));
 }
 
 // ─── Estado ─────────────────────────────────────────────────────────────────
@@ -95,12 +142,12 @@ function saveState() {
 }
 
 // ─── Cola serial (último SHA por MR gana) ───────────────────────────────────
-const pending = new Map(); // iid → {sha}
+const pending = new Map(); // iid → {sha, only?}
 let working = false;
 
-function enqueue(iid, sha) {
-  pending.set(iid, sha);
-  log(`encolado MR !${iid} @ ${sha.slice(0, 8)} (cola: ${pending.size})`);
+function enqueue(iid, sha, only) {
+  pending.set(iid, { sha, only });
+  log(`encolado MR !${iid} @ ${sha.slice(0, 8)}${only ? ` (only: ${only})` : ""} (cola: ${pending.size})`);
   drain();
 }
 
@@ -109,13 +156,13 @@ async function drain() {
   working = true;
   try {
     while (pending.size > 0) {
-      const [iid, sha] = pending.entries().next().value;
+      const [iid, job] = pending.entries().next().value;
       pending.delete(iid);
       try {
-        await reviewMr(iid, sha);
+        await reviewMr(iid, job.sha, job.only);
       } catch (e) {
         log(`ERROR revisando MR !${iid}:`, errText(e));
-        await reportFailure(iid, sha, errText(e)).catch(() => {});
+        if (!job.only) await reportFailure(iid, job.sha, errText(e)).catch(() => {});
       }
     }
   } finally {
@@ -136,98 +183,114 @@ async function ensureRepo() {
     "+refs/heads/main:refs/remotes/origin/main"]);
 }
 
-async function reviewMr(iid, sha) {
+async function reviewMr(iid, sha, only) {
   const t0 = Date.now();
-  log(`revisando MR !${iid} @ ${sha.slice(0, 8)} (pi${ENABLE_PR_AGENT ? " + pr-agent" : ""})`);
-
-  // Comentario de inicio — la confirmación visible de que el webhook llegó.
-  const startNote = await gitlab("POST", `/merge_requests/${iid}/notes`, {
-    body: `🤖 ${BOT_NAME} Review — revisando… (\`${sha.slice(0, 8)}\`)`,
-  });
-
-  await ensureRepo();
-  await git(["checkout", "-q", "--detach", `refs/remotes/mr/${iid}`]);
-
-  const diff = (await git(["diff", "--find-renames", "origin/main...HEAD"])).slice(0, DIFF_MAX_CHARS);
-  if (!diff.trim()) {
-    await editNote(iid, startNote.id, `🤖 ${BOT_NAME} Review — sin diff contra main, nada que revisar.`);
-    return;
+  if (only === "pr-agent") {
+    log(`re-view solo pr-agent MR !${iid} @ ${sha.slice(0, 8)}`);
+  } else {
+    log(`revisando MR !${iid} @ ${sha.slice(0, 8)} (pi${ENABLE_PR_AGENT ? " + pr-agent" : ""})`);
   }
 
-  // Contexto del repo: convenciones documentadas
-  const docs = [];
-  for (const f of ["AGENTS.md", "backend/AGENTS.md", "client-ui/AGENTS.md"]) {
-    try {
-      const p = path.join(REPO_DIR, f);
-      docs.push(`### ${f}\n\n${fs.readFileSync(p, "utf8").slice(0, DOC_MAX_CHARS)}`);
-    } catch { /* no existe */ }
-  }
+  if (only !== "pr-agent") {
+    // Comentario de inicio — la confirmación visible de que el webhook llegó.
+    const startNote = await gitlab("POST", `/merge_requests/${iid}/notes`, {
+      body: `🤖 ${BOT_NAME} Review — revisando… (\`${sha.slice(0, 8)}\`)`,
+    });
 
-  const prompt = [
-    "Sos el code reviewer oficial de este proyecto (monorepo npm workspaces: backend NestJS 11 + client-ui React 19).",
-    "Revisá el diff del MR contra main con criterio de ingeniería senior: bugs reales, seguridad, errores de diseño,",
-    "incumplimiento de las convenciones del repo, y coherencia con la estructura existente (DDD en backend/src/apps/,",
-    "módulos por feature en client-ui, i18n trilingüe es/en/pt-BR, Conventional Commits).",
-    "No señales detalles de estilo menor. Máximo 8 findings, solo los que valen.",
-    "",
-    "Respondé EXCLUSIVAMENTE un JSON válido (sin markdown, sin texto antes ni después) con esta forma exacta:",
-    '{"verdict": "approve" | "request_changes", "summary": "resumen en español (2-5 oraciones, lenguaje natural)", "findings": [{"severity": "high|medium|low", "file": "ruta", "comment": "hallazgo concreto y accionable"}]}',
-    "",
-    "=== CONVENCIONES DEL PROYECTO ===",
-    ...docs,
-    "",
-    "=== DIFF DEL MR ===",
-    diff,
-  ].join("\n");
+    await ensureRepo();
+    await git(["checkout", "-q", "--detach", `refs/remotes/mr/${iid}`]);
 
-  // ── Review con pi ──
-  const { stdout } = await pexec("pi", ["-p", prompt], {
-    cwd: REPO_DIR,
-    timeout: PI_TIMEOUT_MS,
-    maxBuffer: 20 * 1024 * 1024,
-    env: { ...process.env, HOME: os.homedir() },
-  });
-  let review = safeJson(stdout);
-  let verdict = normalizeVerdict(review.verdict);
-  if (!verdict) throw new Error(`verdict inválido: ${JSON.stringify(review.verdict).slice(0, 100)}`);
-  const findings = Array.isArray(review.findings) ? review.findings.slice(0, MAX_FINDINGS) : [];
-
-  // ── Comentario final (se edita sobre el de inicio) ──
-  const icon = verdict === "approve" ? "✅" : "⚠️";
-  const title = verdict === "approve" ? "Aprobado" : "Cambios solicitados";
-  let body = [
-    `## 🤖 ${BOT_NAME} Review — ${icon} ${title}`,
-    "",
-    review.summary || "",
-    "",
-  ];
-  if (findings.length) {
-    body.push("**Hallazgos:**");
-    for (const f of findings) {
-      body.push(`- **[${f.severity || "low"}]** \`${f.file}\`: ${f.comment}`);
+    const diff = (await git(["diff", "--find-renames", "origin/main...HEAD"])).slice(0, DIFF_MAX_CHARS);
+    if (!diff.trim()) {
+      await editNote(iid, startNote.id, `🤖 ${BOT_NAME} Review — sin diff contra main, nada que revisar.`);
+      return;
     }
-    body.push("");
-  }
-  body.push(`---`, `<sub>revisado \`${sha.slice(0, 8)}\` · ${((Date.now() - t0) / 1000).toFixed(0)}s · el veredicto del agente es insumo: la decisión de mergear es humana</sub>`);
-  await editNote(iid, startNote.id, body.join("\n"));
 
-  // Fase 2 (THREADS_MODE=1): un thread resolvible por finding (bloquea merge).
-  if (THREADS_MODE && verdict === "request_changes") {
-    for (const f of findings) {
-      await gitlab("POST", `/merge_requests/${iid}/discussions`, {
-        body: `🤖 **[${f.severity || "low"}]** \`${f.file}\`: ${f.comment}`,
-      }).catch(e => log("thread falló:", e.message));
+    // Contexto del repo: convenciones documentadas (solo si el diff toca código).
+    const isCodeDiff = /^diff --git .*(\.(ts|tsx|js|mjs|json|sql)\b)/m.test(diff);
+    const docs = [];
+    if (isCodeDiff) {
+      for (const f of ["AGENTS.md", "backend/AGENTS.md", "client-ui/AGENTS.md"]) {
+        try {
+          docs.push(`### ${f}\n\n${fs.readFileSync(path.join(REPO_DIR, f), "utf8").slice(0, DOC_MAX_CHARS)}`);
+        } catch { /* no existe */ }
+      }
     }
-  }
 
-  state[iid] = { sha, verdict, reviewedAt: new Date().toISOString(), secs: ((Date.now() - t0) / 1000).toFixed(0) };
-  saveState();
-  log(`MR !${iid} revisado: ${verdict} (${state[iid].secs}s, ${findings.length} findings)`);
+    const prompt = isCodeDiff ? [
+      "Sos el code reviewer oficial de este proyecto (monorepo npm workspaces: backend NestJS 11 + client-ui React 19).",
+      "Revisá el diff del MR contra main con criterio de ingeniería senior: bugs reales, seguridad, errores de diseño,",
+      "incumplimiento de las convenciones del repo, y coherencia con la estructura existente (DDD en backend/src/apps/,",
+      "módulos por feature en client-ui, i18n trilingüe es/en/pt-BR, Conventional Commits).",
+      "No señales detalles de estilo menor. Máximo 8 findings, solo los que valen.",
+      "",
+      "Respondé EXCLUSIVAMENTE un JSON válido (sin markdown, sin texto antes ni después) con esta forma exacta:",
+      '{"verdict": "approve" | "request_changes", "summary": "resumen en español (2-5 oraciones, lenguaje natural)", "findings": [{"severity": "high|medium|low", "file": "ruta", "comment": "hallazgo concreto y accionable"}]}',
+      "",
+      "=== CONVENCIONES DEL PROYECTO ===",
+      ...docs,
+      "",
+      "=== DIFF DEL MR ===",
+      diff,
+    ] : [
+      "Sos un technical reviewer. Este MR cambia solo documentación/config (sin código ejecutable).",
+      "Revisá claridad, precisión técnica, consistencia con el proyecto y que no filtre secretos.",
+      "",
+      "Respondé EXCLUSIVAMENTE un JSON válido (sin markdown, sin texto antes ni después):",
+      '{"verdict": "approve" | "request_changes", "summary": "resumen en español (2-4 oraciones)", "findings": [{"severity": "high|medium|low", "file": "ruta", "comment": "hallazgo"}]}',
+      "",
+      "=== DIFF DEL MR ===",
+      diff,
+    ].join("\n");
+
+    // ── Review con pi ──
+    const { stdout } = await run("pi", ["-p", prompt, "--thinking", "medium"], {
+      cwd: REPO_DIR,
+      timeoutMs: PI_TIMEOUT_MS,
+      env: { ...process.env, HOME: os.homedir() },
+    });
+    const review = safeJson(stdout);
+    const verdict = normalizeVerdict(review.verdict);
+    if (!verdict) throw new Error(`verdict inválido: ${JSON.stringify(review.verdict).slice(0, 100)}`);
+    const findings = Array.isArray(review.findings) ? review.findings.slice(0, MAX_FINDINGS) : [];
+
+    // ── Comentario final (se edita sobre el de inicio) ──
+    const icon = verdict === "approve" ? "✅" : "⚠️";
+    const title = verdict === "approve" ? "Aprobado" : "Cambios solicitados";
+    const body = [
+      `## 🤖 ${BOT_NAME} Review — ${icon} ${title}`,
+      "",
+      review.summary || "",
+      "",
+    ];
+    if (findings.length) {
+      body.push("**Hallazgos:**");
+      for (const f of findings) {
+        body.push(`- **[${f.severity || "low"}]** \`${f.file}\`: ${f.comment}`);
+      }
+      body.push("");
+    }
+    body.push(`---`, `<sub>revisado \`${sha.slice(0, 8)}\` · ${((Date.now() - t0) / 1000).toFixed(0)}s · el veredicto del agente es insumo: la decisión de mergear es humana</sub>`);
+    await editNote(iid, startNote.id, body.join("\n"));
+
+    // Fase 2 (THREADS_MODE=1): un thread resolvible por finding (bloquea merge).
+    if (THREADS_MODE && verdict === "request_changes") {
+      for (const f of findings) {
+        await gitlab("POST", `/merge_requests/${iid}/discussions`, {
+          body: `🤖 **[${f.severity || "low"}]** \`${f.file}\`: ${f.comment}`,
+        }).catch(e => log("thread falló:", e.message));
+      }
+    }
+
+    state[iid] = { sha, verdict, reviewedAt: new Date().toISOString(), secs: ((Date.now() - t0) / 1000).toFixed(0) };
+    saveState();
+    log(`MR !${iid} revisado: ${verdict} (${state[iid].secs}s, ${findings.length} findings)`);
+  }
 
   // ── PR-Agent (A/B Fase 1) — postea su propio review ("PR Reviewer Guide").
   // Además el receiver lleva un comentario de estado propio para atribución:
   // siempre queda claro quién revisó y en qué estado está.
-  if (ENABLE_PR_AGENT) {
+  if (ENABLE_PR_AGENT && only !== "pi") {
     const paNote = await gitlab("POST", `/merge_requests/${iid}/notes`, {
       body: `🤖 PR-Agent Review (Qodo) — revisando… (\`${sha.slice(0, 8)}\`)`,
     });
@@ -237,24 +300,17 @@ async function reviewMr(iid, sha) {
         `🤖 PR-Agent Review (Qodo) — ✅ terminó: su review es el comentario **"PR Reviewer Guide 🔍"** de arriba (\`${sha.slice(0, 8)}\`).`);
     } catch (e) {
       await editNote(iid, paNote.id,
-        `🤖 PR-Agent Review (Qodo) — ❌ falló: ${String(e.message).slice(0, 300)}`);
-      log(`pr-agent falló en !${iid}:`, e.message);
+        `🤖 PR-Agent Review (Qodo) — ❌ falló: ${String(errText(e)).slice(0, 300)}`);
+      log(`pr-agent falló en !${iid}:`, errText(e));
     }
   }
 }
 
 async function runPrAgent(iid) {
-  const zai = JSON.parse(fs.readFileSync(ZAI_AUTH, "utf8"));
   const t0 = Date.now();
   await pexec("docker", [
     "run", "--rm",
-    "-e", "GITLAB__URL=https://gitlab.com",
-    "-e", `GITLAB__PERSONAL_ACCESS_TOKEN=${GITLAB_TOKEN}`,
-    "-e", "CONFIG__GIT_PROVIDER=gitlab",
-    "-e", "ANTHROPIC_API_KEY=" + zai.zai.key,
-    "-e", "ANTHROPIC_API_BASE=https://api.z.ai/api/anthropic",
-    "-e", "CONFIG__MODEL=anthropic/glm-4.6",
-    "-e", "CONFIG__CUSTOM_MODEL_MAX_TOKENS=64000",
+    "--env-file", PR_AGENT_ENV_FILE,
     "pragent/pr-agent",
     "--pr_url", `https://gitlab.com/luga97/barbershop-saas/-/merge_requests/${iid}`,
     "review",
@@ -279,50 +335,49 @@ async function reportFailure(iid, sha, reason) {
 }
 
 // ─── HTTP ───────────────────────────────────────────────────────────────────
+function verifyToken(req) {
+  return crypto.timingSafeEqual(
+    crypto.createHash("sha256").update(req.headers["x-gitlab-token"] || "").digest(),
+    crypto.createHash("sha256").update(WEBHOOK_SECRET).digest(),
+  );
+}
+
+function readBody(req, cb) {
+  const chunks = [];
+  req.on("data", c => chunks.push(c));
+  req.on("end", () => cb(Buffer.concat(chunks).toString()));
+}
+
 const server = http.createServer((req, res) => {
-  if (req.method === "POST" && req.url === "/retest") {
-    let chunks = [];
-    req.on("data", c => chunks.push(c));
-    req.on("end", async () => {
-      const ok = crypto.timingSafeEqual(
-        crypto.createHash("sha256").update(req.headers["x-gitlab-token"] || "").digest(),
-        crypto.createHash("sha256").update(WEBHOOK_SECRET).digest(),
-      );
-      if (!ok) { res.writeHead(403); return res.end(); }
-      try {
-        const { iid } = JSON.parse(Buffer.concat(chunks).toString());
-        const mr = await gitlab("GET", `/merge_requests/${iid}`);
-        if (mr.state !== "opened") throw new Error(`MR !${iid} no está abierto`);
-        delete state[iid]; saveState();
-        enqueue(iid, mr.sha);
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ ok: true, iid, sha: mr.sha }));
-      } catch (e) {
-        res.writeHead(400, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ ok: false, error: String(e.message).slice(0, 200) }));
-      }
-    });
-    return;
-  }
   if (req.method === "GET" && req.url === "/health") {
     res.writeHead(200, { "Content-Type": "application/json" });
     return res.end(JSON.stringify({ ok: true, working, queue: [...pending.keys()] }));
   }
+  if (req.method === "POST" && req.url === "/retest") {
+    return readBody(req, async raw => {
+      if (!verifyToken(req)) { res.writeHead(403); return res.end(); }
+      try {
+        const { iid, only } = JSON.parse(raw || "{}");
+        const mr = await gitlab("GET", `/merge_requests/${iid}`);
+        if (mr.state !== "opened") throw new Error(`MR !${iid} no está abierto`);
+        if (!only) { delete state[iid]; saveState(); }
+        enqueue(iid, mr.sha, only);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ ok: true, iid, sha: mr.sha, only: only || null }));
+      } catch (e) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ ok: false, error: redact(String(e.message)).slice(0, 200) }));
+      }
+    });
+  }
   if (req.method !== "POST" || req.url !== "/webhook") {
     res.writeHead(404); return res.end();
   }
-  let chunks = [];
-  req.on("data", c => chunks.push(c));
-  req.on("end", () => {
-    const ok = crypto.timingSafeEqual(
-      crypto.createHash("sha256").update(req.headers["x-gitlab-token"] || "").digest(),
-      crypto.createHash("sha256").update(WEBHOOK_SECRET).digest(),
-    );
-    if (!ok) { log("webhook con secreto inválido — ignorado"); res.writeHead(403); return res.end(); }
+  return readBody(req, raw => {
+    if (!verifyToken(req)) { log("webhook con secreto inválido — ignorado"); res.writeHead(403); return res.end(); }
     res.writeHead(200); res.end("ok");
-
     try {
-      const ev = JSON.parse(Buffer.concat(chunks).toString());
+      const ev = JSON.parse(raw);
       if (ev.object_kind !== "merge_request") return;
       const oa = ev.object_attributes || {};
       const iid = oa.iid;
