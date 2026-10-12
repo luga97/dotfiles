@@ -119,3 +119,10 @@
 <!-- 2026-10-12 07:07:18 [01a12bdc] -->
 <!-- 2026-10-12 07:10:00 [01a12d6f] -->
 - Corrección pendientes agente review (barbershop-saas): la **rotación de la key z.ai NO se hace** — decisión de Luis (2026-10-12). La key sigue en `~/.pi/agent/auth.json` de home-server; la exposición fue journal local + repo privado, riesgo aceptado. Restan: merge MR !8 y commit del receiver en dotfiles. #project
+
+<!-- 2026-10-12 07:27:47 [01a12f6b] -->
+- pi + codex: el catálogo de openai-codex (cacheado en ~/.pi/agent/models-store.json) lista más modelos de los que el plan permite. Con la cuenta ChatGPT plan **Go** de Luis solo funcionan la línea luna (gpt-6-luna, gpt-5.6-luna) vía provider openai-codex; sol/astra/spark devuelven "not supported when using Codex with a ChatGPT account" (requieren tier superior). enabledModels en settings.json usa patterns minimatch sobre provider/modelId o bare modelId; los slugs vendor/modelo (deepseek/..., x-ai/...) matchean openrouter por bare id. #pi #lesson
+
+
+<!-- 2026-10-12 07:35:09 [01a12f6b] -->
+- Widget Agents omarchy: añadido collector custom `omarchy-agent-usage-openrouter` (~/dotfiles/omarchy/.local/bin, mismo patrón que el de zai): pestaña OpenRouter con BALANCE prepaid (funded=total_credits, spent=total_usage de https://openrouter.ai/api/v1/credits, tierLabel "Prepaid", scope "account") + stats de sesiones pi provider `openrouter` (44 sesiones). La API /activity de OpenRouter existe pero exige management key (las sk-or-v1 normales dan 403) → por eso stats desde sesiones pi. Saldo Luis: ~$1.24 de $10. Ícono diamante violeta en assets del plugin (root). #project

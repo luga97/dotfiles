@@ -35,6 +35,12 @@ const ENABLE_PR_AGENT = process.env.MR_REVIEW_PR_AGENT !== "0"; // A/B Fase 1
 const THREADS_MODE = process.env.MR_REVIEW_THREADS === "1"; // Fase 2: threads resolvibles
 const PR_AGENT_MODEL = "glm-5.3-flash"; // mismo modelo que pi: A/B justo
 const PI_MODEL = "zai/glm-5.3-flash"; // fijado explícito para determinismo del A/B
+const PI_CHAIN = [
+  { label: PI_MODEL, args: ["--model", PI_MODEL] },
+  { label: "codex:gpt-6-luna", args: ["--provider", "openai-codex", "--model", "gpt-6-luna"] },
+  { label: "openrouter:z-ai/glm-5.3-flash", args: ["--provider", "openrouter", "--model", "z-ai/glm-5.3-flash"] },
+];
+const QUOTA_RE = /insufficient|balance|quota|exhausted|\b429\b|\b402\b|rate.?limit|billing/i;
 const PI_TIMEOUT_MS = 10 * 60 * 1000;
 const PR_AGENT_TIMEOUT_MS = 5 * 60 * 1000;
 const DIFF_MAX_CHARS = 50000;
@@ -50,6 +56,7 @@ if (!WEBHOOK_SECRET || !GITLAB_TOKEN) {
 
 // Key z.ai para PR-Agent (pi lee su auth.json por sí solo).
 const ZAI_KEY = (() => { try { return JSON.parse(fs.readFileSync(ZAI_AUTH, "utf8")).zai.key; } catch { return ""; } })();
+const OR_KEY = (() => { try { return JSON.parse(fs.readFileSync(ZAI_AUTH, "utf8")).openrouter.key; } catch { return ""; } })();
 
 // Docker recibe secretos vía --env-file (nunca -e en argv: un error de exec
 // incluiría el comando completo y filtraría tokens al journal).
@@ -62,6 +69,17 @@ fs.writeFileSync(PR_AGENT_ENV_FILE, [
   `ANTHROPIC_API_KEY=${ZAI_KEY}`,
   "ANTHROPIC_API_BASE=https://api.z.ai/api/anthropic",
   `CONFIG__MODEL=anthropic/${PR_AGENT_MODEL}`,
+  "CONFIG__CUSTOM_MODEL_MAX_TOKENS=64000",
+].join("\n") + "\n", { mode: 0o600 });
+
+// Env alternativo: mismo review vía OpenRouter si la cuota z.ai se agota.
+const PR_AGENT_OPENROUTER_ENV = path.join(os.homedir(), ".config/mr-review/pr-agent-openrouter.env");
+fs.writeFileSync(PR_AGENT_OPENROUTER_ENV, [
+  "GITLAB__URL=https://gitlab.com",
+  `GITLAB__PERSONAL_ACCESS_TOKEN=${GITLAB_TOKEN}`,
+  "CONFIG__GIT_PROVIDER=gitlab",
+  `OPENROUTER_API_KEY=${OR_KEY}`,
+  "CONFIG__MODEL=openrouter/z-ai/glm-5.3-flash",
   "CONFIG__CUSTOM_MODEL_MAX_TOKENS=64000",
 ].join("\n") + "\n", { mode: 0o600 });
 
@@ -270,12 +288,26 @@ async function reviewMr(iid, sha, only) {
       diff,
     ].join("\n");
 
-    // ── Review con pi (modo json: usage y modelo exactos) ──
-    const { stdout } = await run("pi", ["-p", "--mode", "json", "--model", PI_MODEL, "--thinking", "medium", prompt], {
-      cwd: REPO_DIR,
-      timeoutMs: PI_TIMEOUT_MS,
-      env: { ...process.env, HOME: os.homedir() },
-    });
+    // ── Review con pi — cadena de fallback: zai → codex → openrouter ──
+    // Solo errores de cuota/facturación disparan fallback; timeouts y otros
+    // errores suben (son del review, no del proveedor).
+    let stdout, usedLabel = PI_CHAIN[0].label;
+    for (let i = 0; i < PI_CHAIN.length; i++) {
+      const step = PI_CHAIN[i];
+      usedLabel = step.label;
+      try {
+        ({ stdout } = await run("pi", ["-p", "--mode", "json", ...step.args, "--thinking", "medium", prompt], {
+          cwd: REPO_DIR,
+          timeoutMs: PI_TIMEOUT_MS,
+          env: { ...process.env, HOME: os.homedir() },
+        }));
+        break;
+      } catch (e) {
+        const txt = `${e.stderr || ""} ${e.message || ""}`;
+        if (i === PI_CHAIN.length - 1 || !QUOTA_RE.test(txt)) throw e;
+        log(`pi sin cuota en ${step.label} — fallback a ${PI_CHAIN[i + 1].label}`);
+      }
+    }
     const piOut = parsePiOutput(stdout);
     const review = safeJson(piOut.text);
     const verdict = normalizeVerdict(review.verdict);
@@ -288,7 +320,7 @@ async function reviewMr(iid, sha, only) {
     const usageStr = piOut.usage
       ? ` · ${fmtK(piOut.usage.totalTokens)} tokens · $${(piOut.usage.cost?.total ?? 0).toFixed(4)}`
       : "";
-    const modelStr = piOut.model ? ` · \`${piOut.model}\`` : "";
+    const modelStr = ` · \`${usedLabel}\``;
     const body = [
       `## 🤖 ${BOT_NAME} Review — ${icon} ${title}`,
       "",
@@ -333,10 +365,11 @@ async function reviewMr(iid, sha, only) {
       body: `🤖 PR-Agent Review (Qodo) — revisando… (\`${sha.slice(0, 8)}\`)`,
     });
     try {
-      const maxTok = await runPrAgent(iid);
+      const { maxTok, via } = await runPrAgent(iid);
       const tokStr = maxTok ? ` · ~${fmtK(maxTok)} tokens de contexto` : "";
+      const viaStr = via === "openrouter" ? " · fallback openrouter" : "";
       await editNote(iid, paNote.id,
-        `🤖 PR-Agent Review (Qodo) — ✅ terminó: su review es el comentario **"PR Reviewer Guide 🔍"** de arriba (\`${sha.slice(0, 8)}\` · ${PR_AGENT_MODEL}${tokStr}).`);
+        `🤖 PR-Agent Review (Qodo) — ✅ terminó: su review es el comentario **"PR Reviewer Guide 🔍"** de arriba (\`${sha.slice(0, 8)}\` · ${PR_AGENT_MODEL}${viaStr}${tokStr}).`);
     } catch (e) {
       await editNote(iid, paNote.id,
         `🤖 PR-Agent Review (Qodo) — ❌ falló: ${String(errText(e)).slice(0, 300)}`);
@@ -345,21 +378,32 @@ async function reviewMr(iid, sha, only) {
   }
 }
 
-async function runPrAgent(iid) {
-  const t0 = Date.now();
-  // El user manager puede tener un view viejo de los grupos suplementarios
-  // (docker se agregó después del arranque de sesión): sudo -g lo resuelve.
-  // -n = non-interactive (falla en vez de colgarse pidiendo contraseña).
-  const { stdout } = await pexec("sudo", ["-n", "-g", "docker", "docker", "run", "--rm",
-    "--env-file", PR_AGENT_ENV_FILE,
+function prAgentCmd(iid, envFile) {
+  return ["sudo", "-n", "-g", "docker", "docker", "run", "--rm",
+    "--env-file", envFile,
     "pragent/pr-agent",
     "--pr_url", `https://gitlab.com/luga97/barbershop-saas/-/merge_requests/${iid}`,
-    "review",
-  ], { timeout: PR_AGENT_TIMEOUT_MS, maxBuffer: 10 * 1024 * 1024 });
+    "review"];
+}
+
+async function runPrAgent(iid) {
+  const t0 = Date.now();
+  let stdout, via = "zai";
+  try {
+    ({ stdout } = await pexec("sudo", prAgentCmd(iid, PR_AGENT_ENV_FILE),
+      { timeout: PR_AGENT_TIMEOUT_MS, maxBuffer: 10 * 1024 * 1024 }));
+  } catch (e) {
+    const txt = `${e.stderr || ""} ${e.message || ""}`;
+    if (!QUOTA_RE.test(txt)) throw e;
+    log(`pr-agent sin cuota zai — fallback a openrouter`);
+    ({ stdout } = await pexec("sudo", prAgentCmd(iid, PR_AGENT_OPENROUTER_ENV),
+      { timeout: PR_AGENT_TIMEOUT_MS, maxBuffer: 10 * 1024 * 1024 }));
+    via = "openrouter";
+  }
   const toks = [...String(stdout).matchAll(/Tokens?:?\s*([\d,]+)/g)].map(m => parseInt(m[1].replace(/,/g, "")));
   const maxTok = toks.length ? Math.max(...toks) : null;
-  log(`pr-agent terminó !${iid} (${((Date.now() - t0) / 1000).toFixed(0)}s${maxTok ? `, contexto ~${fmtK(maxTok)} tokens` : ""})`);
-  return maxTok;
+  log(`pr-agent terminó !${iid} (${((Date.now() - t0) / 1000).toFixed(0)}s${maxTok ? `, contexto ~${fmtK(maxTok)} tokens` : ""}, via ${via})`);
+  return { maxTok, via };
 }
 
 // ─── Threads ────────────────────────────────────────────────────────────────

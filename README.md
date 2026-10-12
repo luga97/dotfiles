@@ -43,18 +43,21 @@ This way:
 
 `omarchy/` contains the minimal defaults that source user customization packages. This means omarchy can be updated without overwriting your personal settings.
 
-### Custom agent usage collector (Z.ai)
+### Custom agent usage collectors (Z.ai + OpenRouter)
 
-`omarchy/.local/bin/omarchy-agent-usage-zai` feeds the omarchy shell "Agents" bar widget with a **Z.ai** tab (the widget only ships claude/codex/fireworks collectors).
+`omarchy/.local/bin/omarchy-agent-usage-zai` and `omarchy/.local/bin/omarchy-agent-usage-openrouter` feed the omarchy shell "Agents" bar widget with extra tabs (the widget only ships claude/codex/fireworks collectors).
 
-- **Limits**: live quota from `https://api.z.ai/api/monitor/usage/quota/limit` (plan level + per-window percentage/reset). Key read from `~/.pi/agent/auth.json` (`zai.key`) or `$ZAI_API_KEY`.
-- **Local stats**: tokens by day/model scanned from pi/omp sessions whose messages ran on the `zai` provider.
+| Collector | Limits/Balance | Local stats |
+|---|---|---|
+| `zai` | Live quota from `https://api.z.ai/api/monitor/usage/quota/limit` (plan level + per-window %/reset). Key from `~/.pi/agent/auth.json` (`zai.key`) or `$ZAI_API_KEY`. | pi/omp sessions on the `zai` provider |
+| `openrouter` | Prepaid credit ledger from `https://openrouter.ai/api/v1/credits` → widget balance meter (funded = total_credits, spent = total_usage). Key from `auth.json` (`openrouter.key`) or `$OPENROUTER_API_KEY`. | pi/omp sessions on the `openrouter` provider |
 
-It stows to `~/.local/bin/` and needs a one-time symlink so `omarchy-agent-usage-update` discovers it (it only scans `$OMARCHY_PATH/bin`):
+Both stow to `~/.local/bin/` and need a one-time symlink each so `omarchy-agent-usage-update` discovers them (it only scans `$OMARCHY_PATH/bin`):
 
 ```bash
 sudo ln -s ~/.local/bin/omarchy-agent-usage-zai /usr/share/omarchy/bin/omarchy-agent-usage-zai
-omarchy-agent-usage-update zai   # regenerates ~/.local/state/omarchy/agents/usage/zai.json
+sudo ln -s ~/.local/bin/omarchy-agent-usage-openrouter /usr/share/omarchy/bin/omarchy-agent-usage-openrouter
+omarchy-agent-usage-update zai openrouter   # regenerates the records under ~/.local/state/omarchy/agents/usage/
 omarchy-shell omarchy.agents refresh
 ```
 
