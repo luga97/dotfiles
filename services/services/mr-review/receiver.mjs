@@ -18,6 +18,7 @@ import { promisify } from "node:util";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import { isQuotaError, parsePiOutput } from "./pi-output.mjs";
 
 const pexec = promisify(execFile);
 
@@ -40,7 +41,6 @@ const PI_CHAIN = [
   { label: "codex:gpt-6-luna", args: ["--provider", "openai-codex", "--model", "gpt-6-luna"] },
   { label: "openrouter:z-ai/glm-5.3-flash", args: ["--provider", "openrouter", "--model", "z-ai/glm-5.3-flash"] },
 ];
-const QUOTA_RE = /insufficient|balance|quota|exhausted|\b429\b|\b402\b|rate.?limit|billing/i;
 const PI_TIMEOUT_MS = 10 * 60 * 1000;
 const PR_AGENT_TIMEOUT_MS = 5 * 60 * 1000;
 const DIFF_MAX_CHARS = 50000;
@@ -145,25 +145,6 @@ function normalizeVerdict(v) {
   if (s.includes("request") || s.includes("changes")) return "request_changes";
   if (s.includes("approve")) return "approve";
   return null;
-}
-
-/** NDJSON de `pi -p --mode json`: extrae texto del review + usage + modelo. */
-function parsePiOutput(stdout) {
-  let text = "", usage = null, model = "";
-  for (const l of stdout.split("\n")) {
-    if (!l.startsWith("{")) continue;
-    try {
-      const d = JSON.parse(l);
-      if (d.type === "message_end" && d.message) {
-        const c = d.message.content;
-        text = Array.isArray(c) ? c.map(b => b.text || "").join("") : String(c || "");
-        usage = d.message.usage || null;
-        model = d.message.model || "";
-      }
-    } catch { /* línea parcial */ }
-  }
-  if (!text) throw new Error("sin salida de pi en modo json");
-  return { text, usage, model };
 }
 
 function fmtK(n) {
@@ -291,24 +272,25 @@ async function reviewMr(iid, sha, only) {
     // ── Review con pi — cadena de fallback: zai → codex → openrouter ──
     // Solo errores de cuota/facturación disparan fallback; timeouts y otros
     // errores suben (son del review, no del proveedor).
-    let stdout, usedLabel = PI_CHAIN[0].label;
+    let piOut, usedLabel = PI_CHAIN[0].label;
     for (let i = 0; i < PI_CHAIN.length; i++) {
       const step = PI_CHAIN[i];
       usedLabel = step.label;
       try {
-        ({ stdout } = await run("pi", ["-p", "--mode", "json", ...step.args, "--thinking", "medium", prompt], {
+        const { stdout } = await run("pi", ["-p", "--mode", "json", ...step.args, "--thinking", "medium", prompt], {
           cwd: REPO_DIR,
           timeoutMs: PI_TIMEOUT_MS,
           env: { ...process.env, HOME: os.homedir() },
-        }));
+        });
+        // Provider errors can be emitted as JSON events while pi exits 0.
+        // Parse inside this try so quota errors also activate the fallback chain.
+        piOut = parsePiOutput(stdout);
         break;
       } catch (e) {
-        const txt = `${e.stderr || ""} ${e.message || ""}`;
-        if (i === PI_CHAIN.length - 1 || !QUOTA_RE.test(txt)) throw e;
-        log(`pi sin cuota en ${step.label} — fallback a ${PI_CHAIN[i + 1].label}`);
+        if (i === PI_CHAIN.length - 1 || !isQuotaError(e)) throw e;
+        log(`pi falló por cuota en ${step.label}: ${errText(e)} — fallback a ${PI_CHAIN[i + 1].label}`);
       }
     }
-    const piOut = parsePiOutput(stdout);
     const review = safeJson(piOut.text);
     const verdict = normalizeVerdict(review.verdict);
     if (!verdict) throw new Error(`verdict inválido: ${JSON.stringify(review.verdict).slice(0, 100)}`);

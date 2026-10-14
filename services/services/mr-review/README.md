@@ -14,7 +14,8 @@ GitLab (MR abierto / push nuevo)
   → 127.0.0.1:8080 (este receiver, systemd user)
       → valida X-Gitlab-Token → filtra (solo commits nuevos en MRs abiertos)
       → cola serial (último SHA por MR gana)
-      → pi -p (prompt con AGENTS.md + diff) → JSON {verdict, summary, findings}
+      → pi -p (prompt con AGENTS.md + diff; fallback z.ai → Codex → OpenRouter ante cuota agotada)
+      → JSON {verdict, summary, findings}
       → comentario "🤖 Pi Review — revisando…" se EDITA con el veredicto
       → PR-Agent docker (A/B) + comentario de estado propio
 ```
@@ -47,6 +48,12 @@ URL `https://archlinux.tail27d0f2.ts.net/webhook`, secreto =
 `WEBHOOK_SECRET`, trigger: **merge requests events** únicamente.
 
 ## Verificación
+
+Prueba el parser de eventos/salidas de Pi sin levantar el receiver:
+
+```bash
+node --test ~/dotfiles/services/services/mr-review/pi-output.test.mjs
+```
 
 ```bash
 systemctl --user status mr-review
