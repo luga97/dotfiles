@@ -14,7 +14,7 @@ GitLab (MR abierto / push nuevo)
   → 127.0.0.1:8080 (este receiver, systemd user)
       → valida X-Gitlab-Token → filtra (solo commits nuevos en MRs abiertos)
       → cola serial (último SHA por MR gana)
-      → pi -p (prompt con AGENTS.md + diff; fallback z.ai → Codex → OpenRouter ante cuota agotada)
+      → pi -p sin herramientas (prompt con AGENTS.md + diff; fallback z.ai → Codex → OpenRouter ante cuota agotada)
       → JSON {verdict, summary, findings}
       → comentario "🤖 Pi Review — revisando…" se EDITA con el veredicto
       → PR-Agent docker (A/B) + comentario de estado propio

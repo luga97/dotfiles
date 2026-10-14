@@ -277,7 +277,7 @@ async function reviewMr(iid, sha, only) {
       const step = PI_CHAIN[i];
       usedLabel = step.label;
       try {
-        const { stdout } = await run("pi", ["-p", "--mode", "json", ...step.args, "--thinking", "medium", prompt], {
+        const { stdout } = await run("pi", ["-p", "--mode", "json", "--no-tools", ...step.args, "--thinking", "medium", prompt], {
           cwd: REPO_DIR,
           timeoutMs: PI_TIMEOUT_MS,
           env: { ...process.env, HOME: os.homedir() },
