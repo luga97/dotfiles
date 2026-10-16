@@ -17,7 +17,9 @@ GitLab (MR abierto / push nuevo)
       → pi -p sin herramientas (prompt con AGENTS.md + diff; fallback z.ai → Codex → OpenRouter ante cuota agotada)
       → JSON {verdict, summary, findings}
       → comentario "🤖 Pi Review — revisando…" se EDITA con el veredicto
-      → PR-Agent docker (A/B) + comentario de estado propio
+      → PR-Agent docker (A/B) + comentario de estado propio (✅ solo si el
+        comentario "PR Reviewer Guide 🔍" aparece en el MR tras el run;
+        "Failed to review PR" o guía ausente se marcan como ❌)
 ```
 
 El gate de merge lo dan los **threads resolvibles** de GitLab

@@ -347,7 +347,14 @@ async function reviewMr(iid, sha, only) {
       body: `🤖 PR-Agent Review (Qodo) — revisando… (\`${sha.slice(0, 8)}\`)`,
     });
     try {
-      const { maxTok, via } = await runPrAgent(iid);
+      const { maxTok, via, stdout } = await runPrAgent(iid);
+      if (/failed to review/i.test(String(stdout))) {
+        const tail = String(stdout).slice(-300).replace(/\s+/g, " ");
+        throw new Error(`pr-agent reportó "Failed to review PR" …${tail}`);
+      }
+      // PR-Agent puede terminar con exit 0 sin haber posteado nada: verificar
+      // que la guía realmente exista antes de dar el ✅ (evita falsos positivos).
+      await assertGuidePosted(iid, paNote);
       const tokStr = maxTok ? ` · ~${fmtK(maxTok)} tokens de contexto` : "";
       const viaStr = via === "openrouter" ? " · fallback openrouter" : "";
       await editNote(iid, paNote.id,
@@ -385,7 +392,23 @@ async function runPrAgent(iid) {
   const toks = [...String(stdout).matchAll(/Tokens?:?\s*([\d,]+)/g)].map(m => parseInt(m[1].replace(/,/g, "")));
   const maxTok = toks.length ? Math.max(...toks) : null;
   log(`pr-agent terminó !${iid} (${((Date.now() - t0) / 1000).toFixed(0)}s${maxTok ? `, contexto ~${fmtK(maxTok)} tokens` : ""}, via ${via})`);
-  return { maxTok, via };
+  return { maxTok, via, stdout };
+}
+
+/** Espera (con reintentos) a que exista una nota "PR Reviewer Guide" posteada
+ *  DESPUÉS de nuestra nota de estado; falla si nunca aparece (p. ej. PR-Agent
+ *  terminó exit 0 pero la publicación del comentario falló). */
+async function assertGuidePosted(iid, sinceNote) {
+  const since = new Date(sinceNote.created_at).getTime() - 5000; // tolerancia de reloj
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const notes = await gitlab("GET", `/merge_requests/${iid}/notes?per_page=30&sort=desc`);
+    const found = (notes || []).some(n =>
+      /PR Reviewer Guide/i.test(n.body || "")
+      && new Date(n.created_at).getTime() >= since);
+    if (found) return;
+    if (attempt < 3) await new Promise(r => setTimeout(r, 3000));
+  }
+  throw new Error('pr-agent no posteó el comentario "PR Reviewer Guide 🔍" en el MR');
 }
 
 // ─── Threads ────────────────────────────────────────────────────────────────
