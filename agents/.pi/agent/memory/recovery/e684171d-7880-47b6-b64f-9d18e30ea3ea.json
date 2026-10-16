@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "id": "e684171d-7880-47b6-b64f-9d18e30ea3ea",
+  "createdAt": "2026-10-16T23:52:34.918Z",
+  "target": "long_term",
+  "removedContent": [
+    "<!-- 2026-10-12 06:45:00 [01a12d6f] -->\n- [[barbershop-saas]] Agente de review — ESTADO ACTUAL (2026-10-12): Fase 1 OPERATIVA con **gate de threads ACTIVO durante el A/B** (adelantado por Luis, no se espera a Fase 2). Pi = gate (findings → threads resolvibles que bloquean, receiver los crea/resolve); PR-Agent = advisory (comentario nativo, no bloquea — no sabe abrir threads). Ambos con glm-5.3-flash (mismo modelo, fijado explícito). Verificado con MR !7: credencial hardcodeada → [high] thread → merge bloqueado → resolución humana → mergeable. Servicios: `mr-review.service` systemd user home-server; receiver en `~/dotfiles/services/services/mr-review/` (UNTRACKED, pendiente commit). Pendientes: merge de **MR !8** (spec completa restaurada — estaba truncada a 28 líneas por commit API que sobrescribió el archivo; recuperada de git history aadc2bd), rotación key z.ai (Luis), commit dotfiles. `/retest` endpoint para re-disparar. #project"
+  ]
+}

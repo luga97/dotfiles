@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "id": "da725152-eefc-4e06-8ee6-1b161072875a",
+  "createdAt": "2026-10-16T23:53:13.146Z",
+  "target": "long_term",
+  "removedContent": [
+    "<!-- 2026-10-12 07:10:00 [01a12d6f] -->\n- Corrección pendientes agente review (barbershop-saas): la **rotación de la key z.ai NO se hace** — decisión de Luis (2026-10-12). La key sigue en `~/.pi/agent/auth.json` de home-server; la exposición fue journal local + repo privado, riesgo aceptado. Restan: merge MR !8 y commit del receiver en dotfiles. #project"
+  ]
+}
