@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "id": "795d5a3d-50b8-4ea2-bfd2-6e37e0070b01",
+  "createdAt": "2026-10-17T11:19:12.327Z",
+  "target": "long_term",
+  "removedContent": [
+    "<!-- 2026-10-17 08:12:14 [01a1498d] -->\n- DBeaver no arrancaba (JVM Exit code=1): el launcher Eclipse autodetecta el `java` del PATH = shim de mise → corretto-8 (global de `~/.config/mise/config.toml`), pero DBeaver exige Java 21+ y Java 8 muere con --add-modules/--add-opens. Fix: `-vm /usr/lib/jvm/default/bin/java` (OpenJDK 26 de pacman) en `/usr/lib/dbeaver/dbeaver.ini` antes de -vmargs. OJO: pacman sobrescribe el ini en cada update de dbeaver → re-aplicar el sed. #infra #lesson"
+  ]
+}

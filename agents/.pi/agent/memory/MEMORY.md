@@ -121,3 +121,7 @@
 
 <!-- 2026-10-16 20:52:34 [01a13a92] -->
 - mr-review (barbershop-saas, servicio systemd user en home-server): receiver TRACKED en dotfiles (commit e813e83, 2026-10-16). Desde esa fecha verifica que PR-Agent postee "PR Reviewer Guide 🔍" antes del ✅ y trata "Failed to review PR" como fallo. Hallazgo A/B Fase 1: PR-Agent falla con MRs grandes (~30k tokens de contexto): glm-5.3-flash via z.ai devuelve "Empty content (finish_reason: length)" y el fallback interno litellm (gpt-5.6-terra) tiene API key incorrecta (config default de pr-agent, no nuestra). Decisión Luis: dejar documentado por ahora. #project #infra
+
+
+<!-- 2026-10-17 08:19:21 [01a1498d] -->
+- DBeaver no arrancaba (JVM Exit code=1): el launcher Eclipse usa el `java` del PATH = shim de mise, y el global de mise era corretto-8 (Java 8 muere con --add-modules/--add-opens; DBeaver exige Java 21+). Resolución final (2026-10-17, decisión Luis): cambiar el global de mise a `mise use -g java@26` (26.0.1) en `~/.config/mise/config.toml` — arregla DBeaver y cualquier app Eclipse-based, sin tocar el ini de pacman ni hooks. corretto-8 sigue instalado; si un proyecto necesita Java 8, fijar puntual con `mise use java@corretto-8` en ese directorio. Lección: apps Eclipse-based heredan el `java` del PATH → el default global de mise debe ser ≥21, no 8. #infra #lesson
