@@ -8,6 +8,9 @@ PROMPT_COMMAND="history -a${PROMPT_COMMAND:+;$PROMPT_COMMAND}"  # flush tras cad
 shopt -s histappend                                    # shells concurrentes: append, no overwrite
 HISTCONTROL="${HISTCONTROL:+$HISTCONTROL:}ignorespace"  # espacio inicial = no guardar (secretos)
 
+# Load per-directory environment variables from .envrc files.
+eval "$(direnv hook bash)"
+
 # Example aliases:
 # alias p='python'
 # alias gs='git status'
