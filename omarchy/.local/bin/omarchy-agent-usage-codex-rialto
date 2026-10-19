@@ -546,8 +546,8 @@ def fetch_codex_rpc():
     rpc_request(proc, 1, "initialize", {"clientInfo": {"name": "omarchy-agent-usage", "version": "1"}}, timeout=8)
     proc.stdin.write(json.dumps({"method": "initialized", "params": {}}) + "\n")
     proc.stdin.flush()
-    account_msg = rpc_request(proc, 2, "account/read", timeout=4)
-    limits_msg = rpc_request(proc, 3, "account/rateLimits/read", timeout=4)
+    account_msg = rpc_request(proc, 2, "account/read", timeout=12)
+    limits_msg = rpc_request(proc, 3, "account/rateLimits/read", timeout=12)
 
     account = (account_msg.get("result") or {}).get("account") or {}
     limits = (limits_msg.get("result") or {}).get("rateLimits") or {}
@@ -570,6 +570,23 @@ def fetch_codex_rpc():
         proc.kill()
       except Exception:
         pass
+  # Codex app-server occasionally times out on account/read. Keep the last
+  # successful limits briefly so a transient RPC failure does not blank the
+  # subscription panel; a successful response always replaces this cache.
+  cache_root = Path(os.environ.get("XDG_CACHE_HOME") or (Path.home() / ".cache")) / "omarchy" / "agent-usage"
+  cache_file = cache_root / "codex-rialto-limits.json"
+  try:
+    if not result["usageStatusText"]:
+      cache_root.mkdir(parents=True, exist_ok=True)
+      cache_file.write_text(json.dumps({"savedAt": time.time(), "result": result}) + "\n", encoding="utf-8")
+    elif cache_file.is_file():
+      cached = json.loads(cache_file.read_text(encoding="utf-8"))
+      if time.time() - float(cached.get("savedAt", 0)) <= 6 * 60 * 60:
+        previous = cached.get("result") or {}
+        if previous.get("limits"):
+          result = previous
+  except Exception:
+    pass
   return result
 
 
