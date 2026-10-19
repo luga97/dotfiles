@@ -62,7 +62,7 @@ omarchy-agent-usage-update zai openrouter codex-rialto   # regenerates records u
 omarchy-shell omarchy.agents refresh
 ```
 
-Note: `~/.local/bin` is itself a stowed symlink to this package, so editing the collectors here updates them in place. The Rialto Codex collector runs the native Codex collector with `CODEX_HOME=~/.codex-rialto`, then renames its record to `codex-rialto`; the widget therefore displays a separate subscription tab. The tab icon lives outside dotfiles (root-owned omarchy clone); if a custom icon is absent, the widget falls back to the generic bar glyph.
+Note: `~/.local/bin` is itself a stowed symlink to this package, so editing the collectors here updates them in place. The Rialto Codex collector uses `CODEX_HOME=~/.codex-rialto`, scans only the `~/.pi/agent-rialto` profile and that Codex home for local stats, and excludes the shared OpenCode database; this keeps its token charts separate from the personal Codex tab. The widget therefore displays a separate subscription tab. The tab icon lives outside dotfiles (root-owned omarchy clone); if a custom icon is absent, the widget falls back to the generic bar glyph.
 
 ## Stow order
 
