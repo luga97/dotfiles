@@ -84,6 +84,8 @@ def runtime_env():
   return env
 
 
+# The widget process is not launched from ~/rialto, so direnv does not set this.
+os.environ.setdefault("CODEX_HOME", str(Path.home() / ".codex-rialto"))
 ENV = runtime_env()
 
 
