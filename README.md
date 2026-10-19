@@ -43,25 +43,26 @@ This way:
 
 `omarchy/` contains the minimal defaults that source user customization packages. This means omarchy can be updated without overwriting your personal settings.
 
-### Custom agent usage collectors (Z.ai + OpenRouter)
+### Custom agent usage collectors (Z.ai + OpenRouter + Codex Rialto)
 
-`omarchy/.local/bin/omarchy-agent-usage-zai` and `omarchy/.local/bin/omarchy-agent-usage-openrouter` feed the omarchy shell "Agents" bar widget with extra tabs (the widget only ships claude/codex/fireworks collectors).
+`omarchy/.local/bin/omarchy-agent-usage-zai`, `omarchy/.local/bin/omarchy-agent-usage-openrouter`, and `omarchy/.local/bin/omarchy-agent-usage-codex-rialto` feed the omarchy shell "Agents" bar widget with extra tabs (the widget only ships claude/codex/fireworks collectors).
 
 | Collector | Limits/Balance | Local stats |
 |---|---|---|
 | `zai` | Live quota from `https://api.z.ai/api/monitor/usage/quota/limit` (plan level + per-window %/reset). Key from `~/.pi/agent/auth.json` (`zai.key`) or `$ZAI_API_KEY`. | pi/omp sessions on the `zai` provider |
 | `openrouter` | Prepaid credit ledger from `https://openrouter.ai/api/v1/credits` → widget balance meter (funded = total_credits, spent = total_usage). Key from `auth.json` (`openrouter.key`) or `$OPENROUTER_API_KEY`. | pi/omp sessions on the `openrouter` provider |
 
-Both stow to `~/.local/bin/` and need a one-time symlink each so `omarchy-agent-usage-update` discovers them (it only scans `$OMARCHY_PATH/bin`):
+These custom collectors stow to `~/.local/bin/` and need a one-time symlink each so `omarchy-agent-usage-update` discovers them (it only scans `$OMARCHY_PATH/bin`):
 
 ```bash
 sudo ln -s ~/.local/bin/omarchy-agent-usage-zai /usr/share/omarchy/bin/omarchy-agent-usage-zai
 sudo ln -s ~/.local/bin/omarchy-agent-usage-openrouter /usr/share/omarchy/bin/omarchy-agent-usage-openrouter
-omarchy-agent-usage-update zai openrouter   # regenerates the records under ~/.local/state/omarchy/agents/usage/
+sudo ln -s ~/.local/bin/omarchy-agent-usage-codex-rialto /usr/share/omarchy/bin/omarchy-agent-usage-codex-rialto
+omarchy-agent-usage-update zai openrouter codex-rialto   # regenerates records under ~/.local/state/omarchy/agents/usage/
 omarchy-shell omarchy.agents refresh
 ```
 
-Note: `~/.local/bin` is itself a stowed symlink to this package, so editing the collector here updates it in place. The tab icon lives outside dotfiles (root-owned omarchy clone at `~/.local/share/omarchy/shell/plugins/agents/assets/zai.svg`); if it ever disappears, the widget falls back to the generic bar glyph.
+Note: `~/.local/bin` is itself a stowed symlink to this package, so editing the collectors here updates them in place. The Rialto Codex collector runs the native Codex collector with `CODEX_HOME=~/.codex-rialto`, then renames its record to `codex-rialto`; the widget therefore displays a separate subscription tab. The tab icon lives outside dotfiles (root-owned omarchy clone); if a custom icon is absent, the widget falls back to the generic bar glyph.
 
 ## Stow order
 

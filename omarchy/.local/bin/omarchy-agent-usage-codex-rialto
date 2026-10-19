@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Collect the separate Rialto Codex subscription using its dedicated CODEX_HOME.
+set -o pipefail
+
+CODEX_HOME="$HOME/.codex-rialto" /usr/share/omarchy/bin/omarchy-agent-usage-codex "$@" \
+  | jq '.id = "codex-rialto" | .name = "Codex Rialto"'
