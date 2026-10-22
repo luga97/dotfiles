@@ -19,7 +19,7 @@ hl.config({
 		-- Start with numlock on by default.
 		numlock_by_default = true,
 
-		follow_mouse = 2,
+		follow_mouse = 1,
 
 		-- Increase sensitivity for mouse/trackpad (default: 0).
 		-- sensitivity = 0.35,
