@@ -15,6 +15,10 @@
 -- Add a new binding.
 -- o.bind("SUPER + SHIFT + R", "SSH", "alacritty -e ssh your-server")
 
+-- Screenshot interactivo con Super+P (reemplaza el pseudo-window por defecto).
+hl.unbind("SUPER + P")
+o.bind("SUPER + P", "Screenshot", "omarchy screenshot")
+
 -- Change an existing binding by unbinding it first, then binding the key again.
 -- This example changes SUPER+SPACE from the launcher to the Omarchy root menu.
 -- hl.unbind("SUPER + SPACE")
