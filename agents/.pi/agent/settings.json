@@ -24,5 +24,6 @@
     "npm:@jl1990/pi-scheduler",
     "npm:pi-memory",
     "npm:pi-mcp-adapter"
-  ]
+  ],
+  "deviceId": "246f7e1f-5307-4bb1-926f-a62eac9d2522"
 }
