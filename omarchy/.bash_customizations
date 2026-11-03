@@ -14,3 +14,6 @@ eval "$(direnv hook bash)"
 # Example aliases:
 # alias p='python'
 # alias gs='git status'
+
+
+PLAYWRIGHT_MCP_EXTENSION_TOKEN=DQduUiQmzWXKDGxPcvfsw2vVnclT9Pr2qR_27P-nGK4 en mi bashrc
