@@ -16,4 +16,4 @@ eval "$(direnv hook bash)"
 # alias gs='git status'
 
 
-PLAYWRIGHT_MCP_EXTENSION_TOKEN=DQduUiQmzWXKDGxPcvfsw2vVnclT9Pr2qR_27P-nGK4 en mi bashrc
+export PLAYWRIGHT_MCP_EXTENSION_TOKEN=DQduUiQmzWXKDGxPcvfsw2vVnclT9Pr2qR_27P-nGK4
