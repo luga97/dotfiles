@@ -62,8 +62,15 @@ omarchy shell omarchy.agents refresh
 
 ### Omarchy 4.5 desktop settings
 
-Use the native workspace widget and per-monitor workspace ownership. Display
-inputs remain on the existing personal DDC shortcuts. Google Translate is on
+Use the native workspace widget and per-monitor workspace ownership. On the PC,
+`Super+Ctrl+M` opens the native monitor video-input selector: both screens to
+PC/laptop, or TCL/Dell individually. Escape cancels. The old `Super+F1–F4`
+shortcuts are removed to avoid accidental switching near the workspace keys.
+The `pc` package supplies `monitor-input-menu`; DDC identifies each display by
+its EDID model and serial, retaining PC input `0x0f` and laptop input `0x11`.
+Both-screen actions run concurrently and report partial failures. This switches
+video inputs only, not keyboard/mouse connections or workspace layouts.
+Google Translate is on
 `Super+Shift+Alt+T`; `Super+Shift+T` retains the native Activity shortcut.
 
 Notifications use the native service. Voxtype keeps Parakeet, its dictionary,

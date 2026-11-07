@@ -59,10 +59,11 @@ o.bind("SUPER + SHIFT + E", "Gmail", { webapp = "https://mail.google.com", focus
 hl.unbind("SUPER + SHIFT + C")
 o.bind("SUPER + SHIFT + C", "Calendar", { webapp = "https://calendar.google.com", focus = true })
 
-o.bind("SUPER + F1", "Monitor 1 -> PC", "ddcutil setvcp 60 0x0f --display 1")
-o.bind("SUPER + F2", "Monitor 1 -> Laptop", "ddcutil setvcp 60 0x11 --display 1")
-o.bind("SUPER + F3", "Monitor 2 -> PC", "ddcutil setvcp 60 0x0f --display 2")
-o.bind("SUPER + F4", "Monitor 2 -> Laptop", "ddcutil setvcp 60 0x11 --display 2")
+-- The PC hardware package supplies this selector. Keep video input changes
+-- away from the workspace number row (the old shortcuts were SUPER+F1–F4).
+if not o.cmd_missing("monitor-input-menu") then
+  o.bind("SUPER + CTRL + M", "Monitor video inputs", "monitor-input-menu")
+end
 
 -- Reunión voxtype: toggle de transcripción continua (mic + audio del sistema)
 o.bind("SUPER + F9", "Toggle meeting transcription", "~/.config/hypr/scripts/voxtype-meeting-toggle")
