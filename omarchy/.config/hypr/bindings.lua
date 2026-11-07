@@ -59,10 +59,6 @@ o.bind("SUPER + SHIFT + E", "Gmail", { webapp = "https://mail.google.com", focus
 hl.unbind("SUPER + SHIFT + C")
 o.bind("SUPER + SHIFT + C", "Calendar", { webapp = "https://calendar.google.com", focus = true })
 
--- Open Display settings, including this desktop's custom video-input controls.
--- Keep switching away from the workspace row (old shortcuts: SUPER+F1–F4).
-o.bind("SUPER + CTRL + M", "Display settings", { panel = "omarchy.monitor" })
-
 -- Reunión voxtype: toggle de transcripción continua (mic + audio del sistema)
 o.bind("SUPER + F9", "Toggle meeting transcription", "~/.config/hypr/scripts/voxtype-meeting-toggle")
 

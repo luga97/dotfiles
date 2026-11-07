@@ -63,7 +63,7 @@ omarchy shell omarchy.agents refresh
 ### Omarchy 4.5 desktop settings
 
 Use the native workspace widget and per-monitor workspace ownership. On the PC,
-`Super+Ctrl+M` opens the Display bar panel. Its local `luis.monitor` clone adds
+`Super+Ctrl+D` opens the native Display bar panel. Its local `luis.monitor` clone adds
 PC/Laptop buttons for Dell (left), TCL (right), and both displays. Confirmed
 inputs are highlighted; unknown inputs are never guessed. Escape closes the
 panel. The old `Super+F1–F4` shortcuts are removed to avoid accidental switching
