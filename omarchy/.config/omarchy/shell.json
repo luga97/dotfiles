@@ -58,21 +58,12 @@
           "id": "omarchy.elsewhen",
           "cities": [
             {
-              "name": "Curitiba",
-              "zone": "America/Sao_Paulo",
-              "lat": -25.42778,
-              "lon": -49.27306,
-              "region": "Paraná, BR"
-            },
-            {
               "name": "Caracas",
               "zone": "America/Caracas",
-              "lat": 10.48801,
-              "lon": -66.87919,
-              "region": "Distrito Federal, VE",
               "people": [
-                "Camilo",
-                "Maria"
+                "Maria",
+                "Gabriel",
+                "Camilo"
               ]
             },
             {
@@ -82,7 +73,7 @@
               "lon": -3.70256,
               "region": "ES",
               "people": [
-                "Jesus Camargo"
+                "Jesus"
               ]
             },
             {
@@ -125,7 +116,15 @@
                 "David Rialto"
               ]
             }
-          ]
+          ],
+          "here": {
+            "name": "Curitiba",
+            "zone": "America/Sao_Paulo",
+            "lat": -25.42778,
+            "lon": -49.27306,
+            "region": "Paraná, BR"
+          },
+          "units": "C"
         },
         {
           "id": "omarchy.weather"
