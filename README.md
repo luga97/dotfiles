@@ -43,26 +43,41 @@ This way:
 
 `omarchy/` contains the minimal defaults that source user customization packages. This means omarchy can be updated without overwriting your personal settings.
 
-### Custom agent usage collectors (Z.ai + OpenRouter + Codex Rialto)
+### Agent usage collectors
 
-`omarchy/.local/bin/omarchy-agent-usage-zai`, `omarchy/.local/bin/omarchy-agent-usage-openrouter`, and `omarchy/.local/bin/omarchy-agent-usage-codex-rialto` feed the omarchy shell "Agents" bar widget with extra tabs (the widget only ships claude/codex/fireworks collectors).
+Omarchy 4.5 includes Z.ai and OpenRouter collectors. Use the packaged versions;
+local copies and the old manual symlink instructions are no longer needed.
 
-| Collector | Limits/Balance | Local stats |
-|---|---|---|
-| `zai` | Live quota from `https://api.z.ai/api/monitor/usage/quota/limit` (plan level + per-window %/reset). Key from `~/.pi/agent/auth.json` (`zai.key`) or `$ZAI_API_KEY`. | pi/omp sessions on the `zai` provider |
-| `openrouter` | Prepaid credit ledger from `https://openrouter.ai/api/v1/credits` → widget balance meter (funded = total_credits, spent = total_usage). Key from `auth.json` (`openrouter.key`) or `$OPENROUTER_API_KEY`. | pi/omp sessions on the `openrouter` provider |
-
-These custom collectors stow to `~/.local/bin/` and need a one-time symlink each so `omarchy-agent-usage-update` discovers them (it only scans `$OMARCHY_PATH/bin`):
+`omarchy/.local/bin/omarchy-agent-usage-codex-rialto` remains a custom collector.
+Its existing discovery link under `$OMARCHY_PATH/bin` is kept on this machine.
+It uses `CODEX_HOME=~/.codex-rialto`, scans only the `~/.pi/agent-rialto` profile
+and that Codex home, and excludes the shared OpenCode database so its statistics
+remain separate from personal Codex usage. Review migration to native multiple
+accounts separately before removing it.
 
 ```bash
-sudo ln -s ~/.local/bin/omarchy-agent-usage-zai /usr/share/omarchy/bin/omarchy-agent-usage-zai
-sudo ln -s ~/.local/bin/omarchy-agent-usage-openrouter /usr/share/omarchy/bin/omarchy-agent-usage-openrouter
-sudo ln -s ~/.local/bin/omarchy-agent-usage-codex-rialto /usr/share/omarchy/bin/omarchy-agent-usage-codex-rialto
-omarchy-agent-usage-update zai openrouter codex-rialto   # regenerates records under ~/.local/state/omarchy/agents/usage/
-omarchy-shell omarchy.agents refresh
+omarchy agent usage-update zai openrouter codex-rialto
+omarchy shell omarchy.agents refresh
 ```
 
-Note: `~/.local/bin` is itself a stowed symlink to this package, so editing the collectors here updates them in place. The Rialto Codex collector uses `CODEX_HOME=~/.codex-rialto`, scans only the `~/.pi/agent-rialto` profile and that Codex home for local stats, and excludes the shared OpenCode database; this keeps its token charts separate from the personal Codex tab. The widget therefore displays a separate subscription tab. The tab icon lives outside dotfiles (root-owned omarchy clone); if a custom icon is absent, the widget falls back to the generic bar glyph.
+### Omarchy 4.5 desktop settings
+
+Use the native workspace widget and per-monitor workspace ownership. Display
+inputs remain on the existing personal DDC shortcuts. Google Translate is on
+`Super+Shift+Alt+T`; `Super+Shift+T` retains the native Activity shortcut.
+
+Notifications use the native service. Voxtype keeps Parakeet, its dictionary,
+typing delay, and meeting capture settings. F9 and `Super+Ctrl+X` remain enabled
+alongside `Alt+Space`. Right Alt push-to-talk is disabled because both Alt keys
+switch keyboard layouts.
+
+`shell.json` and Voxtype's `config.toml` are tracked and linked from this package.
+Omarchy shell tools save `shell.json` with an atomic rename, which can replace
+its Stow symlink with a regular file. After changing the bar or its settings
+through the UI/CLI, compare the live file with the repo copy, preserve the live
+settings in the repo, and restore the link before syncing. Voxtype setup commands
+can similarly replace its config link; do not overwrite the active meeting
+settings by blindly restoring an older repo copy.
 
 ## Stow order
 

@@ -1,27 +1,14 @@
 {
   "bar": {
-    "centerAnchor": "omarchy.clock",
     "layout": {
       "center": [
         {
-          "id": "omarchy.indicators"
-        },
-        {
-          "id": "omarchy.clock",
+          "birthYear": 1997,
           "format": "ddd d MMM HH:mm",
           "formatAlt": "d MMMM 'W'ww yyyy",
-          "verticalFormat": "HH\n—\nmm",
-          "birthYear": 1997,
-          "lifeExpectancy": 80
-        },
-        {
-          "id": "omarchy.keyboard-layout"
-        },
-        {
-          "id": "omarchy.weather"
-        },
-        {
-          "id": "omarchy.system-update"
+          "id": "omarchy.clock",
+          "lifeExpectancy": 80,
+          "verticalFormat": "HH\n—\nmm"
         }
       ],
       "left": [
@@ -29,12 +16,15 @@
           "id": "omarchy.menu"
         },
         {
-          "id": "luis.workspaces"
+          "id": "omarchy.workspaces"
         }
       ],
       "right": [
         {
           "id": "omarchy.tray"
+        },
+        {
+          "id": "omarchy.keyboard-layout"
         },
         {
           "id": "omarchy.tailscale"
@@ -57,25 +47,102 @@
         {
           "id": "omarchy.power"
         }
-      ]
+      ],
+      "centerBegin": [
+        {
+          "id": "omarchy.indicators"
+        }
+      ],
+      "centerEnd": [
+        {
+          "id": "omarchy.elsewhen",
+          "cities": [
+            {
+              "name": "Curitiba",
+              "zone": "America/Sao_Paulo",
+              "lat": -25.42778,
+              "lon": -49.27306,
+              "region": "Paraná, BR"
+            },
+            {
+              "name": "Caracas",
+              "zone": "America/Caracas",
+              "lat": 10.48801,
+              "lon": -66.87919,
+              "region": "Distrito Federal, VE",
+              "people": [
+                "Camilo",
+                "Maria"
+              ]
+            },
+            {
+              "name": "Madrid",
+              "zone": "Europe/Madrid",
+              "lat": 40.4165,
+              "lon": -3.70256,
+              "region": "ES",
+              "people": [
+                "Jesus Camargo"
+              ]
+            },
+            {
+              "name": "Medellín",
+              "zone": "America/Bogota",
+              "lat": 6.245,
+              "lon": -75.57151,
+              "region": "Antioquia, CO",
+              "people": [
+                "David Gomez"
+              ]
+            },
+            {
+              "name": "Miami",
+              "zone": "America/New_York",
+              "lat": 25.77427,
+              "lon": -80.19366,
+              "region": "Florida, US",
+              "people": [
+                "CK Rialto"
+              ]
+            },
+            {
+              "name": "New Jersey",
+              "zone": "America/New_York",
+              "lat": 40.0583,
+              "lon": -74.4057,
+              "region": "New Jersey, US",
+              "people": [
+                "Ryan Railto"
+              ]
+            },
+            {
+              "name": "Wisconsin Dells",
+              "zone": "America/Chicago",
+              "lat": 43.62748,
+              "lon": -89.77096,
+              "region": "Wisconsin, US",
+              "people": [
+                "David Rialto"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "omarchy.weather"
+        },
+        {
+          "id": "omarchy.system-update"
+        }
+      ],
+      "tray": []
     },
-    "position": "right",
-    "transparent": true
+    "position": "top",
+    "background": "none"
   },
   "idle": {
     "lock": 300,
     "screensaver": 150
   },
-  "plugins": [
-    {
-      "id": "luis.notifications"
-    }
-  ],
-  "version": 1,
-  "disabledPlugins": [
-    "omarchy.notifications"
-  ],
-  "cloneSourceRestores": [
-    "luis.notifications"
-  ]
+  "plugins": [],
+  "version": 1
 }

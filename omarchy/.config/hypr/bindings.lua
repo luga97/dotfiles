@@ -49,7 +49,7 @@ hl.unbind("SUPER + SHIFT + M")
 o.bind("SUPER + SHIFT + M", "Youtube Music", { webapp = "https://music.youtube.com", focus = true })
 
 --set google translator
-o.bind("SUPER + SHIFT + T", "Translator", { webapp = "https://translate.google.com/", focus = true })
+o.bind("SUPER + SHIFT + ALT + T", "Translator", { webapp = "https://translate.google.com/", focus = true })
 
 --remap email client
 
@@ -66,6 +66,10 @@ o.bind("SUPER + F4", "Monitor 2 -> Laptop", "ddcutil setvcp 60 0x11 --display 2"
 
 -- Reunión voxtype: toggle de transcripción continua (mic + audio del sistema)
 o.bind("SUPER + F9", "Toggle meeting transcription", "~/.config/hypr/scripts/voxtype-meeting-toggle")
+
+-- Keep Right Alt available for the Left Alt + Right Alt keyboard layout switch.
+-- hl.unbind removes both the press and release halves of the default hold bind.
+hl.unbind("ALT + Alt_R")
 
 -- Dictation keys from before Alt + Space and Right Alt became the defaults.
 -- Remove these lines to give the keys back to applications.

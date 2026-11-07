@@ -108,3 +108,9 @@ replacements = { "boxdade" = "voxtype", "boxtype" = "voxtype", "marchi" = "omarc
 [parakeet]
 model = "parakeet-tdt-0.6b-v3"
 streaming = false
+
+[meeting]
+enabled = true
+
+[meeting.audio]
+loopback_device = "alsa_output.pci-0000_0b_00.6.analog-stereo.monitor"
