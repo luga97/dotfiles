@@ -1,0 +1,12 @@
+{
+  "inputs.title": "Entrada de vídeo",
+  "inputs.dell": "Dell · Esquerda",
+  "inputs.tcl": "TCL · Direita",
+  "inputs.both": "Ambas as telas",
+  "inputs.pc": "PC",
+  "inputs.laptop": "Laptop",
+  "inputs.unknown": "Entrada desconhecida",
+  "inputs.reading": "Consultando entradas…",
+  "inputs.switching": "Alterando entrada…",
+  "inputs.error": "Não foi possível alterar todas as telas. Confira a entrada selecionada."
+}

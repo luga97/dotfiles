@@ -1,0 +1,12 @@
+{
+  "inputs.title": "Video input",
+  "inputs.dell": "Dell · Left",
+  "inputs.tcl": "TCL · Right",
+  "inputs.both": "Both displays",
+  "inputs.pc": "PC",
+  "inputs.laptop": "Laptop",
+  "inputs.unknown": "Unknown input",
+  "inputs.reading": "Reading inputs…",
+  "inputs.switching": "Switching input…",
+  "inputs.error": "Could not switch every display. Check the selected input."
+}

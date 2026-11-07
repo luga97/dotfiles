@@ -63,13 +63,19 @@ omarchy shell omarchy.agents refresh
 ### Omarchy 4.5 desktop settings
 
 Use the native workspace widget and per-monitor workspace ownership. On the PC,
-`Super+Ctrl+M` opens the native monitor video-input selector: both screens to
-PC/laptop, or TCL/Dell individually. Escape cancels. The old `Super+F1–F4`
-shortcuts are removed to avoid accidental switching near the workspace keys.
-The `pc` package supplies `monitor-input-menu`; DDC identifies each display by
-its EDID model and serial, retaining PC input `0x0f` and laptop input `0x11`.
-Both-screen actions run concurrently and report partial failures. This switches
-video inputs only, not keyboard/mouse connections or workspace layouts.
+`Super+Ctrl+M` opens the Display bar panel. Its local `luis.monitor` clone adds
+PC/Laptop buttons for Dell (left), TCL (right), and both displays. Confirmed
+inputs are highlighted; unknown inputs are never guessed. Escape closes the
+panel. The old `Super+F1–F4` shortcuts are removed to avoid accidental switching
+near the workspace keys. DDC identifies each display by EDID model and serial,
+retaining PC input `0x0f` and laptop input `0x11`. Both-screen changes run
+concurrently and report failures. Only video inputs change, not keyboard/mouse
+connections or workspace layouts.
+
+The source is in `customizations/luis.monitor/`, outside Stow packages: Omarchy
+plugin validation forbids symlinks, including a symlinked plugin root. The live
+plugin is a real copy under `~/.config/omarchy/plugins/luis.monitor/`. See its
+README for deployment, upstream drift checks, and restoring the built-in widget.
 Google Translate is on
 `Super+Shift+Alt+T`; `Super+Shift+T` retains the native Activity shortcut.
 
