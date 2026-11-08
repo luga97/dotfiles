@@ -38,8 +38,15 @@ en el host para que estas unidades funcionen.
 
 El script crea una copia en `/home/pzuser/backups`, valida la estructura del ZIP
 con `unzip -tq` y luego intenta subirla con rclone al remoto `drive:ZomboidBackups`.
-Conserva la copia local y devuelve error si la subida falla. El remoto sigue
-rechazando el token con `invalid_grant`; su reconexión quedó pendiente por Luis.
+Conserva la copia local y devuelve error si la subida falla. El 2026-11-08 Luis
+reconectó Drive; se verificó una subida manual comparando tamaño y MD5 remoto/local.
+La siguiente ejecución programada aún debe comprobarse. Tras una subida, el script
+invoca `/home/pzuser/pz-retention.py --apply` para conservar hasta 10 archivos
+`pz_backup*.zip` más recientes tanto locales como remotos. Incluye nombres manuales,
+ordena por fecha de modificación y no toca otros archivos. Antes de borrar comprueba
+que la copia actual existe en Drive y coincide en tamaño y MD5; ante error devuelve
+fallo. El script previo queda en `/home/pzuser/backup_pz.sh.pre-retention`; volver a
+él revierte la política, pero no recupera objetos eliminados. No cambia el timer.
 
 La copia local creada antes de iniciar el juego el 2026-11-07 sigue presente:
 `pz_backup_20261107_211302.zip`, 229337302 bytes. Se verificó el ZIP en la
@@ -47,8 +54,8 @@ intervención inicial, pero no se hizo una restauración de prueba.
 
 Pendientes:
 
-- Definir retención: el script conserva todos los ZIP. El host tenía 27 GB libres
-  con el disco al 88 % en esta revisión.
+- Comprobar la ejecución programada y la retención instaladas el 2026-11-08;
+  en la aplicación inicial quedaron 2 ZIP locales y 10 remotos.
 - Asegurar consistencia al copiar una partida mientras el juego está activo.
   La comprobación del ZIP solo detecta integridad del archivo, no coherencia de
   la partida. El script no coordina `save` ni pausa/cierre del juego.
