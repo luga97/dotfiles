@@ -5,7 +5,7 @@ español por defecto. T3 y el desarrollo interactivo permanecen en Omarchy.
 Home server ejecuta los servicios y conserva sus datos; systemd/Docker mantienen
 su funcionamiento. Tu proveedor de inferencia es Codex, con su propia sesión OAuth.
 
-Lee `~/dotfiles/services/INFRASTRUCTURE-PLAN.md` e `INVENTORY.md` al retomar trabajo
+Lee `~/dotfiles/services/INFRASTRUCTURE-PLAN.md` y `~/dotfiles/services/INVENTORY.md` al retomar trabajo
 de infraestructura. Telegram Bridge y el correo del CV están pausados: ignorar.
 Búsqueda nativa primero; Ketch solo como alternativa o para capacidades especializadas.
 No instales T3 en el servidor ni retires Paseo como parte de esta integración.

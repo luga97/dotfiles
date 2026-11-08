@@ -131,18 +131,19 @@ def worker(task_id):
             finished = subprocess.run(command, cwd=task["cwd"], stdout=output, stderr=errors, timeout=1800, check=False)
         answer = ""
         model_error = None
-        for line in output_path.read_text().splitlines():
-            try:
-                event = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            message = event.get("message", {})
-            if event.get("type") == "message_end" and message.get("role") == "assistant":
-                text = "\n".join(part["text"] for part in message.get("content", []) if part.get("type") == "text")
-                if text:
-                    answer = text
-                if message.get("stopReason") in {"error", "aborted"}:
-                    model_error = message.get("errorMessage", message["stopReason"])
+        with output_path.open() as events:
+            for line in events:
+                try:
+                    event = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                message = event.get("message", {})
+                if event.get("type") == "message_end" and message.get("role") == "assistant":
+                    text = "\n".join(part["text"] for part in message.get("content", []) if part.get("type") == "text")
+                    if text:
+                        answer = text
+                    if message.get("stopReason") in {"error", "aborted"}:
+                        model_error = message.get("errorMessage", message["stopReason"])
         if finished.returncode or model_error or not answer:
             task.update(status="failed", returncode=finished.returncode,
                         error=model_error or "Pi failed or produced no assistant response; inspect its private logs")
@@ -174,7 +175,7 @@ def dispatch(request):
 def remote(request):
     command = ["ssh", "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=yes", "-o", "ConnectTimeout=5",
                HOST, shlex.join(["/usr/bin/python3", REMOTE_SCRIPT, "rpc"])]
-    result = subprocess.run(command, input=json.dumps(request), text=True, capture_output=True, timeout=30, check=False)
+    result = subprocess.run(command, input=json.dumps(request, ensure_ascii=False), text=True, capture_output=True, timeout=30, check=False)
     if result.returncode:
         raise RuntimeError(result.stderr.strip() or result.stdout.strip() or "Remote request failed")
     response = json.loads(result.stdout)

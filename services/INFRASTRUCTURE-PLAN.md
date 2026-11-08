@@ -1,14 +1,20 @@
 # Plan de infraestructura de Omarchy y home server
 
 Actualizado: 2026-11-07. Estado: inventario y copias de configuración completados.
-T3 en home server suspendido por aclaración de Luis; Hermes en evaluación.
+T3 en home server suspendido por aclaración de Luis. Hermes instalado con el
+instalador oficial directo; servicio activo, login Codex y prueba completa en curso.
 
 ## Retomar después de una compactación
 
 Leer este archivo antes de continuar. La aclaración más reciente de Luis cambia
 el diseño: desarrolla y usa T3 principalmente en Omarchy; en home server quiere
 clonar y ejecutar los servicios. No ha aprobado instalar T3 allí y está evaluando
-Hermes como asistente de operaciones. La solicitud anterior de instalación quedó
+Hermes como asistente de operaciones. Después autorizó proceder con Hermes y
+delegación a Pi, eligió Codex con su suscripción y pidió el instalador directo.
+Hermes v0.23.0 ya está instalado; el puente manual servidor → Pi pasó dos turnos
+con contexto conservado. El login Codex se inició con flujo device-code y espera
+autorización; no registrar códigos temporales en este archivo.
+La solicitud anterior de instalación de T3 quedó
 superada por esta aclaración; no repetirla como si solo faltara un sí.
 Actualizar las casillas al terminar cada fase y verificar de nuevo los estados
 del diagnóstico antes de actuar.
@@ -16,15 +22,15 @@ del diagnóstico antes de actuar.
 **Prioridad:** servicios persistentes en home server; trabajo personal, de
 escritorio o ligado al hardware en Omarchy. T3 permanece en Omarchy; SSH sobre
 Tailscale ya permite gestionar home server sin instalar allí T3. Conservar Paseo
-hasta validar el flujo móvil y Pi. Hermes en home server se evalúa para operaciones
-y disponibilidad cuando Omarchy esté apagada; todavía no está instalado.
+hasta validar el flujo móvil y Pi. Hermes en home server queda como asistente
+persistente con delegación a Omarchy. Ver [estado y operación](services/hermes/README.md).
 
 **Fuera de alcance por indicación de Luis:** Telegram Bridge y el seguimiento
 de correo pertenecen al proyecto CV, que está pausado. Ignorar su inactividad;
 no reactivarlos ni tratarlos como incidencias de infraestructura.
 
-**Próximo paso de diseño:** concretar el flujo desarrollo → despliegue y el primer
-caso útil de Hermes. El instalador T3 preparado se conserva como referencia, fuera
+**Próximo paso:** completar el login Codex de Hermes, probar la delegación dirigida
+por su modelo y continuar la misma sesión Pi. El instalador T3 se conserva como referencia, fuera
 del trabajo activo. La reconexión de Google Drive sigue pendiente por decisión de Luis.
 
 **Búsqueda:** herramientas nativas del modelo/harness primero; Ketch como alternativa
@@ -138,7 +144,8 @@ una necesidad real de sesiones de agente gestionadas por T3 en el servidor.
 - [ ] Separar el acceso privado a T3/Paseo del endpoint público del webhook de GitLab.
   Evitar sobrescribir el puerto/ruta del Funnel existente al configurar Serve.
 - [ ] Retirar el Funnel obsoleto de Omarchy tras verificar sus consumidores.
-- [ ] Completar la confianza y autenticación SSH inversas si el diseño las necesita.
+- [x] Comprobar autenticación y confianza SSH inversas: `luis@omarchy` funciona desde
+  home server con StrictHostKeyChecking=yes; no hizo falta copiar claves privadas.
 - [ ] Si se incorpora Hermes y delegación a Omarchy, definir cómo queda pendiente un
   trabajo cuando esté apagada y cómo se recoge su resultado sin ejecutarlo dos veces.
   El acceso al T3 de Omarchy requiere que esa máquina y su backend estén encendidos.
@@ -159,12 +166,17 @@ Tailscale Serve es privado a la tailnet; Funnel da acceso desde Internet.
 T3 y Paseo gestionan sus propias sesiones; compartir el ejecutable Pi no convierte
 las conversaciones de ambas aplicaciones en una única sesión.
 
-## Fase 5 — Hermes opcional en home server
+## Fase 5 — Hermes en home server y delegación a Omarchy
 
 - [ ] Evaluar como primer caso un informe de salud/diagnóstico de servicios y respaldos,
   disponible aunque Omarchy esté apagada. No necesita coordinar desarrollo para aportar valor.
-- [ ] Si procede, configurar Hermes Agent de Nous Research en home server, con
-  memoria, mensajería y tareas propias claramente delimitadas.
+- [x] Instalar Hermes Agent de Nous Research en home server con el instalador directo
+  oficial fijado a v0.23.0; iniciar servicio de usuario persistente y documentar arranque.
+- [x] Preparar puente SSH a Pi en Omarchy con workers systemd, estado y sesiones propios.
+- [x] Probar dos turnos del puente en la misma sesión Pi con contexto conservado.
+- [ ] Completar login independiente Codex para Hermes (elección de Luis) y probar que
+  el propio Hermes envía una tarea al puente, recibe el resultado y continúa la sesión.
+- [ ] Elegir canal de acceso al asistente (CLI SSH disponible; mensajería/Webapp sin activar).
 - [ ] Mantener scripts, systemd y Compose como mecanismos de ejecución; Hermes puede
   consultar estado, explicar errores y lanzar operaciones explícitas de esos runbooks.
 - [ ] Evaluar después la delegación a Omarchy: SSH para comandos; Pi o integración con
@@ -172,8 +184,9 @@ las conversaciones de ambas aplicaciones en una única sesión.
 - [ ] Si se habilita delegación, probar una tarea completa: recepción, elección de host, espera si Omarchy
   está apagada, ejecución y entrega del resultado.
 
-Hermes todavía no está instalado ni existe una integración Hermes → T3/Pi. No
-asumir que la documentación de sus capacidades equivale a una integración lista.
+Hermes está instalado; el puente Pi está operativo y documentado. Aún no se ha
+probado la cadena dirigida por el modelo Hermes por faltar su login. Codex/Claude
+Code remotos, intervención durante un turno y cola offline no están implementados.
 
 ## Referencias
 

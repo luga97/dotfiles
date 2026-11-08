@@ -21,6 +21,7 @@ cd ~/dotfiles && stow -R services   # enlazar a ~/services/
 | aw-server / aw-awatcher / aw-watcher-media-player | nativo (systemd user) | métricas de uso: server + ventana/AFK + media — ver `services/activitywatch/README.md` |
 | cv-mail-watch | nativo (systemd user, timer 30 min) | respuestas a postulaciones del CV |
 | gitlab-runner | docker-compose | runner propio de CI de GitLab (home-server) — ver `services/gitlab-runner/README.md` |
+| hermes-gateway | nativo (systemd user, home-server) | [asistente Hermes y puente SSH a Pi en Omarchy](services/hermes/README.md); Codex elegido, login en curso |
 | mr-review | nativo (systemd user) | agente de review de MRs: webhook GitLab + reviews con pi/PR-Agent (home-server) — ver `services/mr-review/README.md` |
 | dotfiles-sync | nativo (systemd user) | sincronización de dotfiles |
 | nfs-server | nativo (systemd **del sistema**) | comparte `/home/user` por NFS a LAN y tailnet |
