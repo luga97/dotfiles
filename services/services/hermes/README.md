@@ -38,8 +38,39 @@ hermes config set skills.external_dirs '["~/.agents/skills"]'
 La configuración completa no se comparte: `config.yaml` puede contener datos
 privados y ajustes propios del host. OAuth, `.env`, memorias, conversaciones,
 cron, Kanban y bases de datos permanecen independientes; Git no los sincroniza.
-El modelo y la autenticación también se configuran por máquina. El gateway y el
-dashboard del servidor no se habilitan automáticamente en Omarchy.
+El modelo y la autenticación también se configuran por máquina. El dashboard del
+servidor no se habilita automáticamente en Omarchy; esta última tiene su propio
+gateway multiplexado para Omar, descrito a continuación.
+
+### Omar en Omarchy
+
+Omar es el perfil `omar` de Hermes en Omarchy y está seleccionado para la CLI con
+`hermes profile use omar`. Su [SOUL](omar/SOUL.md) se comparte por Git mediante
+`~/.hermes/profiles/omar/SOUL.md`; su memoria y conversaciones son locales. Usa
+Codex y las skills de `~/.agents/skills`. El perfil `default` sigue existiendo y es
+el propietario técnico del gateway multiplexado; no hay que borrarlo para usar Omar.
+
+Omar tiene bot de Telegram propio, restringido al propietario. La dependencia se
+instaló mediante el gestor de Hermes (`hermes --run-module pm.cli install --extra
+telegram`). No compartir el token ni duplicarlo entre perfiles. Luis confirmó que
+Omar le respondió por Telegram.
+
+El gateway nativo de usuario de Omarchy está habilitado y activo con linger; sirve
+ambos perfiles en un solo proceso. El `10-home-server.conf` compartido contiene
+`ConditionHost=archlinux`: para que el servicio funcione en Omarchy se instala
+**solo allí** una copia regular de [20-omarchy.conf](omar/20-omarchy.conf) en
+`~/.config/systemd/user/hermes-gateway.service.d/` y se ejecuta
+`systemctl --user daemon-reload`. No stowear ese archivo en ambas máquinas. El
+servicio es generado por Hermes; no versionar la unidad generada con rutas locales.
+
+El gateway de Omarchy expone su API en la IP Tailscale `100.110.219.43:8642`, con
+claves diferentes para `default` y `omar`, guardadas en los `.env` privados. El
+peer `omarchy` está registrado en Jarvis con la clave de Omar; se probó una llamada
+real a `omarchy/omar`, su respuesta y el rechazo HTTP 401 sin clave. La API concede
+acceso a las herramientas del perfil, incluida la terminal: no exponerla a Internet
+ni publicar las claves. La ruta configurada es servidor → Omar; Omar no tiene
+registrado aún un peer inverso. Omarchy debe estar encendida y conectada.
+
 
 Los datos del entorno, el proyecto CV pausado y la preferencia de búsqueda están
 en la memoria propia `~/.hermes/memories/MEMORY.md` del servidor. Esa memoria es
@@ -109,8 +140,9 @@ transitorio `hermes-auth-forward.service` usado en esta intervención quedó det
 No guardar URLs/códigos temporales, tokens ni `auth.json` en Git. La verificación
 `hermes auth status openai-codex` respondió `logged in`; archivo OAuth con modo 600.
 
-Unidad: `~/.config/systemd/user/hermes-gateway.service`, gestionada por el propio
-Hermes y habilitada **solo en home server**. Hermes la regenera al iniciar clientes;
+Unidad en home server: `~/.config/systemd/user/hermes-gateway.service`, gestionada
+por el propio Hermes. Omarchy tiene ahora una unidad de usuario independiente,
+según la sección de Omar. Hermes regenera la unidad al iniciar clientes;
 por eso su archivo principal es local al host, no un symlink al repo. Se conserva
 una [copia de referencia](host-files/hermes-gateway.service) con las rutas del servidor.
 Para reconstruirla, usar `hermes gateway install` después de instalar el producto.
