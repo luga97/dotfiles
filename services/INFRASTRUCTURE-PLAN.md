@@ -179,6 +179,10 @@ las conversaciones de ambas aplicaciones en una única sesión.
 - [x] Completar login independiente Codex para Hermes (elección de Luis) y probar que
   el propio Hermes envía una tarea al puente, recibe el resultado y continúa la sesión.
 - [ ] Elegir canal de acceso al asistente (CLI SSH disponible; mensajería/Webapp sin activar).
+- [x] Activar Dashboard de gestión en loopback 9119, servicio de usuario en home server,
+  y dar acceso desde Omarchy por túnel SSH temporal (una hora). HTTP 200 verificado;
+  sin nueva contraseña ni publicación en Tailscale Serve/Funnel. Acceso directo desde
+  teléfono sigue pendiente; la Webapp completa es una superficie separada.
 - [ ] Mantener scripts, systemd y Compose como mecanismos de ejecución; Hermes puede
   consultar estado, explicar errores y lanzar operaciones explícitas de esos runbooks.
 - [ ] Evaluar después la delegación a Omarchy: SSH para comandos; Pi o integración con

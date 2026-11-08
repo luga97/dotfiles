@@ -102,15 +102,26 @@ El aviso de que no hay plataformas de mensajería habilitadas es esperado.
 
 ## Dashboard de gestión
 
-Preparado como servicio separado `hermes-dashboard.service`, usando el frontend
+Activo como servicio separado `hermes-dashboard.service`, usando el frontend
 ya compilado de Hermes. Su dirección interna es `http://127.0.0.1:9119` en home
 server; la unidad se limita a loopback. El dashboard permite gestionar configuración
 y sesiones; la Webapp de chat completa es otra superficie y sigue sin activar.
 
-El acceso externo está pendiente de elegir entre túnel SSH (sin contraseña nueva)
-y Tailscale con un proveedor de login de Hermes. HTTPS no es obligatorio para el
-panel en una VPN; la Webapp pierde funciones de navegador como micrófono fuera
-de un contexto seguro. No se guardó ninguna contraseña nueva.
+Acceso actual desde Omarchy: `http://127.0.0.1:9119`, mediante un túnel SSH local
+al mismo puerto del servidor. Se inició `hermes-dashboard-forward.service` como
+unidad transitoria de Omarchy, con duración máxima de una hora; no arranca al boot.
+La raíz respondió HTTP 200 y `/api/status` confirmó Hermes v0.23.0 a través del túnel.
+El dashboard permanece en loopback; SSH aporta la autenticación y el cifrado del
+tráfico entre las máquinas. No se creó contraseña ni se publicó una ruta Tailscale
+Serve/Funnel adicional. Para volver a abrir el túnel manualmente:
+
+```bash
+ssh -N -L 127.0.0.1:9119:127.0.0.1:9119 home-server
+```
+
+El acceso directo por Tailscale desde teléfono queda pendiente de un proveedor
+de login de Hermes. HTTPS no es obligatorio para el panel en una VPN; la Webapp
+pierde funciones de navegador como micrófono fuera de un contexto seguro.
 
 `~/.hermes/SOUL.md` enlaza al [SOUL compartido](SOUL.md); el original del instalador
 se conserva como `SOUL.md.installer-default`. Configuración, OAuth, sesiones,
