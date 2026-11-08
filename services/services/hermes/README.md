@@ -44,8 +44,14 @@ producto se hacen con `hermes update`, revisando primero la versión objetivo.
 ## Proveedor y servicio
 
 Luis eligió **Codex con su suscripción**. La configuración actual es
-`model.provider=openai-codex` y `model.default=gpt-6-luna`, el modelo que ya usa Pi
-por defecto. El login de Hermes crea su propia sesión, sin copiar los tokens de Pi.
+`model.provider=openai-codex`, `model.default=gpt-6.1-terra` y
+`agent.reasoning_effort=high`, por elección de Luis. Terra se verificó en el catálogo
+de la cuenta y respondió a una consulta real. Pi conserva su configuración propia.
+El login de Hermes crea su propia sesión, sin copiar los tokens de Pi.
+
+En v0.23.0 `agent.reasoning_effort` está implementado en CLI y gateway pero falta
+en el registro de claves del comando `config`. Para escribirlo con la CLI se usó
+`hermes config set agent.reasoning_effort high --force`; no es una clave inventada.
 
 El workspace bloqueó la autenticación por device-code con un mensaje de permiso
 administrativo. Se completó correctamente el flujo OAuth normal de navegador con
@@ -223,6 +229,29 @@ El reinicio completo del host y la restauración del estado no se probaron.
 La CLI gestionada por el gateway rechaza `--run-budget`; para un límite de
 tiempo hay que usar `agent.run_budget_seconds` en la configuración. No se cambió
 ese límite global durante estas pruebas.
+
+## Telegram propio de Hermes
+
+Luis pidió habilitar Telegram para Hermes, separado del Telegram Bridge del CV,
+que permanece pausado. Se inició el flujo nativo de creación automática de bot;
+falta confirmar la creación en Telegram antes de activar y probar el adaptador.
+El enlace y credenciales de emparejamiento son temporales y no se versionan.
+
+El token se guarda únicamente en `~/.hermes/.env` del servidor (modo 600).
+`TELEGRAM_ALLOWED_USERS` se limita al propietario detectado en la creación;
+`TELEGRAM_HOME_CHANNEL` apunta a su DM. No se habilita acceso a todos los usuarios.
+El adaptador usa long polling saliente: no necesita webhook, HTTPS, Serve ni
+puertos nuevos. El teléfono usa Telegram sin requerir Tailscale para este canal.
+
+## Posible integración con T3 en Omarchy
+
+El puente directo a Pi fue una primera prueba de tareas y continuidad, no un
+requisito de Hermes. T3 admite proveedores Pi, Codex y Claude; su CLI instalada
+permite iniciar una conversación con `t3 thread start` y continuar con
+`t3 thread send`. La alternativa a evaluar es Hermes → SSH → T3 en Omarchy →
+proveedor elegido, para que el trabajo se gestione y aparezca en T3.
+Todavía no hay un puente T3 implementado ni se han creado conversaciones para
+probarlo. No requiere instalar T3 en home server.
 
 ## Límites de esta primera integración
 

@@ -1,7 +1,7 @@
 # Scratchpad
 
 <!-- 2026-11-07 -->
-- [ ] Infraestructura Omarchy/home-server: retomar `~/dotfiles/services/INFRASTRUCTURE-PLAN.md`. T3 solo en Omarchy; Hermes v0.23.0 instalado con Codex en home-server y delegación a Pi en Omarchy probada con continuación. Siguiente: elegir acceso móvil al asistente; Webapp/mensajería sin activar. Mantener Paseo hasta validar móvil/Pi. Google Drive de Zomboid pendiente. Telegram/correo del CV pausados: ignorar.
+- [ ] Infraestructura Omarchy/home-server: retomar `~/dotfiles/services/INFRASTRUCTURE-PLAN.md`. T3 solo en Omarchy; Hermes v0.23.0 en home-server con Codex `gpt-6.1-terra` high, respuesta real verificada. Puente Pi probado con continuación; alternativa a evaluar: delegar por T3 para centralizar sesiones. Dashboard HTTP directo `archlinux:9119`; Telegram propio de Hermes en configuración, falta confirmar creación del bot y probar. Mantener Paseo hasta validar móvil/Pi. Google Drive de Zomboid pendiente. Telegram/correo del CV siguen pausados: ignorar.
 
 <!-- 2026-09-16 21:57:58 [01a0acd1] -->
 - [ ] Reportar upstream (jl1990/pi-scheduler): crash de proper-lockfile/mtime-precision bajo sandbox Proxy de pi + Bun (regresión PR #5, v0.5.0)

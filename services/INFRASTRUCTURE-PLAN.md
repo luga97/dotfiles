@@ -182,6 +182,10 @@ las conversaciones de ambas aplicaciones en una única sesión.
 - [x] Probar dos turnos del puente en la misma sesión Pi con contexto conservado.
 - [x] Completar login independiente Codex para Hermes (elección de Luis) y probar que
   el propio Hermes envía una tarea al puente, recibe el resultado y continúa la sesión.
+- [x] Cambiar el modelo predeterminado de Hermes a `gpt-6.1-terra`, razonamiento
+  `high`, verificar catálogo y respuesta real. Pi mantiene su configuración propia.
+- [ ] Configurar Telegram propio de Hermes: creación automática iniciada; pendiente
+  confirmación de Luis en Telegram, restricción al propietario y prueba real.
 - [x] Elegir acceso al dashboard por Tailscale desde PC y teléfono, con login propio;
   configurar contraseña recibida por formulario privado y verificar el login.
 - [x] Activar Dashboard de gestión en loopback 9119, servicio de usuario en home server,
@@ -193,8 +197,8 @@ las conversaciones de ambas aplicaciones en una única sesión.
   completa es una superficie separada y no se activó.
 - [ ] Mantener scripts, systemd y Compose como mecanismos de ejecución; Hermes puede
   consultar estado, explicar errores y lanzar operaciones explícitas de esos runbooks.
-- [ ] Evaluar después la delegación a Omarchy: SSH para comandos; Pi o integración con
-  T3 para tareas de agente. No es requisito del primer caso de operaciones.
+- [ ] Evaluar Hermes → SSH → T3 en Omarchy → Pi/Codex/Claude para centralizar sesiones
+  en T3. Luis preguntó por esta alternativa al puente Pi directo; no está implementada.
 - [ ] Si se habilita delegación, probar una tarea completa: recepción, elección de host, espera si Omarchy
   está apagada, ejecución y entrega del resultado.
 
