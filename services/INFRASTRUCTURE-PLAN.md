@@ -184,8 +184,9 @@ las conversaciones de ambas aplicaciones en una única sesión.
   el propio Hermes envía una tarea al puente, recibe el resultado y continúa la sesión.
 - [x] Cambiar el modelo predeterminado de Hermes a `gpt-6.1-terra`, razonamiento
   `high`, verificar catálogo y respuesta real. Pi mantiene su configuración propia.
-- [ ] Configurar Telegram propio de Hermes: creación automática iniciada; pendiente
-  confirmación de Luis en Telegram, restricción al propietario y prueba real.
+- [x] Configurar Telegram propio de Hermes: creación automática completada,
+  restringido al propietario, conectado por polling y mensaje saliente verificado.
+- [ ] Comprobar respuesta a una consulta entrante real por Telegram.
 - [x] Elegir acceso al dashboard por Tailscale desde PC y teléfono, con login propio;
   configurar contraseña recibida por formulario privado y verificar el login.
 - [x] Activar Dashboard de gestión en loopback 9119, servicio de usuario en home server,

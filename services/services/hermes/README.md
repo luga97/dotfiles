@@ -233,13 +233,17 @@ ese límite global durante estas pruebas.
 ## Telegram propio de Hermes
 
 Luis pidió habilitar Telegram para Hermes, separado del Telegram Bridge del CV,
-que permanece pausado. Se inició el flujo nativo de creación automática de bot;
-falta confirmar la creación en Telegram antes de activar y probar el adaptador.
-El enlace y credenciales de emparejamiento son temporales y no se versionan.
+que permanece pausado. Se completó el flujo nativo de creación automática de bot:
+[@hermes_yh6xoaeq53dcivby_bot](https://t.me/hermes_yh6xoaeq53dcivby_bot).
+Gateway reiniciado; logs confirman conexión en polling. `getMe` y el envío de un
+mensaje de prueba al propietario respondieron correctamente. La respuesta a una
+consulta entrante real aún debe comprobarse. El enlace temporal y el archivo
+privado de emparejamiento ya se retiraron; las credenciales no se versionan.
 
 El token se guarda únicamente en `~/.hermes/.env` del servidor (modo 600).
 `TELEGRAM_ALLOWED_USERS` se limita al propietario detectado en la creación;
-`TELEGRAM_HOME_CHANNEL` apunta a su DM. No se habilita acceso a todos los usuarios.
+`TELEGRAM_HOME_CHANNEL` apunta a su DM. `TELEGRAM_ALLOW_ALL_USERS=false` y no hay
+permiso global para todos los usuarios. No se habilita acceso público al agente.
 El adaptador usa long polling saliente: no necesita webhook, HTTPS, Serve ni
 puertos nuevos. El teléfono usa Telegram sin requerir Tailscale para este canal.
 
