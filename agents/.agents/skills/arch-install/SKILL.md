@@ -5,13 +5,13 @@ description: Flujo de instalación de software en el sistema Arch Linux de Luis.
 
 # Instalación de paquetes en Arch Linux
 
-Contexto: el sistema es Arch Linux con pacman y `paru` como ayudante de AUR (**no está `yay` instalado**, ni usarlo). El objetivo es instalar por la vía más limpia y mantenible, y nunca ejecutar código no revisado.
+Comprueba en la máquina de destino qué gestor y ayudante AUR están realmente disponibles; home server y Omarchy pueden diferir. Prefiere `paru` cuando esté disponible y respeta las preferencias vigentes del usuario. El objetivo es instalar por la vía más limpia y mantenible, y nunca ejecutar código no revisado.
 
 ## Orden de preferencia
 
 Probar en este orden, deteniéndose en el primero que tenga el paquete:
 
-1. **Pacman (repos oficiales)** — verificar con `pacman -Si <paquete>`. Si existe, proponer `pacman -S <paquete>` (requiere sudo del operador).
+1. **Pacman (repos oficiales)** — verificar con `pacman -Si <paquete>`. Si existe y su versión satisface la necesidad, proponer `pacman -S <paquete>` (requiere sudo del operador). Si el paquete disponible es incompatible o demasiado antiguo, documenta la limitación y consulta la vía oficial del proyecto antes de elegir una alternativa; una revisión de empaquetado no implica una versión nueva del producto.
 2. **paru (AUR)** — si no está en pacman, buscar con `paru -Ssa <paquete>`. Si existe, aplicar el **protocolo de seguridad** de abajo antes de compilar, y solo entonces proponer `paru -S <paquete>`.
 3. **Otras vías** — solo si no existe ni en pacman ni en AUR. Preferir, en este orden: release binaria oficial de GitHub (verificando checksum), `go install`, `mise`, `npm -g` (con `--allow-scripts` explícito si aplica), binario/instalador oficial. Proponer la vía y el comando exacto y esperar confirmación antes de ejecutar.
 
