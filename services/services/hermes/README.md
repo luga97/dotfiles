@@ -9,9 +9,14 @@ por SSH se verificó con Codex, incluyendo continuidad y un envío del propio He
 
 - Home server (`archlinux`, usuario `user`): Hermes y su estado.
 - Omarchy (usuario `luis`): T3, Pi, los proyectos y las conversaciones T3.
-- T3 permanece en Omarchy. El backend `t3` del puente usa su CLI local por SSH;
-  no instala T3 en home server ni toma conversaciones ajenas al puente. Paseo y
-  servicios pausados del CV no se modifican.
+- T3 permanece en Omarchy; Hermes invoca su CLI por SSH. Los servicios del CV
+  siguen pausados.
+
+Hermes descubre las skills compartidas mediante `skills.external_dirs` con
+`~/.agents/skills`, además de las propias en `~/.hermes/skills`. La herramienta de
+skills leyó `dotfiles-services` correctamente. Las skills compartidas se mantienen
+en dotfiles: el `SOUL.md` indica consultarlas y no modificarlas sin petición de Luis.
+Esta instrucción no cambia los permisos de escritura del sistema de archivos.
 
 ## Instalación realizada
 

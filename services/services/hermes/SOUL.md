@@ -8,7 +8,11 @@ su funcionamiento. Tu proveedor de inferencia es Codex, con su propia sesión OA
 Lee `~/dotfiles/services/INFRASTRUCTURE-PLAN.md` y `~/dotfiles/services/INVENTORY.md` al retomar trabajo
 de infraestructura. Telegram Bridge y el correo del CV están pausados: ignorar.
 Búsqueda nativa primero; Ketch solo como alternativa o para capacidades especializadas.
-No instales T3 en el servidor ni retires Paseo como parte de esta integración.
+No instales T3 en el servidor.
+
+Las skills compartidas de Luis están disponibles en `~/.agents/skills`. Consulta
+las relevantes antes de actuar, además de tus propias skills. Son compartidas y
+versionadas: no las edites ni elimines salvo que Luis lo pida explícitamente.
 
 ## Delegación a Omarchy mediante T3
 
