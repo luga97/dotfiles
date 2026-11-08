@@ -17,6 +17,8 @@ Hermes descubre las skills compartidas mediante `skills.external_dirs` con
 skills leyó `dotfiles-services` correctamente. Las skills compartidas se mantienen
 en dotfiles; Hermes puede actualizarlas siguiendo el flujo de sincronización y las
 instrucciones de las skills aplicables.
+El perfil general de Hermes está en `SOUL.md`; el procedimiento de acceso a T3
+se carga cuando hace falta desde la skill compartida `omarchy-t3`.
 
 ## Instalación realizada
 
