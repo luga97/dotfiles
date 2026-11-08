@@ -224,8 +224,14 @@ cron programa tareas autónomas con entrega por Telegram (también scripts sin L
 seguimiento dentro de esa conversación. Memoria para hechos/preferencias, skills
 para procedimientos y perfiles para separar configuración/memoria/herramientas.
 
-Consulta de estado: sin jobs cron, tablero Kanban sin tarjetas y solo perfil
-`default`. Recomendación por evaluar, sin activar automatizaciones todavía:
+Estado actualizado: Kanban habilitado para CLI y Telegram, perfil `default`.
+Tarjeta de prueba bloqueada, desbloqueada manualmente y completada por un worker
+nativo: comprobó SSH y no envió tarea a T3. No hay jobs cron. Las conversaciones
+Telegram anteriores al cambio necesitan una sesión nueva para cargar herramientas.
+El desbloqueo automático y el enlace entre tarjetas y tareas T3 aún no están
+configurados: falta diseñar la recuperación sin duplicar un envío incierto.
+
+Recomendación por evaluar:
 1. Informe/alertas de salud con scripts y cron nativo, respetando timers de respaldo.
 2. Tablero Kanban y perfiles de operaciones/desarrollo con concurrencia acotada.
 3. Comprobación de disponibilidad sin LLM, despacho T3 único, enlace y resultado

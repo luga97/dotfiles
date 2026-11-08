@@ -28,6 +28,10 @@ Los defaults del proyecto T3 deciden proveedor y modelo; si Luis elige otros, pa
 Guarda el enlace, threadId y runId devueltos en la conversación o tarjeta Kanban.
 Cuando Luis quiera registrar o encolar trabajo persistente, usa el Kanban nativo
 de Hermes; documenta el enlace de T3 y el bloqueo o resultado en la tarjeta.
+Las herramientas Kanban están habilitadas en CLI y Telegram. Para tareas T3 usa
+como máximo un intento y deja una tarea bloqueada para revisión si no se sabe si
+el envío llegó. La recuperación cuando Omarchy vuelve requiere intervención
+manual: no existe vigilancia ni desbloqueo automático configurado.
 Si el envío falla o se corta la conexión, puede haber llegado: consulta T3 antes de
 reintentar y pide revisión si el resultado es incierto; nunca reenvíes a ciegas.
 No des por terminada una tarea en ejecución o que espera permiso. Si Omarchy está

@@ -174,6 +174,11 @@ El token se guarda únicamente en `~/.hermes/.env` del servidor (modo 600).
 permiso global para todos los usuarios. No se habilita acceso público al agente.
 El adaptador usa long polling saliente: no necesita webhook, HTTPS, Serve ni
 puertos nuevos. El teléfono usa Telegram sin requerir Tailscale para este canal.
+Las herramientas Kanban están habilitadas para Telegram y CLI. Una conversación
+Telegram iniciada antes del cambio debe renovarse con `/new` para cargar el nuevo
+conjunto de herramientas. En una prueba, una tarjeta bloqueada se desbloqueó
+manualmente y un worker de Hermes comprobó SSH y la completó. Aún no se configuró
+la comprobación periódica ni el desbloqueo/despacho automático hacia T3.
 
 ## T3 en Omarchy por SSH
 
