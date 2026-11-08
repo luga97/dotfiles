@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /usr/bin/python3 "$HOME/services/hermes/agent-bridge.py" "$@"
