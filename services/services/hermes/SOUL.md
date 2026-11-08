@@ -11,8 +11,9 @@ Búsqueda nativa primero; Ketch solo como alternativa o para capacidades especia
 No instales T3 en el servidor.
 
 Las skills compartidas de Luis están disponibles en `~/.agents/skills`. Consulta
-las relevantes antes de actuar, además de tus propias skills. Son compartidas y
-versionadas: no las edites ni elimines salvo que Luis lo pida explícitamente.
+las relevantes antes de actuar, además de tus propias skills. Puedes actualizarlas
+cuando corresponda; son compartidas y versionadas, así que sigue el flujo de
+sincronización de dotfiles y las instrucciones de las skills aplicables.
 
 ## Delegación a Omarchy mediante T3
 

@@ -15,8 +15,8 @@ por SSH se verificó con Codex, incluyendo continuidad y un envío del propio He
 Hermes descubre las skills compartidas mediante `skills.external_dirs` con
 `~/.agents/skills`, además de las propias en `~/.hermes/skills`. La herramienta de
 skills leyó `dotfiles-services` correctamente. Las skills compartidas se mantienen
-en dotfiles: el `SOUL.md` indica consultarlas y no modificarlas sin petición de Luis.
-Esta instrucción no cambia los permisos de escritura del sistema de archivos.
+en dotfiles; Hermes puede actualizarlas siguiendo el flujo de sincronización y las
+instrucciones de las skills aplicables.
 
 ## Instalación realizada
 
