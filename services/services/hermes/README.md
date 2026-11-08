@@ -19,6 +19,9 @@ en dotfiles; Hermes puede actualizarlas siguiendo el flujo de sincronización y 
 instrucciones de las skills aplicables.
 El perfil general de Hermes está en `SOUL.md`; el procedimiento de acceso a T3
 se carga cuando hace falta desde la skill compartida `omarchy-t3`.
+Los datos del entorno, el proyecto CV pausado y la preferencia de búsqueda están
+en la memoria propia `~/.hermes/memories/MEMORY.md` del servidor. Esa memoria es
+estado privado, no se sincroniza con dotfiles; su respaldo está pendiente.
 
 ## Instalación realizada
 
