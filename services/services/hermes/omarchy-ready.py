@@ -32,6 +32,12 @@ def eligible(item):
             task.get('assignee') == 'default' and task.get('max_retries') == 1)
 
 
+def subscribed(ident, owner):
+    subscriptions = json.loads(command([HERMES, 'kanban', 'notify-list', ident, '--json']).stdout)
+    return any(s.get('platform') == 'telegram' and str(s.get('chat_id')) == owner
+               and s.get('delivery_mode') in ('notify', 'notify+wake') for s in subscriptions)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--host', default='luis@omarchy', help=argparse.SUPPRESS)
@@ -40,12 +46,16 @@ def main():
     try:
         cards = json.loads(command([HERMES, 'kanban', 'list', '--status', 'blocked',
                                     '--tenant', TENANT, '--json']).stdout)
+        if not cards:
+            return 0
         candidates = []
+        owner_file = Path.home() / '.hermes/telegram-bot-info.json'
+        owner = str(json.loads(owner_file.read_text())['owner_user_id'])
         for card in cards:
             ident = card.get('id', '')
             if re.fullmatch(r't_[0-9a-f]+', ident):
                 detail = json.loads(command([HERMES, 'kanban', 'show', ident, '--json']).stdout)
-                if eligible(detail):
+                if eligible(detail) and subscribed(ident, owner):
                     candidates.append(ident)
         if not candidates:
             return 0
@@ -57,7 +67,7 @@ def main():
         awakened = []
         for ident in candidates:
             detail = json.loads(command([HERMES, 'kanban', 'show', ident, '--json']).stdout)
-            if not eligible(detail):
+            if not eligible(detail) or not subscribed(ident, owner):
                 continue
             if not args.dry_run:
                 result = command([HERMES, 'kanban', 'unblock', ident,
@@ -69,7 +79,7 @@ def main():
             action = 'Se desbloquearon' if not args.dry_run else 'Se desbloquearían'
             print(f'{action} {len(awakened)} tareas de Omarchy en Kanban: {", ".join(awakened)}.')
         return 0
-    except (OSError, subprocess.SubprocessError, ValueError, json.JSONDecodeError) as exc:
+    except (OSError, subprocess.SubprocessError, ValueError, KeyError, TypeError) as exc:
         # A failed probe is normally an offline host; remain quiet and keep cards blocked.
         if isinstance(exc, subprocess.CalledProcessError) and exc.cmd and exc.cmd[0] == 'ssh':
             return 0

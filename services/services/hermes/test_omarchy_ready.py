@@ -2,6 +2,7 @@ import importlib.util
 import subprocess
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location('omarchy_ready', Path(__file__).with_name('omarchy-ready.py'))
 module = importlib.util.module_from_spec(spec)
@@ -34,6 +35,18 @@ class RecoverySafety(unittest.TestCase):
         x = card()
         x['task']['id'] = 't_ab12;whoami'
         self.assertFalse(module.eligible(x))
+
+    def test_requires_owner_telegram_subscription(self):
+        import json
+        for subscriptions, expected in [
+            ([], False),
+            ([{'platform': 'telegram', 'chat_id': '999', 'delivery_mode': 'notify'}], False),
+            ([{'platform': 'telegram', 'chat_id': '123', 'delivery_mode': 'wake'}], False),
+            ([{'platform': 'telegram', 'chat_id': '123', 'delivery_mode': 'notify'}], True),
+        ]:
+            result = subprocess.CompletedProcess([], 0, json.dumps(subscriptions), '')
+            with self.subTest(subscriptions=subscriptions), patch.object(module, 'command', return_value=result):
+                self.assertEqual(module.subscribed('t_ab12', '123'), expected)
 
 
 if __name__ == '__main__':

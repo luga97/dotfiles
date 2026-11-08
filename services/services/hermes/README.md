@@ -228,8 +228,9 @@ El cron de Hermes `omarchy-kanban-recovery` ejecuta cada cinco minutos el script
 archivo regular dentro de `~/.hermes/scripts/`, modo 700 (cron no admite symlinks
 que resuelvan fuera de ese directorio). Comprueba que SSH y T3 respondan y solo
 desbloquea tarjetas del tenant `omarchy-pre-envio` con perfil `default`, máximo
-un intento, bloqueo inicial y ningún run ni evento posterior. Notifica la
-liberación por Telegram; suscripciones explícitas entregan resultados de la tarjeta.
+un intento, bloqueo inicial, ningún run ni evento posterior y suscripción de
+notificación al DM de Telegram del propietario. Notifica la liberación por Telegram;
+la suscripción entrega el estado terminal de la tarjeta.
 
 En la prueba, con un host inexistente ambas tarjetas siguieron bloqueadas; con el
 host real solo se desbloqueó la de preenvío. Otra con un comentario de envío

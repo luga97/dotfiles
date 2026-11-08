@@ -54,14 +54,16 @@ envío incierto y que registre enlace, IDs y resultado. Reutiliza una misma
 El cron nativo `omarchy-kanban-recovery` comprueba cada cinco minutos SSH y T3,
 sin llamar al modelo. Solo desbloquea tarjetas de ese tenant, asignadas al perfil
 default, con un intento máximo, creadas inicialmente bloqueadas y sin ninguna
-ejecución ni evento posterior. El dispatcher de Kanban hará el resto. Si la máquina
+ejecución ni evento posterior, y con una suscripción de notificación al Telegram
+del propietario. El dispatcher de Kanban hará el resto. Si la máquina
 vuelve a caerse tras desbloquear, o el envío llega a ser incierto, el worker debe
 bloquear para revisión: el cron no reactivará tarjetas con historial de ejecución.
 No prometas reintentos ilimitados ni recuperación automática de envíos inciertos.
 
-Si el origen es Telegram, suscribe la tarjeta a ese chat para recibir el resultado.
+Suscribe la tarjeta al DM personal de Telegram antes de que el cron pueda liberarla.
 La CLI `hermes kanban notify-subscribe` admite `--platform telegram`, `--chat-id`
 y `--chat-type dm`; para el DM personal, el usuario propietario está en el archivo
 privado `~/.hermes/telegram-bot-info.json` (`owner_user_id`). No publiques tokens.
 La suscripción es necesaria porque las tarjetas creadas mediante CLI JSON no se
-suscriben automáticamente. El cron avisa cuando desbloquea una tarjeta.
+suscriben automáticamente. Usa `--delivery-mode notify`. El cron avisa cuando
+desbloquea una tarjeta y la suscripción entrega su estado terminal.
