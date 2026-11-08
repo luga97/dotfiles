@@ -4,7 +4,7 @@ Estado 2026-11-07: instalación suspendida; todavía no instalado ni iniciado.
 Luis quiere desarrollar con T3 en Omarchy y clonar/ejecutar servicios en home
 server. Se evalúa Hermes para operaciones allí; no hace falta otro T3 para usar SSH.
 Este procedimiento se conserva como referencia, fuera del trabajo activo.
-Omarchy conserva su instalación actual y sus sesiones. Paseo no se modifica.
+Omarchy conserva su instalación actual y sus sesiones. Paseo se retiró tras validar el flujo móvil de T3.
 
 ## Paquete elegido y revisión
 

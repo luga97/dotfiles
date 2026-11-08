@@ -26,7 +26,6 @@ cd ~/dotfiles && stow -R services   # enlazar a ~/services/
 | mr-review | nativo (systemd user) | agente de review de MRs: webhook GitLab + reviews con pi/PR-Agent (home-server) — ver `services/mr-review/README.md` |
 | dotfiles-sync | nativo (systemd user) | sincronización de dotfiles |
 | nfs-server | nativo (systemd **del sistema**) | comparte `/home/user` por NFS a LAN y tailnet |
-| paseo | nativo (systemd user) | control de agentes de código desde móvil/web |
 | project-zomboid / pz-backup | nativo (systemd sistema) | juego y respaldo diario en home-server; [configuración y pendientes](services/project-zomboid/README.md) |
 | searxng | docker-compose | [metabuscador y relación con Ketch](services/searxng/README.md); servidor degradado por DNS, conservar local hasta migrar |
 | t3code | app en Omarchy; instalación en home-server suspendida | desarrollo en Omarchy; [procedimiento headless histórico](services/t3code/README.md) fuera del trabajo activo |

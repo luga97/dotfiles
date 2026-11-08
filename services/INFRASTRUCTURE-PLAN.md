@@ -22,8 +22,8 @@ del diagnóstico antes de actuar.
 
 **Prioridad:** servicios persistentes en home server; trabajo personal, de
 escritorio o ligado al hardware en Omarchy. T3 permanece en Omarchy; SSH sobre
-Tailscale ya permite gestionar home server sin instalar allí T3. Conservar Paseo
-hasta validar el flujo móvil y Pi. Hermes en home server queda como asistente
+Tailscale ya permite gestionar home server sin instalar allí T3. Luis validó T3
+en móvil y pidió retirar Paseo de ambos hosts. Hermes queda como asistente
 persistente con delegación a Omarchy. Ver [estado y operación](services/hermes/README.md).
 
 **Fuera de alcance por indicación de Luis:** Telegram Bridge y el seguimiento
@@ -78,15 +78,13 @@ Estado observado el 2026-11-07:
 | Elemento | Omarchy | Home server |
 |---|---|---|
 | Hardware | Ryzen 5 5600GT, 6 núcleos/12 hilos, 32 GB RAM, Radeon RX 6650 XT dedicada | i7-1165G7, 4 núcleos/8 hilos, 16 GB RAM, Intel Iris Xe integrada |
-| Servicios relevantes | Dictado Voxtype, ActivityWatch, Sunshine, Paseo, SearXNG | MR review, GitLab Runner, NFS, SearXNG, Paseo, Project Zomboid |
+| Servicios relevantes | Dictado Voxtype, ActivityWatch, Sunshine, SearXNG | MR review, GitLab Runner, NFS, SearXNG, Project Zomboid |
 | T3 Code | App activa; Connect habilitado; LAN deshabilitada; servicio independiente no instalado | No se encontró instalación/proceso |
 | Pi | Configuración disponible; T3 lo enumera como proveedor, sin prueba funcional aún | Instalado; MR review lo puede invocar; no necesita proceso permanente en reposo |
 
-T3 no tenía entornos vinculados. Paseo responde en el servidor por la red privada
-en `http://100.95.235.26:6767`. Las instancias de Paseo están fijadas a 0.8.0
-según su README; no aplicar instrucciones de versiones nuevas sin revisar esa
-diferencia. SearXNG y Paseo existen en ambas máquinas: evaluar cada duplicación,
-sin asumir que ambas instancias sobran.
+Al 2026-11-08 Luis validó el flujo móvil de T3 y solicitó la retirada de Paseo.
+Se conservaron las sesiones y adjuntos en ~/.paseo de cada máquina. SearXNG sigue
+pendiente de reparación y centralización en home server.
 
 La red Tailscale responde en ambas direcciones. SSH Omarchy → home server funciona.
 La prueba SSH inversa a `luis@100.110.219.43` se detuvo por falta de confianza en
@@ -147,7 +145,7 @@ una necesidad real de sesiones de agente gestionadas por T3 en el servidor.
 
 - [ ] Habilitar y probar acceso directo por Tailscale al T3 de Omarchy desde el teléfono
   y mantener el acceso a los servicios privados de home server.
-- [ ] Separar el acceso privado a T3/Paseo del endpoint público del webhook de GitLab.
+- [ ] Separar el acceso privado a T3 del endpoint público del webhook de GitLab.
   Evitar sobrescribir el puerto/ruta del Funnel existente al configurar Serve.
 - [ ] Retirar el Funnel obsoleto de Omarchy tras verificar sus consumidores.
 - [x] Comprobar autenticación y confianza SSH inversas: `luis@omarchy` funciona desde
@@ -161,16 +159,12 @@ Funnel hacia `127.0.0.1:8080`; `/health` devolvió 200. El Funnel de
 `omarchy.tail27d0f2.ts.net` apunta también a 8080, sin servicio allí, y devolvió 502.
 Tailscale Serve es privado a la tailnet; Funnel da acceso desde Internet.
 
-## Fase 4 — Validar el teléfono y decidir sobre Paseo
+## Fase 4 — Acceso móvil y retirada de Paseo
 
-- [ ] Probar en T3: envío de tareas, dictado, permisos, revisión de cambios,
-  reconexión y reanudación desde el teléfono.
-- [ ] Identificar qué funciones de Paseo siguen siendo necesarias y en qué host.
-- [ ] Revisar sesiones/tareas pendientes antes de retirar cualquier instancia.
-- [ ] Retirar Paseo solo donde haya quedado reemplazado y actualizar el inventario.
-
-T3 y Paseo gestionan sus propias sesiones; compartir el ejecutable Pi no convierte
-las conversaciones de ambas aplicaciones en una única sesión.
+- [x] Luis confirmó que el flujo móvil de T3 funciona.
+- [x] Retirar servicios y CLI de Paseo de ambos hosts y sus skills.
+- [x] Conservar sesiones, adjuntos y workspaces históricos en ~/.paseo.
+- [ ] Revisar retirada del paquete gráfico y reglas de firewall con permisos de sistema.
 
 ## Fase 5 — Hermes en home server y delegación a Omarchy
 

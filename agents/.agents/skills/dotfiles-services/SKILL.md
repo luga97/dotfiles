@@ -1,6 +1,6 @@
 ---
 name: dotfiles-services
-description: "Patrón para agregar, modificar o depurar servicios y daemons en el repo de dotfiles de Luis (~/dotfiles/services, paquete stow enlazado a ~/services). Usar SIEMPRE que se pida instalar, levantar, respaldar, configurar o eliminar un servicio persistente: docker-compose, unidades systemd user, daemons nativos, puertos, secretos de servicios, restart policies, logs de un servicio (journalctl/docker logs), o preguntas sobre cómo corre X en este setup (paseo, searxng, activitywatch, nfs-server, telegram-bridge, dotfiles-sync, cv-mail-watch). También al mover a systemd un proceso que se arrancaba a mano."
+description: "Patrón para agregar, modificar o depurar servicios y daemons en el repo de dotfiles de Luis (~/dotfiles/services, paquete stow enlazado a ~/services). Usar SIEMPRE que se pida instalar, levantar, respaldar, configurar o eliminar un servicio persistente: docker-compose, unidades systemd user, daemons nativos, puertos, secretos de servicios, restart policies, logs de un servicio (journalctl/docker logs), o preguntas sobre cómo corre X en este setup (searxng, activitywatch, nfs-server, telegram-bridge, dotfiles-sync, cv-mail-watch). También al mover a systemd un proceso que se arrancaba a mano."
 ---
 
 # Servicios y daemons del setup (~/dotfiles/services)
@@ -46,11 +46,9 @@ Ejemplo real: `services/services/searxng/`.
   watchers de ActivityWatch requieren aw-server; si el server muere, systemd las
   reinicia tras reconectar).
 
-Ejemplo real: `services/services/paseo/` — daemon que controla agentes de código
-desde móvil/web (https://paseo.sh). Corre nativo porque debe ver pi, `~/.pi` y git
-del host. Instalado con `npm install -g @getpaseo/cli --allow-scripts=esbuild,node-pty`,
-ejecuta `paseo start --foreground --web-ui`; contraseña en `~/.config/paseo/paseo.env`,
-estado en `~/.paseo`, Web UI en http://localhost:6767.
+Ejemplo real: `services/services/hermes/` — asistente persistente en home-server
+que necesita acceso a las CLIs y SSH del host. Su servicio gateway lo gestiona
+Hermes; el repo conserva el drop-in, instrucciones y documentación de acceso.
 
 ## Alta o modificación de un servicio
 
@@ -68,7 +66,7 @@ estado en `~/.paseo`, Web UI en http://localhost:6767.
 
 - **¿En qué máquina corre?** El repo es idéntico en ambas; lo que decide es el
   objetivo del servicio + el enable por-máquina. omarchy (la PC potente de Luis)
-  corre lo atado a su hardware (métricas de uso local, paseo del pi local);
+  corre lo atado a su hardware (métricas de uso local, herramientas de escritorio);
   **home-server** corre los servicios persistentes sin dependencia de hardware.
   Si Luis pide "un servicio" sin especificar máquina, preguntar (o deducir por
   la regla anterior) antes de levantarlo.
@@ -81,9 +79,3 @@ estado en `~/.paseo`, Web UI en http://localhost:6767.
   termina, quedando como huérfanos fuera de systemd. Usar siempre las unidades;
   si es una prueba puntual, redirigir stdout/stderr a un archivo o /dev/null y
   matar el proceso al terminar.
-- **Globales de npm + mise `latest`**: si una unidad apunta a
-  `~/.local/share/mise/installs/node/latest/bin/<paquete>`, al instalar un node
-  más nuevo mise mueve `latest` y el paquete queda huérfano → bucle `203/EXEC`
-  (paseo quedó así días en omarchy, 2026-09/10). No apuntar directo a `latest`:
-  usar el wrapper `services/.local/bin/paseo-daemon` (cae a la versión que tenga
-  el CLI) y reinstalar el global tras cada upgrade de node.
