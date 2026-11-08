@@ -95,9 +95,9 @@ journalctl --user -u hermes-gateway -n 30 --no-pager
 ~/.local/bin/hermes
 ```
 
-El gateway sirve inicialmente el socket local `~/.hermes/gateway.sock` y su backend
-en loopback con puerto dinámico. No se activó un nuevo Funnel/Serve, Webapp ni bot
-de mensajería; el acceso remoto al asistente se hace por SSH hasta elegir ese canal.
+El gateway sirve el socket local `~/.hermes/gateway.sock` y su backend en loopback
+con puerto dinámico. El dashboard tiene su ruta privada Tailscale Serve, descrita
+abajo. No se activó Webapp ni bot de mensajería.
 El aviso de que no hay plataformas de mensajería habilitadas es esperado.
 
 ## Dashboard de gestión
@@ -107,21 +107,48 @@ ya compilado de Hermes. Su dirección interna es `http://127.0.0.1:9119` en home
 server; la unidad se limita a loopback. El dashboard permite gestionar configuración
 y sesiones; la Webapp de chat completa es otra superficie y sigue sin activar.
 
-Acceso actual desde Omarchy: `http://127.0.0.1:9119`, mediante un túnel SSH local
-al mismo puerto del servidor. Se inició `hermes-dashboard-forward.service` como
-unidad transitoria de Omarchy, con duración máxima de una hora; no arranca al boot.
-La raíz respondió HTTP 200 y `/api/status` confirmó Hermes v0.23.0 a través del túnel.
-El dashboard permanece en loopback; SSH aporta la autenticación y el cifrado del
-tráfico entre las máquinas. No se creó contraseña ni se publicó una ruta Tailscale
-Serve/Funnel adicional. Para volver a abrir el túnel manualmente:
+Acceso actual desde PC y teléfono con Tailscale conectado:
+
+**https://archlinux.tail27d0f2.ts.net:8443** — usuario **luis**, contraseña elegida
+mediante formulario privado. Es un login propio del dashboard, separado del OAuth
+Codex que usa el modelo. No guardar la contraseña ni la configuración privada en Git.
+
+Tailscale Serve termina HTTPS con certificado automático de Let's Encrypt y envía
+HTTP solo por loopback al puerto 9119. Se verificó TLS 1.3, cadena válida y login
+real; la API de identidad sin sesión devuelve un rechazo. El puerto 8443 es
+**tailnet only**: no se usó Funnel para el panel ni se abrió un puerto del router.
+El Funnel 443 de MR review sigue intacto y `/health` respondió 200/`ok:true`.
+
+Configuración no secreta guardada en el host: `dashboard.public_url` apunta al URL
+anterior. `dashboard.basic_auth` contiene el usuario, hash scrypt y clave aleatoria
+de firma persistente; `~/.hermes/config.yaml` tiene modo 600. Esto permite que las
+sesiones sobrevivan a reinicios. Para cambiar la contraseña desde Omarchy, recibirla
+en un archivo privado y ejecutar:
+
+```bash
+python ~/services/hermes/configure-dashboard-access.py --password-file /ruta/privada
+```
+
+El helper envía solo el hash y configuración por stdin de SSH; no imprime valores
+de credenciales. Regenera la clave de firma al configurar, cerrando las sesiones
+anteriores, y verifica el login HTTPS sin mostrar cookies ni contraseña.
+
+Para reconstruir la ruta privada del servidor:
+
+```bash
+sudo tailscale serve --bg --https=8443 --yes http://127.0.0.1:9119
+```
+
+El túnel SSH transitorio de Omarchy usado inicialmente quedó detenido tras activar
+HTTPS. No hace falta para la dirección Tailscale. Como alternativa de mantenimiento:
 
 ```bash
 ssh -N -L 127.0.0.1:9119:127.0.0.1:9119 home-server
 ```
 
-El acceso directo por Tailscale desde teléfono queda pendiente de un proveedor
-de login de Hermes. HTTPS no es obligatorio para el panel en una VPN; la Webapp
-pierde funciones de navegador como micrófono fuera de un contexto seguro.
+HTTPS no es obligatorio para el panel en una VPN; se eligió para ofrecer una URL
+con certificado válido y contexto seguro del navegador. No se ha probado un
+teléfono real: debe tener Tailscale conectado y acceso a esta máquina.
 
 `~/.hermes/SOUL.md` enlaza al [SOUL compartido](SOUL.md); el original del instalador
 se conserva como `SOUL.md.installer-default`. Configuración, OAuth, sesiones,

@@ -30,8 +30,10 @@ persistente con delegación a Omarchy. Ver [estado y operación](services/hermes
 de correo pertenecen al proyecto CV, que está pausado. Ignorar su inactividad;
 no reactivarlos ni tratarlos como incidencias de infraestructura.
 
-**Próximo paso:** usar el circuito instalado y elegir el canal de acceso a Hermes
-desde el teléfono (CLI por SSH disponible; Webapp/mensajería aún sin activar).
+**Próximo paso:** usar el circuito instalado y el Dashboard privado de Hermes en
+`https://archlinux.tail27d0f2.ts.net:8443` (Tailscale conectado, login `luis`).
+Login HTTPS probado desde Omarchy; falta la prueba desde un teléfono real.
+Webapp completa y mensajería siguen sin activar.
 El instalador T3 se conserva como referencia, fuera
 del trabajo activo. La reconexión de Google Drive sigue pendiente por decisión de Luis.
 
@@ -178,11 +180,14 @@ las conversaciones de ambas aplicaciones en una única sesión.
 - [x] Probar dos turnos del puente en la misma sesión Pi con contexto conservado.
 - [x] Completar login independiente Codex para Hermes (elección de Luis) y probar que
   el propio Hermes envía una tarea al puente, recibe el resultado y continúa la sesión.
-- [ ] Elegir canal de acceso al asistente (CLI SSH disponible; mensajería/Webapp sin activar).
+- [x] Elegir acceso al dashboard por Tailscale desde PC y teléfono, con login propio;
+  configurar contraseña recibida por formulario privado, HTTPS y verificar el login.
 - [x] Activar Dashboard de gestión en loopback 9119, servicio de usuario en home server,
   y dar acceso desde Omarchy por túnel SSH temporal (una hora). HTTP 200 verificado;
-  sin nueva contraseña ni publicación en Tailscale Serve/Funnel. Acceso directo desde
-  teléfono sigue pendiente; la Webapp completa es una superficie separada.
+  ese acceso inicial quedó reemplazado por Tailscale Serve privado HTTPS 8443 con
+  login `luis`. Túnel SSH detenido; Funnel 443 del webhook conservado y saludable.
+- [ ] Probar el dashboard desde el teléfono con Tailscale conectado. La Webapp
+  completa es una superficie separada y no se activó.
 - [ ] Mantener scripts, systemd y Compose como mecanismos de ejecución; Hermes puede
   consultar estado, explicar errores y lanzar operaciones explícitas de esos runbooks.
 - [ ] Evaluar después la delegación a Omarchy: SSH para comandos; Pi o integración con
