@@ -1,7 +1,7 @@
 # Scratchpad
 
 <!-- 2026-11-07 -->
-- [ ] Infraestructura Omarchy/home-server: retomar `~/dotfiles/services/INFRASTRUCTURE-PLAN.md`. T3 solo en Omarchy; Hermes v0.23.0 en home-server con Codex `gpt-6.1-terra` high, respuesta real verificada. CLI T3 por SSH con inferencia y continuidad reales. Kanban habilitado CLI/Telegram; tarjeta bloqueada, desbloqueada manualmente y completada por worker. Telegram requiere `/new` para cargar herramientas. Disponibilidad/reanudación automática de Omarchy y coordinación Kanban/T3 aún sin integrar; evitar duplicar envíos inciertos. Dashboard HTTP directo `archlinux:9119`; Telegram propio conectado por polling. Luis validó móvil T3 y pidió retirar Paseo; estado histórico ~/.paseo conservado. Google Drive de Zomboid pendiente. Telegram/correo del CV siguen pausados: ignorar.
+- [ ] Infraestructura Omarchy/home-server: retomar `~/dotfiles/services/INFRASTRUCTURE-PLAN.md`. Hermes v0.23.0 con Codex Terra high y T3 vía SSH probado. Kanban CLI/Telegram y cron `omarchy-kanban-recovery` cada 5 min: solo desbloquea tarjetas inicialmente bloqueadas sin ejecuciones previas, nunca envíos inciertos. Simulación offline/online y cron probados; falta tarea real desde Telegram. Detalles en skill `omarchy-t3`. Dashboard HTTP `archlinux:9119`; Telegram conectado. Paseo retirado, datos históricos preservados. Google Drive Zomboid pendiente; CV pausado.
 
 <!-- 2026-09-16 21:57:58 [01a0acd1] -->
 - [ ] Reportar upstream (jl1990/pi-scheduler): crash de proper-lockfile/mtime-precision bajo sandbox Proxy de pi + Bun (regresión PR #5, v0.5.0)

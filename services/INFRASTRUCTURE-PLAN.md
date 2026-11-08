@@ -199,19 +199,21 @@ Tailscale Serve es privado a la tailnet; Funnel da acceso desde Internet.
 - [x] Probar inferencia completa en conversación T3 solicitada por Luis: creación,
   continuidad con contexto, consulta y envío desde el propio Hermes por SSH.
   Codex funcionó; Pi deshabilitado y Claude sin autenticar en la última caché de T3.
-- [ ] Si se habilita delegación, probar una tarea completa: recepción, elección de host, espera si Omarchy
-  está apagada, ejecución y entrega del resultado.
+- [ ] Probar desde Telegram una tarea real de proyecto bloqueada por Omarchy
+  desconectada, incluyendo suscripción y entrega del resultado.
 
 Hermes está instalado; T3 funciona directamente por SSH y se probó inferencia
-y continuidad real. Coordinación cuando Omarchy está apagada sigue pendiente.
+y continuidad real. El cron `omarchy-kanban-recovery` comprueba disponibilidad
+cada cinco minutos y desbloquea únicamente tarjetas bloqueadas antes de ejecutarse.
 
 ### Capacidades nativas revisadas antes de ampliar la cola
 
 La documentación oficial y la instalación v0.23.0 incluyen Kanban persistente en
 SQLite (tareas, dependencias, asignación, bloqueos, reintentos y límites de concurrencia).
 Usarlo como registro duradero de trabajo; no construir una segunda cola offline
-para el acceso a T3. Falta integrar la disponibilidad de Omarchy y el desbloqueo/despacho
-seguro: Kanban por sí solo no detecta que un PC remoto volvió a estar disponible.
+para el acceso a T3. Una comprobación sin modelo integra disponibilidad y desbloqueo
+solo para tarjetas nunca ejecutadas. Fallos posteriores y envíos inciertos quedan
+para revisión, sin recuperación automática.
 
 Otras superficies distintas: `/queue` guarda el siguiente mensaje de la conversación;
 cron programa tareas autónomas con entrega por Telegram (también scripts sin LLM);
@@ -221,10 +223,11 @@ para procedimientos y perfiles para separar configuración/memoria/herramientas.
 
 Estado actualizado: Kanban habilitado para CLI y Telegram, perfil `default`.
 Tarjeta de prueba bloqueada, desbloqueada manualmente y completada por un worker
-nativo: comprobó SSH y no envió tarea a T3. No hay jobs cron. Las conversaciones
-Telegram anteriores al cambio necesitan una sesión nueva para cargar herramientas.
-El desbloqueo automático y el enlace entre tarjetas y tareas T3 aún no están
-configurados: falta diseñar la recuperación sin duplicar un envío incierto.
+nativo: comprobó SSH y no envió tarea a T3. Cron cada cinco minutos activo para
+tarjetas bloqueadas inicialmente en el tenant `omarchy-pre-envio`; probado con
+host inexistente, host real y tarjeta incierta. La coordinación de una tarea real
+desde Telegram aún debe probarse. Las conversaciones Telegram anteriores al cambio
+necesitan una sesión nueva para cargar herramientas.
 
 Recomendación por evaluar:
 1. Informe/alertas de salud con scripts y cron nativo, respetando timers de respaldo.

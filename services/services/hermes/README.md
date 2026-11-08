@@ -187,8 +187,7 @@ puertos nuevos. El teléfono usa Telegram sin requerir Tailscale para este canal
 Las herramientas Kanban están habilitadas para Telegram y CLI. Una conversación
 Telegram iniciada antes del cambio debe renovarse con `/new` para cargar el nuevo
 conjunto de herramientas. En una prueba, una tarjeta bloqueada se desbloqueó
-manualmente y un worker de Hermes comprobó SSH y la completó. Aún no se configuró
-la comprobación periódica ni el desbloqueo/despacho automático hacia T3.
+manualmente y un worker de Hermes comprobó SSH y la completó.
 
 ## T3 en Omarchy por SSH
 
@@ -219,7 +218,24 @@ Un turno ocupado puede encolar el siguiente mensaje; verificarlo antes de contin
 Se comprobó desde home server la creación y continuación de una conversación T3
 con Codex, que conservó el contexto. El propio Hermes consultó la conversación y
 envió un turno por SSH; T3 respondió correctamente. Codex figuraba disponible;
-Pi deshabilitado y Claude sin autenticar en la última caché de T3. Kanban está
-vacío y la coordinación automática con T3 o con Omarchy apagada no está implementada.
+Pi deshabilitado y Claude sin autenticar en la última caché de T3.
+
+## Recuperación de Omarchy
+
+El cron de Hermes `omarchy-kanban-recovery` ejecuta cada cinco minutos el script
+`~/.hermes/scripts/omarchy-ready.py` sin modelo. Su fuente versionada está en
+`services/hermes/omarchy-ready.py`; tras actualizarla hay que instalarla como
+archivo regular dentro de `~/.hermes/scripts/`, modo 700 (cron no admite symlinks
+que resuelvan fuera de ese directorio). Comprueba que SSH y T3 respondan y solo
+desbloquea tarjetas del tenant `omarchy-pre-envio` con perfil `default`, máximo
+un intento, bloqueo inicial y ningún run ni evento posterior. Notifica la
+liberación por Telegram; suscripciones explícitas entregan resultados de la tarjeta.
+
+En la prueba, con un host inexistente ambas tarjetas siguieron bloqueadas; con el
+host real solo se desbloqueó la de preenvío. Otra con un comentario de envío
+incierto siguió bloqueada. Un worker de Hermes completó la tarjeta segura. No se
+simuló una caída de red exactamente durante un envío T3: ese caso exige revisión
+humana y nunca entra en esta recuperación automática. La skill `omarchy-t3`
+describe cómo crear y suscribir tareas; esta automatización no cubre otros tableros.
 
 Plan general: [infraestructura](../../INFRASTRUCTURE-PLAN.md).

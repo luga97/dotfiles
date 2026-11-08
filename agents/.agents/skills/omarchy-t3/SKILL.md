@@ -42,6 +42,26 @@ respuesta, informa; si la conexión falla durante el envío, consulta antes de v
 a enviar: podría haber llegado. No reintentes una operación de estado incierto a
 ciegas. Un hilo ocupado puede encolar un turno: consulta su estado al continuarlo.
 
-Si Omarchy no está disponible, informa y registra el pendiente si procede. Hermes
-cuenta con Kanban nativo, pero la detección de disponibilidad y el desbloqueo o
-reintento automático aún no están integrados. No los presentes como funcionando.
+Si Omarchy o T3 no responden **antes de intentar el envío**, informa a Luis y
+registra la tarea para ejecutarla cuando vuelvan. Usa Kanban en el tablero default:
+crea la tarjeta con `hermes kanban create`, `--assignee default`,
+`--tenant omarchy-pre-envio`, `--initial-status blocked` y `--max-retries 1`.
+Usa `--body-file` para el encargo; incluye contexto, el proyecto en Omarchy,
+criterio de resultado, que compruebe T3 antes de enviar, que nunca reenvíe un
+envío incierto y que registre enlace, IDs y resultado. Reutiliza una misma
+`--idempotency-key` si debes repetir la creación de la tarjeta.
+
+El cron nativo `omarchy-kanban-recovery` comprueba cada cinco minutos SSH y T3,
+sin llamar al modelo. Solo desbloquea tarjetas de ese tenant, asignadas al perfil
+default, con un intento máximo, creadas inicialmente bloqueadas y sin ninguna
+ejecución ni evento posterior. El dispatcher de Kanban hará el resto. Si la máquina
+vuelve a caerse tras desbloquear, o el envío llega a ser incierto, el worker debe
+bloquear para revisión: el cron no reactivará tarjetas con historial de ejecución.
+No prometas reintentos ilimitados ni recuperación automática de envíos inciertos.
+
+Si el origen es Telegram, suscribe la tarjeta a ese chat para recibir el resultado.
+La CLI `hermes kanban notify-subscribe` admite `--platform telegram`, `--chat-id`
+y `--chat-type dm`; para el DM personal, el usuario propietario está en el archivo
+privado `~/.hermes/telegram-bot-info.json` (`owner_user_id`). No publiques tokens.
+La suscripción es necesaria porque las tarjetas creadas mediante CLI JSON no se
+suscriben automáticamente. El cron avisa cuando desbloquea una tarjeta.
