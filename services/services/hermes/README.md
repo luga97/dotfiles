@@ -70,10 +70,16 @@ transitorio `hermes-auth-forward.service` usado en esta intervención quedó det
 No guardar URLs/códigos temporales, tokens ni `auth.json` en Git. La verificación
 `hermes auth status openai-codex` respondió `logged in`; archivo OAuth con modo 600.
 
-Unidad: `~/.config/systemd/user/hermes-gateway.service`, stoweada desde este repo,
-habilitada **solo en home server** (`ConditionHost=archlinux`). Linger está activo.
-La unidad usa el launcher oficial, las herramientas de mise y un margen de parada
-de 90 s. El `HERMES_HOME` es el predeterminado, `~/.hermes`.
+Unidad: `~/.config/systemd/user/hermes-gateway.service`, gestionada por el propio
+Hermes y habilitada **solo en home server**. Hermes la regenera al iniciar clientes;
+por eso su archivo principal es local al host, no un symlink al repo. Se conserva
+una [copia de referencia](host-files/hermes-gateway.service) con las rutas del servidor.
+Para reconstruirla, usar `hermes gateway install` después de instalar el producto.
+Los ajustes propios se stowean desde
+`.config/systemd/user/hermes-gateway.service.d/10-home-server.conf`: condición de
+host `archlinux`, PATH con herramientas de mise y parada de 90 s. Esta separación
+permite que Hermes actualice su ciclo de parada/reinicio sin ensuciar dotfiles.
+Linger está activo. El `HERMES_HOME` es `~/.hermes`.
 
 ```bash
 systemctl --user status hermes-gateway --no-pager
