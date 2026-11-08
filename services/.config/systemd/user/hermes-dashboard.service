@@ -1,5 +1,5 @@
 [Unit]
-Description=Hermes web dashboard (home server, loopback)
+Description=Hermes web dashboard (home server, Tailscale address)
 After=network-online.target hermes-gateway.service
 Wants=network-online.target hermes-gateway.service
 ConditionHost=archlinux
@@ -8,7 +8,7 @@ ConditionHost=archlinux
 Type=simple
 WorkingDirectory=%h
 Environment=PATH=%h/.local/bin:%h/.local/share/mise/shims:/usr/local/bin:/usr/bin
-ExecStart=%h/.local/bin/hermes dashboard --host 127.0.0.1 --port 9119 --skip-build --no-open
+ExecStart=%h/.local/bin/hermes dashboard --host 100.95.235.26 --port 9119 --skip-build --no-open
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=90

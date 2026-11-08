@@ -49,7 +49,7 @@ def main():
     salt = secrets.token_bytes(16)
     digest = hashlib.scrypt(password.encode(), salt=salt, n=16384, r=8, p=1, dklen=32)
     password_hash = 'scrypt$16384$8$1$'+base64.b64encode(salt).decode()+'$'+base64.b64encode(digest).decode()
-    url = 'http://archlinux.tail27d0f2.ts.net:9119'
+    url = 'http://archlinux:9119'
     payload = {'username': args.username, 'password_hash': password_hash,
                'signing_secret': secrets.token_hex(32), 'url': url}
     done = subprocess.run(['ssh', '-o', 'BatchMode=yes', args.host,
@@ -57,12 +57,11 @@ def main():
                           input=json.dumps(payload), text=True, capture_output=True, timeout=120)
     if done.returncode:
         raise RuntimeError('Dashboard configuration failed; credential values were not logged')
-    command = ('systemctl --user restart hermes-dashboard.service && '
-               'sudo -n tailscale serve --bg --http=9119 --yes http://127.0.0.1:9119')
+    command = 'systemctl --user restart hermes-dashboard.service'
     done = subprocess.run(['ssh', '-o', 'BatchMode=yes', args.host, command],
                           capture_output=True, text=True, timeout=90)
     if done.returncode:
-        raise RuntimeError('Could not start dashboard or private Tailscale Serve')
+        raise RuntimeError('Could not start dashboard on its private Tailscale address')
     # Read-only reachability checks with a bounded startup retry.
     for attempt in range(10):
         try:
