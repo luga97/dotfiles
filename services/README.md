@@ -3,6 +3,11 @@
 Paquete stow con el respaldo de todo servicio o daemon que corre constantemente
 en este setup: Docker (docker-compose) y nativos (unidades systemd).
 
+Plan por fases y contexto para retomar la organización de las dos máquinas:
+[infraestructura de Omarchy y home server](INFRASTRUCTURE-PLAN.md).
+Telegram Bridge y el seguimiento de correo del proyecto CV están pausados por
+indicación de Luis (2026-11-07); su inactividad no es una incidencia a corregir.
+
 ```bash
 cd ~/dotfiles && stow -R services   # enlazar a ~/services/
 ```
