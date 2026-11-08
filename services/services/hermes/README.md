@@ -81,6 +81,13 @@ host `archlinux`, PATH con herramientas de mise y parada de 90 s. Esta separaci�
 permite que Hermes actualice su ciclo de parada/reinicio sin ensuciar dotfiles.
 Linger está activo. El `HERMES_HOME` es `~/.hermes`.
 
+El directorio `hermes-gateway.service.d` debe ser real: systemd no cargó los
+drop-ins cuando Stow lo había plegado como symlink de directorio. Sus archivos
+sí se enlazan al repo. Antes de stow en una reconstrucción, crear el directorio
+real y un marcador local `.keep-real-directory` (fuera del repo) para que Stow
+no vuelva a plegarlo. Esta disposición se verificó tras `stow -R services`:
+`DropInPaths` incluye el ajuste y `NeedDaemonReload=no`.
+
 ```bash
 systemctl --user status hermes-gateway --no-pager
 journalctl --user -u hermes-gateway -n 30 --no-pager
