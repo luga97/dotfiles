@@ -9,8 +9,9 @@ se verificó la continuidad en los resultados y en el transcript persistido de P
 
 - Home server (`archlinux`, usuario `user`): Hermes, su estado y cliente del puente.
 - Omarchy (usuario `luis`): Pi, los proyectos, las sesiones remotas y los workers.
-- T3 permanece en Omarchy. Este puente no usa ni instala T3 en home server y no
-  toma conversaciones existentes de T3. Paseo y servicios pausados del CV no se modifican.
+- T3 permanece en Omarchy. El backend `t3` del puente usa su CLI local por SSH;
+  no instala T3 en home server ni toma conversaciones ajenas al puente. Paseo y
+  servicios pausados del CV no se modifican.
 
 ## Instalación realizada
 
@@ -247,20 +248,72 @@ permiso global para todos los usuarios. No se habilita acceso público al agente
 El adaptador usa long polling saliente: no necesita webhook, HTTPS, Serve ni
 puertos nuevos. El teléfono usa Telegram sin requerir Tailscale para este canal.
 
-## Posible integración con T3 en Omarchy
+## Backend T3 en Omarchy
 
-El puente directo a Pi fue una primera prueba de tareas y continuidad, no un
-requisito de Hermes. T3 admite proveedores Pi, Codex y Claude; su CLI instalada
-permite iniciar una conversación con `t3 thread start` y continuar con
-`t3 thread send`. La alternativa a evaluar es Hermes → SSH → T3 en Omarchy →
-proveedor elegido, para que el trabajo se gestione y aparezca en T3.
-Todavía no hay un puente T3 implementado ni se han creado conversaciones para
-probarlo. No requiere instalar T3 en home server.
+Cadena: Hermes → SSH → puente en Omarchy → CLI T3 → proveedor del proyecto.
+Se añadió el backend explícito `t3` al mismo cliente; Pi directo sigue siendo
+el predeterminado por compatibilidad. T3 y sus credenciales permanecen en Omarchy.
+La implementación adicional está en [t3_backend.py](t3_backend.py).
+
+```bash
+# Consulta sin crear sesiones (desde home server):
+hermes-omarchy-agent t3-info --cwd /home/luis/dotfiles
+
+# Solo si Luis pide una conversación nueva en T3:
+hermes-omarchy-agent submit --backend t3 --new-thread \
+  --cwd /home/luis/dotfiles --prompt-file /ruta/local/tarea.txt
+
+# Opcional: elegir explícitamente proveedor y modelo, ambos juntos:
+# --provider codex --model gpt-6.1-terra
+# Opcional: --worktree main para un workspace creado y gestionado por T3.
+
+# La continuación conserva conversación, proveedor/modelo y workspace:
+hermes-omarchy-agent submit --session-id SESSION_UUID \
+  --prompt-file /ruta/local/continuacion.txt
+hermes-omarchy-agent wait TASK_UUID --timeout 120
+hermes-omarchy-agent result TASK_UUID
+```
+
+Sin `--provider`/`--model` conserva los defaults del proyecto T3: no hereda el
+modelo Terra/high de Hermes. La CLI instalada no expone una opción de esfuerzo;
+se conserva lo que resuelva T3. El proyecto ya debe estar registrado en T3.
+
+Un worker systemd despacha el mensaje una sola vez por stdin y guarda los IDs
+`thread_id`, `run_id` y `link`. Después T3 mantiene el agente, independientemente
+del worker y de la conexión SSH. `status` consulta T3 y solo atribuye a esta tarea
+una respuesta del mismo `run_id`. Los logs de envío se guardan en estado privado;
+sus errores públicos no reproducen prompts ni credenciales.
+
+- `waiting`: pregunta o permiso pendiente; `wait` termina y devuelve el enlace T3.
+  Resolver en T3 y consultar otra vez; no se aprueban permisos automáticamente.
+- `unknown`: el envío no quedó confirmado o la conversación avanzó a otro run.
+  Revisar T3 y logs privados antes de reintentar; el puente bloquea la continuación
+  automática de una sesión incierta.
+- `read_error`: T3 no pudo consultarse; se conserva el estado anterior porque el
+  agente podría seguir ejecutando. No es evidencia para reenviar la petición.
+
+El cliente rechaza continuar una sesión ocupada y no cambia de proveedor ante
+errores. Si otro cliente ocupa el thread entre la comprobación y el envío, T3
+puede encolarlo: el puente lo marca incierto para revisión, sin duplicar el mensaje.
+Los threads de este backend son conversaciones normales de T3, no subagentes
+ocultos. No se crea ningún thread durante la instalación o los tests.
+
+Verificación: consulta real `t3 thread list/show` y RPC del puente con T3 activo;
+nueve pruebas de protocolo con CLI simulada cubren identificación de run, permisos,
+timeout sin reenvío, prompt literal, defaults, continuación, listado con logs privados
+y carrera antes del despacho.
+Falta una prueba completa con una conversación nueva solicitada por Luis.
+
+La última caché de proveedores indica Codex listo, Pi deshabilitado dentro de T3
+y Claude instalado sin autenticar. Pi sí funciona como CLI independiente con el
+backend anterior; no se habilitaron proveedores ni se modificaron sus credenciales.
+`t3-info` identifica expresamente esa fuente como caché y T3 valida el estado al enviar.
 
 ## Límites de esta primera integración
 
-- Pi es el único proveedor configurado en el puente. Las skills oficiales de
-  Hermes para Codex y Claude Code no equivalen a soporte remoto ya desplegado.
+- Pi directo está probado con inferencia real. El backend T3 ya está implementado,
+  pero su inferencia/continuación real queda pendiente de una conversación nueva;
+  Codex es el proveedor actualmente listo en T3.
 - Admite continuar una sesión terminada; todavía no dirige un turno en curso.
 - Sin reintento/cola automática cuando Omarchy está apagada. Informar la falta de
   disponibilidad y conservar la petición antes de diseñar ese comportamiento.
