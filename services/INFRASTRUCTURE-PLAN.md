@@ -201,13 +201,14 @@ las conversaciones de ambas aplicaciones en una única sesión.
   consultar estado, explicar errores y lanzar operaciones explícitas de esos runbooks.
 - [x] Simplificar la integración: retirar el puente propio y usar la CLI de T3
   directamente por SSH. Consulta real del proyecto verificada.
-- [ ] Probar inferencia completa en una conversación T3 nueva solicitada por Luis.
-  Codex listo; Pi figura deshabilitado y Claude sin autenticar en la caché de T3.
+- [x] Probar inferencia completa en conversación T3 solicitada por Luis: creación,
+  continuidad con contexto, consulta y envío desde el propio Hermes por SSH.
+  Codex funcionó; Pi deshabilitado y Claude sin autenticar en la última caché de T3.
 - [ ] Si se habilita delegación, probar una tarea completa: recepción, elección de host, espera si Omarchy
   está apagada, ejecución y entrega del resultado.
 
-Hermes está instalado; T3 se consulta directamente por SSH, pendiente de una prueba
-de inferencia completa. Coordinación cuando Omarchy está apagada sigue pendiente.
+Hermes está instalado; T3 funciona directamente por SSH y se probó inferencia
+y continuidad real. Coordinación cuando Omarchy está apagada sigue pendiente.
 
 ### Capacidades nativas revisadas antes de ampliar la cola
 

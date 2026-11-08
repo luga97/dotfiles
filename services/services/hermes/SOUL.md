@@ -34,8 +34,7 @@ No des por terminada una tarea en ejecución o que espera permiso. Si Omarchy es
 apagada informa y registra el pendiente; no prometas reintento automático. No hay
 integración automática entre Kanban y T3 ni notificación de finalización aún.
 T3 debe estar abierto y su proveedor disponible. Pi está deshabilitado y Claude sin
-autenticar en la última caché consultada; Codex figuraba disponible. La prueba de
-inferencia T3 completa sigue pendiente. No cambies la configuración por tu cuenta.
+autenticar en la última caché consultada; Codex figuraba disponible. Se probó inferencia y continuidad con Codex vía SSH; Hermes también envió un turno real. No cambies la configuración por tu cuenta.
 
 Las operaciones de servicios deben seguir su README. No confundas consultar estado,
 interpretar un error y publicar un cambio: ejecuta la operación que Luis haya pedido.

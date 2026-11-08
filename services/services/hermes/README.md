@@ -3,7 +3,7 @@
 Estado 2026-11-07: Hermes v0.23.0 instalado mediante el instalador oficial directo.
 Gateway de usuario habilitado y activo. Codex autenticado con una sesión propia.
 Hermes puede llamar a la CLI de T3 en Omarchy mediante SSH. La consulta de T3
-por SSH se verificó; falta probar una tarea de inferencia completa.
+por SSH se verificó con Codex, incluyendo continuidad y un envío del propio Hermes.
 
 ## Distribución
 
@@ -201,8 +201,9 @@ y `--model`. Almacenar enlace e IDs en la conversación o tarjeta Kanban. Si SSH
 falla al enviar, verificar el estado antes de repetir: el envío puede haber llegado.
 Un turno ocupado puede encolar el siguiente mensaje; verificarlo antes de continuar.
 
-Se verificó el listado real desde home server a T3. Falta una prueba de inferencia
-completa en una conversación nueva solicitada por Luis. Codex figuraba disponible;
+Se comprobó desde home server la creación y continuación de una conversación T3
+con Codex, que conservó el contexto. El propio Hermes consultó la conversación y
+envió un turno por SSH; T3 respondió correctamente. Codex figuraba disponible;
 Pi deshabilitado y Claude sin autenticar en la última caché de T3. Kanban está
 vacío y la coordinación automática con T3 o con Omarchy apagada no está implementada.
 
