@@ -62,6 +62,9 @@ o.bind("SUPER + SHIFT + C", "Calendar", { webapp = "https://calendar.google.com"
 -- Reunión voxtype: toggle de transcripción continua (mic + audio del sistema)
 o.bind("SUPER + F9", "Toggle meeting transcription", "~/.config/hypr/scripts/voxtype-meeting-toggle")
 
+-- System shortcut: keep SUPER+CTRL+N for Network.
+o.bind("SUPER + CTRL + ALT + N", "Toggle nightlight", "omarchy toggle nightlight")
+
 -- Keep Right Alt available for the Left Alt + Right Alt keyboard layout switch.
 -- hl.unbind removes both the press and release halves of the default hold bind.
 hl.unbind("ALT + Alt_R")
