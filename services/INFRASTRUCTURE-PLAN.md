@@ -164,7 +164,8 @@ Tailscale Serve es privado a la tailnet; Funnel da acceso desde Internet.
 - [x] Luis confirmó que el flujo móvil de T3 funciona.
 - [x] Retirar servicios y CLI de Paseo de ambos hosts y sus skills.
 - [x] Conservar sesiones, adjuntos y workspaces históricos en ~/.paseo.
-- [ ] Revisar retirada del paquete gráfico y reglas de firewall con permisos de sistema.
+- [x] Retirar `paseo-bin` de Omarchy y la regla UFW del puerto 6767 en IPv4/IPv6.
+  Home server no tenía regla 6767. Se conserva `~/.config/Paseo` como estado histórico.
 
 ## Fase 5 — Hermes en home server y delegación a Omarchy
 
