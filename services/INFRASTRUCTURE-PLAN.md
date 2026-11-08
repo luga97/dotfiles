@@ -182,7 +182,7 @@ Tailscale Serve es privado a la tailnet; Funnel da acceso desde Internet.
   `high`, verificar catálogo y respuesta real. Pi mantiene su configuración propia.
 - [x] Configurar Telegram propio de Hermes: creación automática completada,
   restringido al propietario, conectado por polling y mensaje saliente verificado.
-- [ ] Comprobar respuesta a una consulta entrante real por Telegram.
+- [x] Luis da por validado el flujo de Telegram; no solicitar una prueba adicional.
 - [x] Elegir acceso al dashboard por Tailscale desde PC y teléfono, con login propio;
   configurar contraseña recibida por formulario privado y verificar el login.
 - [x] Activar Dashboard de gestión en loopback 9119, servicio de usuario en home server,
@@ -199,8 +199,8 @@ Tailscale Serve es privado a la tailnet; Funnel da acceso desde Internet.
 - [x] Probar inferencia completa en conversación T3 solicitada por Luis: creación,
   continuidad con contexto, consulta y envío desde el propio Hermes por SSH.
   Codex funcionó; Pi deshabilitado y Claude sin autenticar en la última caché de T3.
-- [ ] Probar desde Telegram una tarea real de proyecto bloqueada por Omarchy
-  desconectada, incluyendo suscripción y entrega del resultado.
+- [x] Luis da por validado el flujo desde Telegram. La prueba técnica desde esta
+  sesión utilizó tareas de prueba y una simulación de indisponibilidad.
 - [x] Probar recuperación desde Kanban con T3 real (conversación de prueba ya
   existente): una única petición completada; notificación Telegram registrada.
 - [x] Simular envío incierto: worker bloquea para revisión; no se cortó una
@@ -229,9 +229,9 @@ Estado actualizado: Kanban habilitado para CLI y Telegram, perfil `default`.
 Tarjeta de prueba bloqueada, desbloqueada manualmente y completada por un worker
 nativo: comprobó SSH y no envió tarea a T3. Cron cada cinco minutos activo para
 tarjetas bloqueadas inicialmente en el tenant `omarchy-pre-envio`; probado con
-host inexistente, host real y tarjeta incierta. La coordinación de una tarea real
-desde Telegram aún debe probarse. Las conversaciones Telegram anteriores al cambio
-necesitan una sesión nueva para cargar herramientas.
+host inexistente, host real y tarjeta incierta. Luis da por validado el flujo desde
+Telegram. Las conversaciones anteriores al cambio necesitan una sesión nueva para
+cargar herramientas.
 
 Recomendación por evaluar:
 1. Informe/alertas de salud con scripts y cron nativo, respetando timers de respaldo.

@@ -174,8 +174,8 @@ Luis pidió habilitar Telegram para Hermes, separado del Telegram Bridge del CV,
 que permanece pausado. Se completó el flujo nativo de creación automática de bot:
 [@hermes_yh6xoaeq53dcivby_bot](https://t.me/hermes_yh6xoaeq53dcivby_bot).
 Gateway reiniciado; logs confirman conexión en polling. `getMe` y el envío de un
-mensaje de prueba al propietario respondieron correctamente. La respuesta a una
-consulta entrante real aún debe comprobarse. El enlace temporal y el archivo
+mensaje de prueba al propietario respondieron correctamente. Luis da por validado
+el flujo desde Telegram. El enlace temporal y el archivo
 privado de emparejamiento ya se retiraron; las credenciales no se versionan.
 
 El token se guarda únicamente en `~/.hermes/.env` del servidor (modo 600).
@@ -243,7 +243,8 @@ También se probó una tarjeta real de T3 con la conversación de prueba existen
 el host simulado mantuvo la tarjeta bloqueada; al responder Omarchy, el cron la
 liberó y un worker envió una sola petición de lectura a T3, recibió
 `PRUEBA_COLA_OK` y completó la tarjeta. La suscripción Telegram registró su
-notificación. Falta probar la creación desde un mensaje real de Telegram.
+notificación. Luis da por validado el flujo desde Telegram; la prueba técnica
+realizada aquí utilizó tareas de prueba y una simulación de indisponibilidad.
 El verificador consulta la tarjeta antes de invocar el desbloqueo por CLI; esas
 dos operaciones no son una transacción conjunta con otros cambios manuales.
 La protección frente a envíos inciertos depende además de las instrucciones del
