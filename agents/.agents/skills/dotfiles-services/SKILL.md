@@ -9,6 +9,12 @@ TODO servicio o daemon que corre constantemente se respalda en `~/dotfiles/servi
 (paquete stow `services`, enlazado a `~/services/`). Si algo corre en segundo plano
 de forma permanente y no está ahí, está fuera de respaldo.
 
+## Revisión y seguimiento de infraestructura
+
+1. Para responder qué está pendiente, consulta `~/dotfiles/services/INFRASTRUCTURE-PLAN.md`, `~/dotfiles/services/INVENTORY.md` y el Kanban activo; el tablero puede estar vacío mientras el plan conserva pendientes. Contrasta las casillas con actualizaciones posteriores del mismo plan.
+2. Distingue observaciones históricas de comprobaciones en vivo y revalida antes de actuar; proceso activo, copia íntegra y restauración probada son evidencias distintas.
+3. Para nuevas rutinas de salud, acuerda frecuencia y destino, revisa timers existentes y evita duplicar la ejecución de respaldos. Prefiere avisos ante problemas o comprobaciones imposibles y evita repetir mensajes sin cambios; prueba tanto la alerta como el silencio cuando todo está bien.
+
 ## Decisión: ¿Docker o nativo?
 
 - **Docker (docker-compose)** por defecto.
