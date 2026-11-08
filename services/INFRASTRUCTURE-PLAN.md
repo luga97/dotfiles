@@ -178,7 +178,8 @@ las conversaciones de ambas aplicaciones en una única sesión.
   disponible aunque Omarchy esté apagada. No necesita coordinar desarrollo para aportar valor.
 - [x] Instalar Hermes Agent de Nous Research en home server con el instalador directo
   oficial fijado a v0.23.0; iniciar servicio de usuario persistente y documentar arranque.
-- [x] Preparar puente SSH a Pi en Omarchy con workers systemd, estado y sesiones propios.
+- [x] Preparar puente SSH a Pi en Omarchy con workers y sesiones propios (histórico;
+  el puente se retiró después a petición de Luis para simplificar).
 - [x] Probar dos turnos del puente en la misma sesión Pi con contexto conservado.
 - [x] Completar login independiente Codex para Hermes (elección de Luis) y probar que
   el propio Hermes envía una tarea al puente, recibe el resultado y continúa la sesión.
@@ -198,24 +199,22 @@ las conversaciones de ambas aplicaciones en una única sesión.
   completa es una superficie separada y no se activó.
 - [ ] Mantener scripts, systemd y Compose como mecanismos de ejecución; Hermes puede
   consultar estado, explicar errores y lanzar operaciones explícitas de esos runbooks.
-- [x] Implementar Hermes → SSH → T3 en Omarchy: backend explícito, continuidad e
-  identidad de thread/run/link. Nueve pruebas de protocolo y consulta SSH real correctas.
+- [x] Simplificar la integración: retirar el puente propio y usar la CLI de T3
+  directamente por SSH. Consulta real del proyecto verificada.
 - [ ] Probar inferencia completa en una conversación T3 nueva solicitada por Luis.
   Codex listo; Pi figura deshabilitado y Claude sin autenticar en la caché de T3.
 - [ ] Si se habilita delegación, probar una tarea completa: recepción, elección de host, espera si Omarchy
   está apagada, ejecución y entrega del resultado.
 
-Hermes está instalado; el puente Pi está probado con continuidad de contexto y el
-backend T3 está desplegado, pendiente de inferencia completa. Intervención durante
-un turno y coordinación de tareas cuando Omarchy está apagada siguen pendientes.
+Hermes está instalado; T3 se consulta directamente por SSH, pendiente de una prueba
+de inferencia completa. Coordinación cuando Omarchy está apagada sigue pendiente.
 
 ### Capacidades nativas revisadas antes de ampliar la cola
 
 La documentación oficial y la instalación v0.23.0 incluyen Kanban persistente en
 SQLite (tareas, dependencias, asignación, bloqueos, reintentos y límites de concurrencia).
 Usarlo como registro duradero de trabajo; no construir una segunda cola offline
-en el puente. El estado del puente conserva únicamente identidades/resultados de
-ejecución. Falta integrar la disponibilidad de Omarchy y el desbloqueo/despacho
+para el acceso a T3. Falta integrar la disponibilidad de Omarchy y el desbloqueo/despacho
 seguro: Kanban por sí solo no detecta que un PC remoto volvió a estar disponible.
 
 Otras superficies distintas: `/queue` guarda el siguiente mensaje de la conversación;

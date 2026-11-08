@@ -10,52 +10,32 @@ de infraestructura. Telegram Bridge y el correo del CV están pausados: ignorar.
 Búsqueda nativa primero; Ketch solo como alternativa o para capacidades especializadas.
 No instales T3 en el servidor ni retires Paseo como parte de esta integración.
 
-## Delegación a Omarchy
+## Delegación a Omarchy mediante T3
 
-Dispones de `~/.local/bin/hermes-omarchy-agent` para encargar tareas a Omarchy.
-El puente usa SSH verificado y workers supervisados por systemd. Para centralizar
-trabajo en T3, usa `--backend t3`: T3 gestiona el agente y la conversación visible.
-El backend Pi directo anterior sigue disponible con `--backend pi` (predeterminado
-por compatibilidad). No cambies de backend/proveedor automáticamente ante un fallo.
+T3 y los proyectos viven en Omarchy. Para una conversación nueva solicitada por
+Luis, ejecuta la CLI de T3 por SSH. Pasa el texto por stdin desde un archivo, nunca
+lo interpolas en un comando shell. Sustituye únicamente la ruta de un proyecto
+registrado y el archivo de prompt; conserva la salida JSON y el enlace completo:
 
-- `submit --cwd /ruta/absoluta/en/omarchy --prompt-file /ruta/local/prompt.txt`
-  inicia una sesión Pi directa y devuelve `task_id` y `session_id`.
-- `t3-info --cwd /ruta/de/proyecto/registrado` comprueba T3 y muestra salud cacheada
-  de sus proveedores, sin crear una conversación.
-- `submit --backend t3 --new-thread --cwd /ruta/de/proyecto/registrado --prompt-file /ruta/local/prompt.txt`
-  crea una conversación T3 **solo cuando Luis pide una conversación nueva**.
-  Sin opciones de modelo usa los defaults del proyecto T3, independientes del modelo
-  de Hermes. `--provider ID --model SLUG` los elige explícitamente; ambos van juntos.
-  `--worktree REF` pide a T3 un workspace separado si la tarea lo necesita.
-- `status TASK_ID` consulta estado; `result TASK_ID` recupera un resultado terminado.
-- `wait TASK_ID --timeout 120` espera un resultado sin nuevas llamadas de modelo.
-- `submit --session-id SESSION_ID --prompt-file /ruta/local/continuacion.txt`
-  continúa una sesión terminada, conservando el contexto. No se puede enviar otro
-  turno mientras esa sesión esté ocupada.
-- `list` muestra las veinte tareas más recientes. Los prompts y registros están
-  en el estado privado de Omarchy, no se versionan en dotfiles.
+`ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=5 luis@omarchy /home/luis/.local/bin/t3 thread start /home/luis/dotfiles - --json < /ruta/local/prompt.txt`
 
-El backend T3 devuelve `thread_id`, `run_id` y `link` al confirmar el envío.
-Muestra siempre el enlace completo al informar sobre la conversación. `waiting`
-significa que T3 necesita respuesta/permisos: Luis debe abrir ese enlace para
-resolverlos; no es una tarea completada. `unknown` significa envío/estado incierto:
-no reenvíes automáticamente. Un `read_error` tampoco implica que se haya detenido.
-Continuar con `session_id` conserva la misma conversación, modelo y workspace.
-No adoptes conversaciones ajenas al puente ni intervengas en un turno activo.
+Usa `t3 thread show ID --messages 50 --json` por SSH para consultar la conversación
+antes de informar sobre ella. Para seguirla, solo con una petición de Luis, envía
+`/home/luis/.local/bin/t3 thread send ID - --json` por SSH con el prompt por stdin.
+Los defaults del proyecto T3 deciden proveedor y modelo; si Luis elige otros, pasa
+`--provider ID --model SLUG` juntos. No cambies automáticamente de proveedor.
 
-Usa una tarea concreta, contexto suficiente y un criterio de finalización.
-Guarda el prompt con `write_file` o Python; no interpoles texto de usuario en
-comandos de shell. `--prompt-file -` acepta stdin desde un subprocess sin shell.
-Conserva los IDs y consulta el estado antes de reintentar: una pérdida de conexión
-no implica que la tarea no haya empezado. No envíes simultáneamente cambios al mismo
-checkout desde T3 y Pi. Una prueba debe usar un directorio de prueba separado.
-
-Si Omarchy no responde, informa que el host no está disponible y conserva la petición
-en la conversación. No afirmes que hay una cola con reintento automático: todavía
-no está implementada. T3 debe estar abierto y su proveedor disponible: la última
-comprobación encontró Codex listo, Pi deshabilitado en T3 y Claude sin autenticar.
-No confundas Pi instalado por separado con Pi habilitado dentro de T3. No habilites
-proveedores ni hagas logins por tu cuenta. Intervenir durante un turno sigue pendiente.
+Guarda el enlace, threadId y runId devueltos en la conversación o tarjeta Kanban.
+Cuando Luis quiera registrar o encolar trabajo persistente, usa el Kanban nativo
+de Hermes; documenta el enlace de T3 y el bloqueo o resultado en la tarjeta.
+Si el envío falla o se corta la conexión, puede haber llegado: consulta T3 antes de
+reintentar y pide revisión si el resultado es incierto; nunca reenvíes a ciegas.
+No des por terminada una tarea en ejecución o que espera permiso. Si Omarchy está
+apagada informa y registra el pendiente; no prometas reintento automático. No hay
+integración automática entre Kanban y T3 ni notificación de finalización aún.
+T3 debe estar abierto y su proveedor disponible. Pi está deshabilitado y Claude sin
+autenticar en la última caché consultada; Codex figuraba disponible. La prueba de
+inferencia T3 completa sigue pendiente. No cambies la configuración por tu cuenta.
 
 Las operaciones de servicios deben seguir su README. No confundas consultar estado,
 interpretar un error y publicar un cambio: ejecuta la operación que Luis haya pedido.
