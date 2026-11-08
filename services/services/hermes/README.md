@@ -8,7 +8,7 @@ por SSH se verificó con Codex, incluyendo continuidad y un envío del propio He
 ## Distribución
 
 - Home server (`archlinux`, usuario `user`): Hermes y su estado.
-- Omarchy (usuario `luis`): T3, Pi, los proyectos y las conversaciones T3.
+- Omarchy (usuario `luis`): Hermes con estado propio, T3, Pi, los proyectos y las conversaciones T3.
 - T3 permanece en Omarchy; Hermes invoca su CLI por SSH. Los servicios del CV
   siguen pausados.
 
@@ -19,6 +19,28 @@ en dotfiles; Hermes puede actualizarlas siguiendo el flujo de sincronización y 
 instrucciones de las skills aplicables.
 El perfil general de Hermes está en `SOUL.md`; el procedimiento de acceso a T3
 se carga cuando hace falta desde la skill compartida `omarchy-t3`.
+
+### Configuración compartida entre las máquinas
+
+En ambas máquinas `~/.hermes/SOUL.md` enlaza a este `SOUL.md` versionado y
+`skills.external_dirs` incluye `~/.agents/skills`, gestionado por dotfiles. Los
+cambios al SOUL y las skills compartidas viajan por el flujo Git habitual; las
+sesiones ya iniciadas pueden necesitar una nueva sesión para cargar el contexto.
+En Omarchy se conservó el SOUL original en `~/.hermes/SOUL.md.installer-default`.
+Para reproducir la configuración en otra instalación, una vez sincronizado el
+repo y enlazadas las skills, respaldar primero cualquier SOUL existente y ejecutar:
+
+```bash
+ln -s ~/dotfiles/services/services/hermes/SOUL.md ~/.hermes/SOUL.md
+hermes config set skills.external_dirs '["~/.agents/skills"]'
+```
+
+La configuración completa no se comparte: `config.yaml` puede contener datos
+privados y ajustes propios del host. OAuth, `.env`, memorias, conversaciones,
+cron, Kanban y bases de datos permanecen independientes; Git no los sincroniza.
+El modelo y la autenticación también se configuran por máquina. El gateway y el
+dashboard del servidor no se habilitan automáticamente en Omarchy.
+
 Los datos del entorno, el proyecto CV pausado y la preferencia de búsqueda están
 en la memoria propia `~/.hermes/memories/MEMORY.md` del servidor. Esa memoria es
 estado privado, no se sincroniza con dotfiles; su respaldo está pendiente.
