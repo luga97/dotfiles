@@ -12,7 +12,8 @@ de forma permanente y no está ahí, está fuera de respaldo.
 ## Revisión y seguimiento de infraestructura
 
 1. Para responder qué está pendiente, consulta `~/dotfiles/services/INFRASTRUCTURE-PLAN.md`, `~/dotfiles/services/INVENTORY.md` y el Kanban activo; el tablero puede estar vacío mientras el plan conserva pendientes. Contrasta las casillas con actualizaciones posteriores del mismo plan.
-2. Distingue observaciones históricas de comprobaciones en vivo y revalida antes de actuar; proceso activo, copia íntegra y restauración probada son evidencias distintas.
+2. Distingue observaciones históricas de comprobaciones en vivo y revalida antes de actuar; proceso activo, copia íntegra y restauración probada son evidencias distintas. Para una alerta de disco y respaldo, consulta `df -h /`, `df -i /`, el timer, el resultado y journal de la última ejecución; desglosa `du -xhd1` por niveles y señala rutas inaccesibles, pues un total parcial no explica todo el disco. Consulta como el propietario de las copias solo cuando esté autorizado. No concluyas que las copias causan la ocupación ni que una caché es descartable sin medir y revisar su contenido.
+   Para cada respaldo distingue ZIP local verificado, subida remota confirmada, consistencia de datos mientras el servicio escribe y restauración aislada probada. Una subida fallida no determina la antigüedad de la última copia remota; no reautorices cuentas, borres archivos ni reinicies servicios sin autorización específica.
 3. Para rutinas de salud, acuerda frecuencia, destino y repetición, revisa timers existentes y no dupliques la ejecución de respaldos. Luis eligió recordatorios horarios mientras persista una incidencia de infraestructura para reducir el riesgo de perder un aviso; avisa también si no se puede comprobar y guarda silencio si todo está bien. Prueba alerta inicial, repetición y silencio por separado; no prometas entrega garantizada.
 
 ## Decisión: ¿Docker o nativo?
