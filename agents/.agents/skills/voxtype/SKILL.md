@@ -33,9 +33,7 @@ engine = "parakeet"
 model = "parakeet-tdt-0.6b-v3"   # full precision, NO int8
 streaming = false                 # v3 no es cache-aware; solo unified-en (inglés-only)
 ```
-- **Por qué:** 0 errores de palabra en español, 1.78 s/párrafo (~35 s), ~0.3 s frase corta,
-  multilingüe auto (25 idiomas europeos) con **code-switching frase a frase** (whisper no puede:
-  una lengua por ventana de 30 s).
+- **Por qué:** en la muestra histórica elegida por Luis se registraron 0 errores de palabras y baja latencia. Parakeet detecta varios idiomas automáticamente, pero puede mezclar español e inglés incorrectamente; evalúa ese comportamiento con audios reales y no lo presentes como code-switching fiable en cualquier caso.
 - Números históricos (párrafo ~30 s): whisper large-v3-turbo+auto 12.6 s · +es 6.3 s ·
   small GPU+es 2.6 s · small CPU 6.8 s · parakeet v3-int8 1.36 s (3 errores de cuantización) ·
   **parakeet v3-full 1.78 s (0 errores)**.
@@ -84,7 +82,9 @@ directo y restart). Si el log también está mal, es el modelo.
 
 ## Metodología de benchmark / A-B de modelos
 
-Antes de trasladar resultados de Voxtype a notas de voz de un chat, identifica el pipeline real de cada superficie: Voxtype en Omarchy y el STT del gateway de Hermes son configuraciones, backends y máquinas independientes. Consulta la configuración efectiva del perfil y evidencia de ejecución sin exponer transcripciones privadas; un modelo instalado o una transcripción técnicamente exitosa no prueban exactitud ni el recorrido completo desde Telegram. Compara con los mismos audios consentidos y una referencia humana, separando errores de palabras y términos propios, omisiones, latencia y recursos; verifica el resultado final con una nota real antes de proponer cambios. Trata los benchmarks históricos como punto de partida, no garantía en otro hardware o backend.
+Antes de trasladar resultados de Voxtype a notas de voz de un chat, identifica el pipeline real de cada superficie: Voxtype en Omarchy y el STT del gateway de Hermes son configuraciones, backends y máquinas independientes. Consulta la configuración efectiva del perfil y evidencia de ejecución sin exponer transcripciones privadas; un modelo instalado o una transcripción técnicamente exitosa no prueban exactitud ni el recorrido completo desde Telegram. Con autorización, localiza las notas originales en la caché del gateway y vincula cada audio a su mensaje mediante ruta o hash; una coincidencia temporal es solo candidata y la caché puede desaparecer. Convierte cada muestra una sola vez al mismo WAV mono de 16 kHz y pásalo a ambos motores, verificando el hash tras transferencias. Si el motor ya está en otra máquina, ejecútalo allí por SSH en archivos privados temporales para explorar precisión sin instalar ni activar nada; no atribuyas su latencia al servidor de destino.
+
+Compara con referencia humana, separando errores de palabras y términos propios, omisiones, latencia y recursos; sin referencia, informa diferencias y no WER ni un ganador. Registra idioma forzado o autodetectado, CPU, carga fría o caliente y sobrecarga de red: forzar español en audios en inglés o comparar máquinas distintas sesga los resultados. Verifica el resultado final con una nota real antes de proponer cambios y conserva la configuración en producción hasta que se autorice activarlo. Los formatos ONNX de un mismo modelo pueden requerir distintos encoders, decoders y dimensiones; comprueba compatibilidad antes de instalar o cambiar backend. Trata los benchmarks históricos como punto de partida, no garantía en otro hardware o backend.
 
 1. **Con voz real (la que importa):** párrafo estándar ~30 s (p.ej. el del mercado), dictado
    con **toggle**, mismo texto para ambos modelos. Medir tiempos en el log y comparar
