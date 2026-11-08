@@ -13,7 +13,7 @@ de forma permanente y no está ahí, está fuera de respaldo.
 
 1. Para responder qué está pendiente, consulta `~/dotfiles/services/INFRASTRUCTURE-PLAN.md`, `~/dotfiles/services/INVENTORY.md` y el Kanban activo; el tablero puede estar vacío mientras el plan conserva pendientes. Contrasta las casillas con actualizaciones posteriores del mismo plan.
 2. Distingue observaciones históricas de comprobaciones en vivo y revalida antes de actuar; proceso activo, copia íntegra y restauración probada son evidencias distintas.
-3. Para nuevas rutinas de salud, acuerda frecuencia y destino, revisa timers existentes y evita duplicar la ejecución de respaldos. Prefiere avisos ante problemas o comprobaciones imposibles y evita repetir mensajes sin cambios; prueba tanto la alerta como el silencio cuando todo está bien.
+3. Para rutinas de salud, acuerda frecuencia, destino y repetición, revisa timers existentes y no dupliques la ejecución de respaldos. Luis eligió recordatorios horarios mientras persista una incidencia de infraestructura para reducir el riesgo de perder un aviso; avisa también si no se puede comprobar y guarda silencio si todo está bien. Prueba alerta inicial, repetición y silencio por separado; no prometas entrega garantizada.
 
 ## Decisión: ¿Docker o nativo?
 
