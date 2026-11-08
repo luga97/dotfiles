@@ -201,6 +201,10 @@ Tailscale Serve es privado a la tailnet; Funnel da acceso desde Internet.
   Codex funcionó; Pi deshabilitado y Claude sin autenticar en la última caché de T3.
 - [ ] Probar desde Telegram una tarea real de proyecto bloqueada por Omarchy
   desconectada, incluyendo suscripción y entrega del resultado.
+- [x] Probar recuperación desde Kanban con T3 real (conversación de prueba ya
+  existente): una única petición completada; notificación Telegram registrada.
+- [x] Simular envío incierto: worker bloquea para revisión; no se cortó una
+  conexión real durante el envío y T3 no garantiza idempotencia de esta operación.
 
 Hermes está instalado; T3 funciona directamente por SSH y se probó inferencia
 y continuidad real. El cron `omarchy-kanban-recovery` comprueba disponibilidad

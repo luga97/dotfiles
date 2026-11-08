@@ -239,4 +239,14 @@ simuló una caída de red exactamente durante un envío T3: ese caso exige revis
 humana y nunca entra en esta recuperación automática. La skill `omarchy-t3`
 describe cómo crear y suscribir tareas; esta automatización no cubre otros tableros.
 
+También se probó una tarjeta real de T3 con la conversación de prueba existente:
+el host simulado mantuvo la tarjeta bloqueada; al responder Omarchy, el cron la
+liberó y un worker envió una sola petición de lectura a T3, recibió
+`PRUEBA_COLA_OK` y completó la tarjeta. La suscripción Telegram registró su
+notificación. Falta probar la creación desde un mensaje real de Telegram.
+El verificador consulta la tarjeta antes de invocar el desbloqueo por CLI; esas
+dos operaciones no son una transacción conjunta con otros cambios manuales.
+La protección frente a envíos inciertos depende además de las instrucciones del
+worker y del límite de intentos, no de una garantía de idempotencia de T3.
+
 Plan general: [infraestructura](../../INFRASTRUCTURE-PLAN.md).
