@@ -19,6 +19,10 @@ de forma permanente y no está ahí, está fuera de respaldo.
 
 Al evaluar un servidor sin interfaz gráfica, distingue crear una cuenta sin UI de detener la sesión gráfica existente: la cuenta por sí sola no libera memoria. Mide memoria disponible y procesos gráficos, e investiga dependencias, acceso y reversión antes de proponer cambios; no sumes RSS como ahorro exacto porque hay memoria compartida.
 
+## Diagnóstico DNS de contenedores
+
+Si el host resuelve nombres pero un contenedor falla, compara la resolución habitual dentro del contenedor con consultas directas a resolutores alcanzables y examina los DNS efectivos de Docker y Compose; `127.0.0.11` puede ser el resolvedor integrado normal, por lo que su presencia sola no identifica el fallo. No atribuyas la causa temporal sin evidencia. Si se autoriza corregir, prefiere un cambio acotado y reversible por servicio cuando sea suficiente, comprueba impacto e interrupciones y verifica la función real, no solo HTTP 200 o estado activo. Un gestor de CI y los contenedores que crean sus jobs pueden tener configuraciones DNS distintas: la validación del gestor no demuestra que un job funcione. Protege tokens en la configuración privada, evita DNS públicos que alteren nombres privados sin acuerdo y verifica un job únicamente dentro del alcance autorizado.
+
 ## Decisión: ¿Docker o nativo?
 
 - **Docker (docker-compose)** por defecto.

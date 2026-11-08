@@ -84,6 +84,8 @@ directo y restart). Si el log también está mal, es el modelo.
 
 ## Metodología de benchmark / A-B de modelos
 
+Antes de trasladar resultados de Voxtype a notas de voz de un chat, identifica el pipeline real de cada superficie: Voxtype en Omarchy y el STT del gateway de Hermes son configuraciones, backends y máquinas independientes. Consulta la configuración efectiva del perfil y evidencia de ejecución sin exponer transcripciones privadas; un modelo instalado o una transcripción técnicamente exitosa no prueban exactitud ni el recorrido completo desde Telegram. Compara con los mismos audios consentidos y una referencia humana, separando errores de palabras y términos propios, omisiones, latencia y recursos; verifica el resultado final con una nota real antes de proponer cambios. Trata los benchmarks históricos como punto de partida, no garantía en otro hardware o backend.
+
 1. **Con voz real (la que importa):** párrafo estándar ~30 s (p.ej. el del mercado), dictado
    con **toggle**, mismo texto para ambos modelos. Medir tiempos en el log y comparar
    **el texto del log** contra el original (errores de palabra ≠ comas ≠ tipeo).
