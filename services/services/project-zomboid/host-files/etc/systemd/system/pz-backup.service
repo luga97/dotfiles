@@ -1,0 +1,12 @@
+[Unit]
+Description=Respaldo automatico del servidor de Project Zomboid
+After=network.target
+
+[Service]
+Type=oneshot
+User=pzuser
+Group=pzuser
+ExecStart=/bin/bash /home/pzuser/backup_pz.sh
+
+[Install]
+WantedBy=multi-user.target

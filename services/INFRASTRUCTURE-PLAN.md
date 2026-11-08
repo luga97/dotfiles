@@ -1,12 +1,16 @@
 # Plan de infraestructura de Omarchy y home server
 
-Actualizado: 2026-11-07. Estado: diagnóstico guardado; migración no iniciada.
+Actualizado: 2026-11-07. Estado: inventario y copias de configuración completados;
+T3 headless preparado, aún sin instalar. Migración de servicios no iniciada.
 
 ## Retomar después de una compactación
 
-Leer este archivo antes de continuar. El pedido más reciente fue guardar el
-plan por fases, no ejecutar la migración. Actualizar las casillas al terminar
-cada fase y verificar de nuevo los estados del diagnóstico antes de actuar.
+Leer este archivo antes de continuar. Luis autorizó avanzar el resto del plan
+en paralelo al análisis de SearXNG/Ketch. Se completaron inventario y copias de
+configuración y se preparó la instalación de T3. La confirmación de su comando
+de instalación se solicitó según `arch-install`; no ejecutarlo sin respuesta.
+Actualizar las casillas al terminar cada fase y verificar de nuevo los estados
+del diagnóstico antes de actuar.
 
 **Prioridad:** servicios persistentes en home server; trabajo personal, de
 escritorio o ligado al hardware en Omarchy. Preparar T3 Code para las dos
@@ -17,8 +21,15 @@ flujo móvil y Pi. Hermes es una propuesta opcional, todavía no está instalado
 de correo pertenecen al proyecto CV, que está pausado. Ignorar su inactividad;
 no reactivarlos ni tratarlos como incidencias de infraestructura.
 
-**Próximo paso de implementación:** completar la fase 1 y preparar T3 persistente
-en home server. La reconexión de Google Drive quedó pendiente por decisión de Luis.
+**Próximo paso de implementación:** confirmar/instalar la CLI T3 revisada y preparar
+su servicio en home server, manteniendo los pendientes de fiabilidad separados.
+La reconexión de Google Drive quedó pendiente por decisión de Luis.
+
+**Búsqueda:** herramientas nativas del modelo/harness primero; Ketch como alternativa
+o para capacidades especializadas. Conservar SearXNG; se propone una instancia en
+home server y clientes Ketch donde hagan falta. El servidor tiene DNS roto dentro
+del contenedor (aunque su UI responde), por lo que no se retiró la instancia de
+Omarchy ni se cambió Ketch, que sigue apuntando a localhost. Ver su [README](services/searxng/README.md).
 
 ## Reglas de distribución
 
@@ -64,10 +75,14 @@ la clave de host; todavía no se verificó la autenticación inversa.
 
 ## Fase 1 — Inventario y pendientes de fiabilidad
 
-- [ ] Registrar por servicio: máquina responsable, arranque, puertos, datos,
+- [x] Registrar por servicio: máquina responsable, arranque, puertos, datos,
   respaldo, estado esperado y prueba de salud. Excluir los servicios pausados del CV.
-- [ ] Incorporar a dotfiles la configuración de Zomboid y respaldos que hoy vive
+- [x] Incorporar a dotfiles la configuración de Zomboid y respaldos que hoy vive
   fuera del repo, sin secretos ni datos de partidas.
+- [ ] Corregir DNS de SearXNG en home server y comprobar búsquedas antes de centralizar.
+  También se observó DNS sin upstream en GitLab Runner, sin probar aún un job.
+- [ ] Investigar `aw-awatcher` en Omarchy: habilitado pero inactivo; no confundirlo
+  con aw-server/media, que sí están activos. Hallazgo documentado, no corregido.
 - [ ] Definir retención de respaldos locales: el servidor tenía 27 GB libres y
   88 % del disco ocupado. El script corregido conserva todas las copias locales.
 - [ ] Completar la reconexión de Google Drive cuando Luis retome ese pendiente;
@@ -93,6 +108,9 @@ Trabajo ya realizado sobre Zomboid:
 
 ## Fase 2 — T3 persistente en home server
 
+- [x] Preparar instalador de CLI oficial v0.1.7 con checksum y revisar alternativas
+  pacman/AUR. Ver [procedimiento](services/t3code/README.md).
+- [ ] Obtener confirmación del comando e instalar la CLI T3 en home server.
 - [ ] Preparar T3 como servicio supervisado y documentado en dotfiles, con acceso
   a proyectos y proveedores del servidor; comprobar que funciona sin sesión gráfica.
 - [ ] Conservar T3 en Omarchy para trabajo personal y ejecución ligada a su hardware.

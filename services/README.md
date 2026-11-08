@@ -5,6 +5,8 @@ en este setup: Docker (docker-compose) y nativos (unidades systemd).
 
 Plan por fases y contexto para retomar la organización de las dos máquinas:
 [infraestructura de Omarchy y home server](INFRASTRUCTURE-PLAN.md).
+Estado, arranque, puertos, datos y cobertura de respaldos:
+[inventario verificado](INVENTORY.md).
 Telegram Bridge y el seguimiento de correo del proyecto CV están pausados por
 indicación de Luis (2026-11-07); su inactividad no es una incidencia a corregir.
 
@@ -23,9 +25,11 @@ cd ~/dotfiles && stow -R services   # enlazar a ~/services/
 | dotfiles-sync | nativo (systemd user) | sincronización de dotfiles |
 | nfs-server | nativo (systemd **del sistema**) | comparte `/home/user` por NFS a LAN y tailnet |
 | paseo | nativo (systemd user) | control de agentes de código desde móvil/web |
-| searxng | docker-compose | metabuscador |
+| project-zomboid / pz-backup | nativo (systemd sistema) | juego y respaldo diario en home-server; [configuración y pendientes](services/project-zomboid/README.md) |
+| searxng | docker-compose | [metabuscador y relación con Ketch](services/searxng/README.md); servidor degradado por DNS, conservar local hasta migrar |
+| t3code | nativo (preparado, sin instalar en home-server) | [CLI headless y procedimiento revisado](services/t3code/README.md) |
 | telegram-bridge | nativo (systemd user) | API HTTP local 127.0.0.1:8787 para enviar mensajes a Telegram |
 
-> Nota: `nfs-server` es la única unidad de sistema (la exporta el kernel con
-> root); su config está en `/etc/exports` del host, documentada en
-> `services/nfs-server/README.md`.
+> Unidades de sistema: NFS exporta desde el kernel; Zomboid y sus respaldos usan
+> el usuario dedicado `pzuser`. El resto de servicios nativos de este inventario
+> son unidades de usuario. Ver los README de cada servicio.
