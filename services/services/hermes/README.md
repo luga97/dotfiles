@@ -1,9 +1,9 @@
 # Hermes en home server y delegación a Omarchy
 
 Estado 2026-11-07: Hermes v0.23.0 instalado mediante el instalador oficial directo.
-Gateway de usuario habilitado y activo. Puente SSH → Pi probado con dos turnos de
-la misma sesión. Login independiente de Codex iniciado; falta comprobar la
-delegación dirigida por el propio modelo de Hermes una vez autorizado.
+Gateway de usuario habilitado y activo. Codex autenticado con una sesión propia.
+Cadena Hermes → SSH → Pi probada con dos turnos de la misma conversación;
+se verificó la continuidad en los resultados y en el transcript persistido de Pi.
 
 ## Distribución
 
@@ -47,13 +47,28 @@ Luis eligió **Codex con su suscripción**. La configuración actual es
 `model.provider=openai-codex` y `model.default=gpt-6-luna`, el modelo que ya usa Pi
 por defecto. El login de Hermes crea su propia sesión, sin copiar los tokens de Pi.
 
+El workspace bloqueó la autenticación por device-code con un mensaje de permiso
+administrativo. Se completó correctamente el flujo OAuth normal de navegador con
+PKCE, devolviendo el callback al servidor mediante un túnel SSH temporal.
+`auth.codex_login_flow=browser` queda configurado para futuras autenticaciones.
+
+Para volver a autenticar, abrir primero el túnel desde Omarchy y mantenerlo activo:
+
 ```bash
-ssh -t home-server '~/.local/bin/hermes auth add openai-codex --no-browser --timeout 600'
+ssh -N -L 127.0.0.1:1455:127.0.0.1:1455 home-server
 ```
 
-Completar la autorización en la URL oficial que imprime el comando. No guardar el
-código temporal, tokens ni `auth.json` en Git. Verificar con
-`hermes auth status openai-codex` después de autorizar.
+En otra terminal:
+
+```bash
+ssh -t home-server '~/.local/bin/hermes auth add openai-codex --browser --no-browser --timeout 600'
+```
+
+Abrir la URL oficial que imprime el comando **en el navegador de Omarchy**, para
+que `localhost:1455` llegue al túnel. Una vez autorizado, cerrarlo. El túnel
+transitorio `hermes-auth-forward.service` usado en esta intervención quedó detenido.
+No guardar URLs/códigos temporales, tokens ni `auth.json` en Git. La verificación
+`hermes auth status openai-codex` respondió `logged in`; archivo OAuth con modo 600.
 
 Unidad: `~/.config/systemd/user/hermes-gateway.service`, stoweada desde este repo,
 habilitada **solo en home server** (`ConditionHost=archlinux`). Linger está activo.
@@ -132,10 +147,24 @@ En Omarchy: `HERMES_AGENT_STATE`, `HERMES_PI_BINARY`.
   el primero; se le pidió no usar herramientas ni leer archivos.
 - Solicitudes con ID inválido, sesión inexistente o cwd `/etc` fueron rechazadas
   sin lanzar agentes. Sintaxis Python/shell y enlaces locales revisados.
+- Cadena completa dirigida por Hermes (Codex `gpt-6-luna`): tareas Pi
+  `315a76d1-e6a3-4b87-8dbe-7f6def442715` y
+  `c85ef4f6-2c91-4beb-af85-5652b8cba07a`, ambas `completed`, en la sesión
+  `e5b2b3b0-3ced-4d79-b2bc-ebc203562833`.
+- Hermes creó la tarea mediante su herramienta terminal, esperó su resultado y
+  reanudó el mismo contexto en el segundo turno. Pi devolvió la clave correcta;
+  el segundo prompt no contenía esa clave. El transcript Pi guardado contiene
+  dos mensajes de usuario y dos respuestas del asistente en el mismo archivo.
+- El gateway reinició correctamente con la unidad definitiva: activo y sin
+  reinicios por fallo. `hermes gateway status` confirma el servicio y linger.
+- Registros privados de la prueba dirigida por Hermes:
+  `~/.hermes/cache/delegation-proof/{first,second}.jsonl` en home server.
+  Los resúmenes automáticos de Pi se generan con sus extensiones habituales.
 
-Pendiente: login Codex, prueba de la cadena Hermes → puente → Pi, y comprobar la
-parada/reinicio del gateway con la unidad definitiva. El reinicio completo del
-host y restauración del estado no se probaron.
+El reinicio completo del host y la restauración del estado no se probaron.
+La CLI gestionada por el gateway rechaza `--run-budget`; para un límite de
+tiempo hay que usar `agent.run_budget_seconds` en la configuración. No se cambió
+ese límite global durante estas pruebas.
 
 ## Límites de esta primera integración
 

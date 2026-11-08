@@ -2,18 +2,19 @@
 
 Actualizado: 2026-11-07. Estado: inventario y copias de configuración completados.
 T3 en home server suspendido por aclaración de Luis. Hermes instalado con el
-instalador oficial directo; servicio activo, login Codex y prueba completa en curso.
+instalador oficial directo; servicio activo, Codex autenticado y delegación a Pi
+verificada con dos turnos que conservan la misma sesión.
 
 ## Retomar después de una compactación
 
 Leer este archivo antes de continuar. La aclaración más reciente de Luis cambia
 el diseño: desarrolla y usa T3 principalmente en Omarchy; en home server quiere
-clonar y ejecutar los servicios. No ha aprobado instalar T3 allí y está evaluando
-Hermes como asistente de operaciones. Después autorizó proceder con Hermes y
-delegación a Pi, eligió Codex con su suscripción y pidió el instalador directo.
-Hermes v0.23.0 ya está instalado; el puente manual servidor → Pi pasó dos turnos
-con contexto conservado. El login Codex se inició con flujo device-code y espera
-autorización; no registrar códigos temporales en este archivo.
+clonar y ejecutar los servicios. No ha aprobado instalar T3 allí. Autorizó proceder
+con Hermes y delegación a Pi, eligió Codex con su suscripción y el instalador directo.
+Hermes v0.23.0 está instalado y autenticado; dirigió dos tareas reales a Pi en
+Omarchy continuando la misma sesión y recuperando una clave sin repetirla en el
+segundo prompt. El workspace bloquea device-code: usar OAuth normal de navegador
+con túnel SSH temporal para el callback; ese túnel ya quedó cerrado.
 La solicitud anterior de instalación de T3 quedó
 superada por esta aclaración; no repetirla como si solo faltara un sí.
 Actualizar las casillas al terminar cada fase y verificar de nuevo los estados
@@ -29,8 +30,9 @@ persistente con delegación a Omarchy. Ver [estado y operación](services/hermes
 de correo pertenecen al proyecto CV, que está pausado. Ignorar su inactividad;
 no reactivarlos ni tratarlos como incidencias de infraestructura.
 
-**Próximo paso:** completar el login Codex de Hermes, probar la delegación dirigida
-por su modelo y continuar la misma sesión Pi. El instalador T3 se conserva como referencia, fuera
+**Próximo paso:** usar el circuito instalado y elegir el canal de acceso a Hermes
+desde el teléfono (CLI por SSH disponible; Webapp/mensajería aún sin activar).
+El instalador T3 se conserva como referencia, fuera
 del trabajo activo. La reconexión de Google Drive sigue pendiente por decisión de Luis.
 
 **Búsqueda:** herramientas nativas del modelo/harness primero; Ketch como alternativa
@@ -174,7 +176,7 @@ las conversaciones de ambas aplicaciones en una única sesión.
   oficial fijado a v0.23.0; iniciar servicio de usuario persistente y documentar arranque.
 - [x] Preparar puente SSH a Pi en Omarchy con workers systemd, estado y sesiones propios.
 - [x] Probar dos turnos del puente en la misma sesión Pi con contexto conservado.
-- [ ] Completar login independiente Codex para Hermes (elección de Luis) y probar que
+- [x] Completar login independiente Codex para Hermes (elección de Luis) y probar que
   el propio Hermes envía una tarea al puente, recibe el resultado y continúa la sesión.
 - [ ] Elegir canal de acceso al asistente (CLI SSH disponible; mensajería/Webapp sin activar).
 - [ ] Mantener scripts, systemd y Compose como mecanismos de ejecución; Hermes puede
@@ -184,9 +186,9 @@ las conversaciones de ambas aplicaciones en una única sesión.
 - [ ] Si se habilita delegación, probar una tarea completa: recepción, elección de host, espera si Omarchy
   está apagada, ejecución y entrega del resultado.
 
-Hermes está instalado; el puente Pi está operativo y documentado. Aún no se ha
-probado la cadena dirigida por el modelo Hermes por faltar su login. Codex/Claude
-Code remotos, intervención durante un turno y cola offline no están implementados.
+Hermes está instalado; el puente Pi está operativo y documentado. La cadena dirigida
+por su modelo Codex está probada con continuidad de contexto. Codex/Claude Code
+remotos, intervención durante un turno y cola offline no están implementados.
 
 ## Referencias
 
