@@ -3,6 +3,8 @@ services:
     image: gitlab/gitlab-runner:latest
     container_name: gitlab-runner
     restart: unless-stopped
+    dns:
+      - 100.100.100.100
     volumes:
       # Config del runner (config.toml con el token — gitignored vía ./.gitignore)
       - ./data/config:/etc/gitlab-runner

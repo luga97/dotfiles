@@ -3,6 +3,8 @@ services:
     image: searxng/searxng:latest
     container_name: searxng
     restart: unless-stopped
+    dns:
+      - 100.100.100.100
     ports:
       - "127.0.0.1:8081:8080"
     volumes:
