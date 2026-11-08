@@ -31,9 +31,10 @@ de correo pertenecen al proyecto CV, que está pausado. Ignorar su inactividad;
 no reactivarlos ni tratarlos como incidencias de infraestructura.
 
 **Próximo paso:** usar el circuito instalado y el Dashboard privado de Hermes en
-`http://archlinux.tail27d0f2.ts.net:9119` (Tailscale conectado, login `luis`).
-Luis pidió retirar HTTPS: listener 8443 eliminado, credenciales conservadas.
-No volver a habilitar HTTPS para el dashboard sin su petición. Falta la prueba desde un teléfono real.
+`http://archlinux:9119` (Tailscale conectado, login `luis`).
+Luis pidió simplificar a nombre:puerto: bind directo a IP Tailscale, sin HTTPS,
+Serve ni túnel SSH adicional. Credenciales conservadas; no añadir intermediarios
+de nuevo sin su petición. Falta la prueba desde un teléfono real.
 Webapp completa y mensajería siguen sin activar.
 El instalador T3 se conserva como referencia, fuera
 del trabajo activo. La reconexión de Google Drive sigue pendiente por decisión de Luis.
@@ -185,8 +186,8 @@ las conversaciones de ambas aplicaciones en una única sesión.
   configurar contraseña recibida por formulario privado y verificar el login.
 - [x] Activar Dashboard de gestión en loopback 9119, servicio de usuario en home server,
   y dar acceso desde Omarchy por túnel SSH temporal (una hora). HTTP 200 verificado;
-  ese acceso inicial quedó reemplazado por Tailscale Serve privado HTTP 9119 con
-  login `luis`. HTTPS 8443 se retiró por petición de Luis. Túnel SSH detenido;
+  ese acceso inicial quedó reemplazado por HTTP directo `archlinux:9119` en la IP
+  de Tailscale con login `luis`. Serve 9119/8443 retirado y túnel SSH detenido;
   Funnel 443 del webhook conservado.
 - [ ] Probar el dashboard desde el teléfono con Tailscale conectado. La Webapp
   completa es una superficie separada y no se activó.

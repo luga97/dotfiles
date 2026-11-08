@@ -103,21 +103,22 @@ El aviso de que no hay plataformas de mensajería habilitadas es esperado.
 ## Dashboard de gestión
 
 Activo como servicio separado `hermes-dashboard.service`, usando el frontend
-ya compilado de Hermes. Su dirección interna es `http://127.0.0.1:9119` en home
-server; la unidad se limita a loopback. El dashboard permite gestionar configuración
+ya compilado de Hermes. Escucha directamente en `100.95.235.26:9119`, la IP de
+Tailscale de home server; no escucha en todas las interfaces. El dashboard permite gestionar configuración
 y sesiones; la Webapp de chat completa es otra superficie y sigue sin activar.
 
 Acceso actual desde PC y teléfono con Tailscale conectado:
 
-**http://archlinux.tail27d0f2.ts.net:9119** — usuario **luis**, contraseña elegida
+**http://archlinux:9119** — usuario **luis**, contraseña elegida
 mediante formulario privado. Es un login propio del dashboard, separado del OAuth
 Codex que usa el modelo. No guardar la contraseña ni la configuración privada en Git.
 
-Por petición explícita de Luis se retiró HTTPS del dashboard y su listener 8443.
-Tailscale Serve recibe HTTP en el puerto 9119 de la tailnet y lo envía al backend
-en loopback. La VPN cifra el transporte entre dispositivos. El login de Hermes
-se conserva y la API sin sesión rechaza el acceso. El puerto 9119 es
-**tailnet only**: no se usó Funnel para el panel ni se abrió un puerto del router.
+Por petición de Luis se simplificó a nombre:puerto: HTTP directo, sin HTTPS,
+sin proxy Tailscale Serve y sin túnel SSH adicional para Hermes. La VPN cifra
+el transporte entre dispositivos. El login de Hermes se conserva y la API sin
+sesión rechaza el acceso. Se verificaron la página y `/api/status` en el nombre
+corto con HTTP 200; no quedan listeners Serve 9119 ni 8443. No se usó Funnel para
+el panel ni se abrió un puerto del router.
 El Funnel 443 de MR review sigue intacto y `/health` respondió 200/`ok:true`.
 
 Configuración no secreta guardada en el host: `dashboard.public_url` apunta al URL
@@ -134,20 +135,14 @@ El helper envía solo el hash y configuración por stdin de SSH; no imprime valo
 de credenciales. Regenera la clave de firma al configurar, cerrando las sesiones
 anteriores, y verifica el login HTTP sin mostrar cookies ni contraseña.
 
-Para reconstruir la ruta privada del servidor:
+La unidad fija la IP de Tailscale de este host y reinicia ante fallo si al boot
+esa interfaz aún no está disponible. Si cambia la identidad/IP del nodo, actualizar
+el bind. `dashboard.public_url=http://archlinux:9119` permite el Host/Origin corto;
+el nombre completo anterior ya no es el URL canónico. `home-server` es un alias
+de SSH, no un nombre MagicDNS: el nodo se llama `archlinux`.
 
-```bash
-sudo tailscale serve --bg --http=9119 --yes http://127.0.0.1:9119
-```
-
-El túnel SSH transitorio de Omarchy usado inicialmente quedó detenido al activar
-el acceso directo por Tailscale. Como alternativa de mantenimiento:
-
-```bash
-ssh -N -L 127.0.0.1:9119:127.0.0.1:9119 home-server
-```
-
-Mantener HTTP para este dashboard; no volver a activar HTTPS sin que Luis lo pida.
+Mantener HTTP directo para este dashboard; no añadir HTTPS, Serve ni túneles
+adicionales sin que Luis lo pida. Los túneles SSH transitorios quedaron detenidos.
 No se ha probado un teléfono real: debe tener Tailscale conectado y acceso a esta máquina.
 
 `~/.hermes/SOUL.md` enlaza al [SOUL compartido](SOUL.md); el original del instalador

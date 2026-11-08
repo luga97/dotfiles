@@ -22,7 +22,7 @@ cd ~/dotfiles && stow -R services   # enlazar a ~/services/
 | cv-mail-watch | nativo (systemd user, timer 30 min) | respuestas a postulaciones del CV |
 | gitlab-runner | docker-compose | runner propio de CI de GitLab (home-server) — ver `services/gitlab-runner/README.md` |
 | hermes-gateway | nativo (systemd user, home-server) | [asistente Hermes con Codex y puente SSH a Pi en Omarchy](services/hermes/README.md); sesión y continuación probadas |
-| hermes-dashboard | nativo (systemd user, home-server) | HTTP privado por Tailscale Serve 9119 y login propio; HTTPS retirado por petición de Luis |
+| hermes-dashboard | nativo (systemd user, home-server) | HTTP directo `http://archlinux:9119`, bind a IP Tailscale y login propio; sin Serve/HTTPS/túnel SSH |
 | mr-review | nativo (systemd user) | agente de review de MRs: webhook GitLab + reviews con pi/PR-Agent (home-server) — ver `services/mr-review/README.md` |
 | dotfiles-sync | nativo (systemd user) | sincronización de dotfiles |
 | nfs-server | nativo (systemd **del sistema**) | comparte `/home/user` por NFS a LAN y tailnet |
