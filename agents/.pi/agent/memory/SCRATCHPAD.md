@@ -1,7 +1,7 @@
 # Scratchpad
 
 <!-- 2026-11-07 -->
-- [ ] Infraestructura Omarchy/home-server: retomar `~/dotfiles/services/INFRASTRUCTURE-PLAN.md`. T3 solo en Omarchy; Hermes v0.23.0 en home-server con Codex `gpt-6.1-terra` high, respuesta real verificada. Puente Pi probado con continuación; otro agente implementa delegación por T3 para centralizar sesiones. Dashboard HTTP directo `archlinux:9119`; Telegram propio conectado por polling, acceso solo propietario y envío de prueba correcto, falta comprobar respuesta entrante. Mantener Paseo hasta validar móvil/Pi. Google Drive de Zomboid pendiente. Telegram/correo del CV siguen pausados: ignorar.
+- [ ] Infraestructura Omarchy/home-server: retomar `~/dotfiles/services/INFRASTRUCTURE-PLAN.md`. T3 solo en Omarchy; Hermes v0.23.0 en home-server con Codex `gpt-6.1-terra` high, respuesta real verificada. Puente Pi probado con continuación; backend T3 desplegado: nueve pruebas de protocolo y consulta SSH real correctas; falta prueba completa en conversación nueva solicitada. Usar Kanban nativo para tareas persistentes; disponibilidad/reanudación de Omarchy aún sin integrar. Dashboard HTTP directo `archlinux:9119`; Telegram propio conectado por polling, acceso solo propietario y envío de prueba correcto, falta comprobar respuesta entrante. Mantener Paseo hasta validar móvil/Pi. Google Drive de Zomboid pendiente. Telegram/correo del CV siguen pausados: ignorar.
 
 <!-- 2026-09-16 21:57:58 [01a0acd1] -->
 - [ ] Reportar upstream (jl1990/pi-scheduler): crash de proper-lockfile/mtime-precision bajo sandbox Proxy de pi + Bun (regresión PR #5, v0.5.0)

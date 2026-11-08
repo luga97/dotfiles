@@ -198,14 +198,43 @@ las conversaciones de ambas aplicaciones en una única sesión.
   completa es una superficie separada y no se activó.
 - [ ] Mantener scripts, systemd y Compose como mecanismos de ejecución; Hermes puede
   consultar estado, explicar errores y lanzar operaciones explícitas de esos runbooks.
-- [ ] Evaluar Hermes → SSH → T3 en Omarchy → Pi/Codex/Claude para centralizar sesiones
-  en T3. Luis preguntó por esta alternativa al puente Pi directo; no está implementada.
+- [x] Implementar Hermes → SSH → T3 en Omarchy: backend explícito, continuidad e
+  identidad de thread/run/link. Nueve pruebas de protocolo y consulta SSH real correctas.
+- [ ] Probar inferencia completa en una conversación T3 nueva solicitada por Luis.
+  Codex listo; Pi figura deshabilitado y Claude sin autenticar en la caché de T3.
 - [ ] Si se habilita delegación, probar una tarea completa: recepción, elección de host, espera si Omarchy
   está apagada, ejecución y entrega del resultado.
 
-Hermes está instalado; el puente Pi está operativo y documentado. La cadena dirigida
-por su modelo Codex está probada con continuidad de contexto. Codex/Claude Code
-remotos, intervención durante un turno y cola offline no están implementados.
+Hermes está instalado; el puente Pi está probado con continuidad de contexto y el
+backend T3 está desplegado, pendiente de inferencia completa. Intervención durante
+un turno y coordinación de tareas cuando Omarchy está apagada siguen pendientes.
+
+### Capacidades nativas revisadas antes de ampliar la cola
+
+La documentación oficial y la instalación v0.23.0 incluyen Kanban persistente en
+SQLite (tareas, dependencias, asignación, bloqueos, reintentos y límites de concurrencia).
+Usarlo como registro duradero de trabajo; no construir una segunda cola offline
+en el puente. El estado del puente conserva únicamente identidades/resultados de
+ejecución. Falta integrar la disponibilidad de Omarchy y el desbloqueo/despacho
+seguro: Kanban por sí solo no detecta que un PC remoto volvió a estar disponible.
+
+Otras superficies distintas: `/queue` guarda el siguiente mensaje de la conversación;
+cron programa tareas autónomas con entrega por Telegram (también scripts sin LLM);
+`/goal` mantiene un objetivo dentro de una sesión; `/heartbeat` y `/loop` sirven para
+seguimiento dentro de esa conversación. Memoria para hechos/preferencias, skills
+para procedimientos y perfiles para separar configuración/memoria/herramientas.
+
+Consulta de estado: sin jobs cron, tablero Kanban sin tarjetas y solo perfil
+`default`. Recomendación por evaluar, sin activar automatizaciones todavía:
+1. Informe/alertas de salud con scripts y cron nativo, respetando timers de respaldo.
+2. Tablero Kanban y perfiles de operaciones/desarrollo con concurrencia acotada.
+3. Comprobación de disponibilidad sin LLM, despacho T3 único, enlace y resultado
+   registrados en la tarjeta, notificación Telegram y tratamiento explícito de envíos inciertos.
+
+Fuentes: [Kanban](https://hermes-agent.nousresearch.com/docs/user-guide/features/kanban),
+[cron](https://hermes-agent.nousresearch.com/docs/user-guide/features/cron),
+[comandos](https://hermes-agent.nousresearch.com/docs/reference/slash-commands),
+[perfiles](https://hermes-agent.nousresearch.com/docs/user-guide/profiles).
 
 ## Referencias
 

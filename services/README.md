@@ -21,7 +21,7 @@ cd ~/dotfiles && stow -R services   # enlazar a ~/services/
 | aw-server / aw-awatcher / aw-watcher-media-player | nativo (systemd user) | métricas de uso: server + ventana/AFK + media — ver `services/activitywatch/README.md` |
 | cv-mail-watch | nativo (systemd user, timer 30 min) | respuestas a postulaciones del CV |
 | gitlab-runner | docker-compose | runner propio de CI de GitLab (home-server) — ver `services/gitlab-runner/README.md` |
-| hermes-gateway | nativo (systemd user, home-server) | [Hermes con Codex `gpt-6.1-terra` high y puente SSH a Pi en Omarchy](services/hermes/README.md); Telegram conectado por polling y limitado al propietario |
+| hermes-gateway | nativo (systemd user, home-server) | [Hermes con Codex `gpt-6.1-terra` high y puente SSH a Pi/T3 en Omarchy](services/hermes/README.md); Telegram conectado por polling y limitado al propietario; inferencia T3 completa pendiente |
 | hermes-dashboard | nativo (systemd user, home-server) | HTTP directo `http://archlinux:9119`, bind a IP Tailscale y login propio; sin Serve/HTTPS/túnel SSH |
 | mr-review | nativo (systemd user) | agente de review de MRs: webhook GitLab + reviews con pi/PR-Agent (home-server) — ver `services/mr-review/README.md` |
 | dotfiles-sync | nativo (systemd user) | sincronización de dotfiles |
