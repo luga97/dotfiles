@@ -31,8 +31,9 @@ de correo pertenecen al proyecto CV, que está pausado. Ignorar su inactividad;
 no reactivarlos ni tratarlos como incidencias de infraestructura.
 
 **Próximo paso:** usar el circuito instalado y el Dashboard privado de Hermes en
-`https://archlinux.tail27d0f2.ts.net:8443` (Tailscale conectado, login `luis`).
-Login HTTPS probado desde Omarchy; falta la prueba desde un teléfono real.
+`http://archlinux.tail27d0f2.ts.net:9119` (Tailscale conectado, login `luis`).
+Luis pidió retirar HTTPS: listener 8443 eliminado, credenciales conservadas.
+No volver a habilitar HTTPS para el dashboard sin su petición. Falta la prueba desde un teléfono real.
 Webapp completa y mensajería siguen sin activar.
 El instalador T3 se conserva como referencia, fuera
 del trabajo activo. La reconexión de Google Drive sigue pendiente por decisión de Luis.
@@ -181,11 +182,12 @@ las conversaciones de ambas aplicaciones en una única sesión.
 - [x] Completar login independiente Codex para Hermes (elección de Luis) y probar que
   el propio Hermes envía una tarea al puente, recibe el resultado y continúa la sesión.
 - [x] Elegir acceso al dashboard por Tailscale desde PC y teléfono, con login propio;
-  configurar contraseña recibida por formulario privado, HTTPS y verificar el login.
+  configurar contraseña recibida por formulario privado y verificar el login.
 - [x] Activar Dashboard de gestión en loopback 9119, servicio de usuario en home server,
   y dar acceso desde Omarchy por túnel SSH temporal (una hora). HTTP 200 verificado;
-  ese acceso inicial quedó reemplazado por Tailscale Serve privado HTTPS 8443 con
-  login `luis`. Túnel SSH detenido; Funnel 443 del webhook conservado y saludable.
+  ese acceso inicial quedó reemplazado por Tailscale Serve privado HTTP 9119 con
+  login `luis`. HTTPS 8443 se retiró por petición de Luis. Túnel SSH detenido;
+  Funnel 443 del webhook conservado.
 - [ ] Probar el dashboard desde el teléfono con Tailscale conectado. La Webapp
   completa es una superficie separada y no se activó.
 - [ ] Mantener scripts, systemd y Compose como mecanismos de ejecución; Hermes puede

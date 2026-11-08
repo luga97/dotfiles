@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Configure private dashboard HTTPS with a password received through a private file."""
+"""Configure private dashboard HTTP with a password received through a private file."""
 
 import argparse
 import base64
@@ -49,7 +49,7 @@ def main():
     salt = secrets.token_bytes(16)
     digest = hashlib.scrypt(password.encode(), salt=salt, n=16384, r=8, p=1, dklen=32)
     password_hash = 'scrypt$16384$8$1$'+base64.b64encode(salt).decode()+'$'+base64.b64encode(digest).decode()
-    url = 'https://archlinux.tail27d0f2.ts.net:8443'
+    url = 'http://archlinux.tail27d0f2.ts.net:9119'
     payload = {'username': args.username, 'password_hash': password_hash,
                'signing_secret': secrets.token_hex(32), 'url': url}
     done = subprocess.run(['ssh', '-o', 'BatchMode=yes', args.host,
@@ -58,7 +58,7 @@ def main():
     if done.returncode:
         raise RuntimeError('Dashboard configuration failed; credential values were not logged')
     command = ('systemctl --user restart hermes-dashboard.service && '
-               'sudo -n tailscale serve --bg --https=8443 --yes http://127.0.0.1:9119')
+               'sudo -n tailscale serve --bg --http=9119 --yes http://127.0.0.1:9119')
     done = subprocess.run(['ssh', '-o', 'BatchMode=yes', args.host, command],
                           capture_output=True, text=True, timeout=90)
     if done.returncode:
@@ -71,7 +71,7 @@ def main():
             break
         except (OSError, urllib.error.URLError):
             if attempt == 9:
-                raise RuntimeError('HTTPS endpoint did not become ready') from None
+                raise RuntimeError('HTTP endpoint did not become ready') from None
             time.sleep(2)
     if not status.get('auth_required') or 'basic' not in status.get('auth_providers', []):
         raise RuntimeError('Dashboard did not advertise the required login gate')

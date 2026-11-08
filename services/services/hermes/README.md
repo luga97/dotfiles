@@ -109,13 +109,14 @@ y sesiones; la Webapp de chat completa es otra superficie y sigue sin activar.
 
 Acceso actual desde PC y teléfono con Tailscale conectado:
 
-**https://archlinux.tail27d0f2.ts.net:8443** — usuario **luis**, contraseña elegida
+**http://archlinux.tail27d0f2.ts.net:9119** — usuario **luis**, contraseña elegida
 mediante formulario privado. Es un login propio del dashboard, separado del OAuth
 Codex que usa el modelo. No guardar la contraseña ni la configuración privada en Git.
 
-Tailscale Serve termina HTTPS con certificado automático de Let's Encrypt y envía
-HTTP solo por loopback al puerto 9119. Se verificó TLS 1.3, cadena válida y login
-real; la API de identidad sin sesión devuelve un rechazo. El puerto 8443 es
+Por petición explícita de Luis se retiró HTTPS del dashboard y su listener 8443.
+Tailscale Serve recibe HTTP en el puerto 9119 de la tailnet y lo envía al backend
+en loopback. La VPN cifra el transporte entre dispositivos. El login de Hermes
+se conserva y la API sin sesión rechaza el acceso. El puerto 9119 es
 **tailnet only**: no se usó Funnel para el panel ni se abrió un puerto del router.
 El Funnel 443 de MR review sigue intacto y `/health` respondió 200/`ok:true`.
 
@@ -131,24 +132,23 @@ python ~/services/hermes/configure-dashboard-access.py --password-file /ruta/pri
 
 El helper envía solo el hash y configuración por stdin de SSH; no imprime valores
 de credenciales. Regenera la clave de firma al configurar, cerrando las sesiones
-anteriores, y verifica el login HTTPS sin mostrar cookies ni contraseña.
+anteriores, y verifica el login HTTP sin mostrar cookies ni contraseña.
 
 Para reconstruir la ruta privada del servidor:
 
 ```bash
-sudo tailscale serve --bg --https=8443 --yes http://127.0.0.1:9119
+sudo tailscale serve --bg --http=9119 --yes http://127.0.0.1:9119
 ```
 
-El túnel SSH transitorio de Omarchy usado inicialmente quedó detenido tras activar
-HTTPS. No hace falta para la dirección Tailscale. Como alternativa de mantenimiento:
+El túnel SSH transitorio de Omarchy usado inicialmente quedó detenido al activar
+el acceso directo por Tailscale. Como alternativa de mantenimiento:
 
 ```bash
 ssh -N -L 127.0.0.1:9119:127.0.0.1:9119 home-server
 ```
 
-HTTPS no es obligatorio para el panel en una VPN; se eligió para ofrecer una URL
-con certificado válido y contexto seguro del navegador. No se ha probado un
-teléfono real: debe tener Tailscale conectado y acceso a esta máquina.
+Mantener HTTP para este dashboard; no volver a activar HTTPS sin que Luis lo pida.
+No se ha probado un teléfono real: debe tener Tailscale conectado y acceso a esta máquina.
 
 `~/.hermes/SOUL.md` enlaza al [SOUL compartido](SOUL.md); el original del instalador
 se conserva como `SOUL.md.installer-default`. Configuración, OAuth, sesiones,
