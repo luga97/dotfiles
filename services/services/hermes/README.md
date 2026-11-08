@@ -100,6 +100,18 @@ en loopback con puerto dinámico. No se activó un nuevo Funnel/Serve, Webapp ni
 de mensajería; el acceso remoto al asistente se hace por SSH hasta elegir ese canal.
 El aviso de que no hay plataformas de mensajería habilitadas es esperado.
 
+## Dashboard de gestión
+
+Preparado como servicio separado `hermes-dashboard.service`, usando el frontend
+ya compilado de Hermes. Su dirección interna es `http://127.0.0.1:9119` en home
+server; la unidad se limita a loopback. El dashboard permite gestionar configuración
+y sesiones; la Webapp de chat completa es otra superficie y sigue sin activar.
+
+El acceso externo está pendiente de elegir entre túnel SSH (sin contraseña nueva)
+y Tailscale con un proveedor de login de Hermes. HTTPS no es obligatorio para el
+panel en una VPN; la Webapp pierde funciones de navegador como micrófono fuera
+de un contexto seguro. No se guardó ninguna contraseña nueva.
+
 `~/.hermes/SOUL.md` enlaza al [SOUL compartido](SOUL.md); el original del instalador
 se conserva como `SOUL.md.installer-default`. Configuración, OAuth, sesiones,
 memoria privada y herramientas de Hermes viven en `~/.hermes` (directorio 700).
