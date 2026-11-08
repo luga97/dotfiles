@@ -50,18 +50,29 @@ fallo. El script previo queda en `/home/pzuser/backup_pz.sh.pre-retention`; volv
 
 La copia local creada antes de iniciar el juego el 2026-11-07 sigue presente:
 `pz_backup_20261107_211302.zip`, 229337302 bytes. Se verificó el ZIP en la
-intervención inicial, pero no se hizo una restauración de prueba.
+intervención inicial, pero esa copia no se restauró de prueba.
+
+El 2026-11-08 a las 02:00 el respaldo automático verificó el ZIP
+`pz_backup_20261108_020011.zip` y falló al subir por `invalid_grant`, antes de
+la reconexión. Después se subió manualmente ese archivo de 229337262 bytes y se
+verificó tamaño y MD5 frente al objeto remoto. A las 12:14 se descargó de Drive,
+se comparó su MD5 con el local y se extrajo en un directorio aislado: se revisaron
+227538 entradas, se extrajeron 226431 archivos y aparecieron `Saves`, `Server` y
+`db`. El directorio de prueba se eliminó a petición de Luis. No se inició una
+instancia con esa copia: extracción correcta no demuestra jugabilidad ni coherencia.
 
 Pendientes:
 
-- Comprobar la ejecución programada y la retención instaladas el 2026-11-08;
-  en la aplicación inicial quedaron 2 ZIP locales y 10 remotos.
+- Comprobar la primera ejecución programada posterior a la reconexión y a la
+  instalación de retención del 2026-11-08; en la aplicación inicial quedaron
+  2 ZIP locales y 10 remotos. El timer prevé el 2026-11-09 a las 02:00 (-03) y
+  ya hay una revisión única programada a las 02:15, sin lanzar otro respaldo.
 - Asegurar consistencia al copiar una partida mientras el juego está activo.
   La comprobación del ZIP solo detecta integridad del archivo, no coherencia de
   la partida. El script no coordina `save` ni pausa/cierre del juego.
 - Validar apagado y arranque limpio, incluidos FIFO y socket. Se añadió una regla
   tmpfiles para borrar el FIFO al arrancar, pero no se probó tras reiniciar.
-- Reconectar Drive y verificar subida, listado y restauración cuando se retome.
+- Una prueba funcional en una instancia aislada, si se acuerda, sigue sin hacerse.
 
 ## Comprobaciones de solo lectura
 
@@ -74,5 +85,7 @@ ss -lun | grep -E ':16261|:16262'
 sudo -u pzuser ls -lh /home/pzuser/backups
 ```
 
-Un servicio de respaldo `failed` es actualmente el resultado esperado del fallo
-de Drive; no confundirlo con que no exista una copia local.
+Al 2026-11-08 17:29 (-03), `pz-backup.service` conservaba el resultado fallido de
+las 02:00, anterior a la reconexión y a la subida manual; no indica por sí solo
+un fallo posterior ni la ausencia de copia remota. La subida manual no modifica
+ese resultado ni verifica la ejecución automática siguiente.

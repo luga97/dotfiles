@@ -37,7 +37,8 @@ Serve ni túnel SSH adicional. Credenciales conservadas; no añadir intermediari
 de nuevo sin su petición. Falta la prueba desde un teléfono real.
 Webapp completa y mensajería siguen sin activar.
 El instalador T3 se conserva como referencia, fuera
-del trabajo activo. La reconexión de Google Drive sigue pendiente por decisión de Luis.
+del trabajo activo. Google Drive para Zomboid se reconectó el 2026-11-08 por decisión
+de Luis; falta verificar la siguiente ejecución automática (véase fase 1).
 
 **Búsqueda:** herramientas nativas del modelo/harness primero; Ketch como alternativa
 o para capacidades especializadas. Conservar SearXNG; se propone una instancia en
@@ -100,10 +101,12 @@ la clave de host; todavía no se verificó la autenticación inversa.
   También se observó DNS sin upstream en GitLab Runner, sin probar aún un job.
 - [ ] Investigar `aw-awatcher` en Omarchy: habilitado pero inactivo; no confundirlo
   con aw-server/media, que sí están activos. Hallazgo documentado, no corregido.
-- [ ] Definir retención de respaldos locales: el servidor tenía 27 GB libres y
-  88 % del disco ocupado. El script corregido conserva todas las copias locales.
-- [ ] Completar la reconexión de Google Drive cuando Luis retome ese pendiente;
-  comprobar después una subida y una restauración de prueba.
+- [x] Aplicar retención de hasta 10 ZIP coincidentes en cada destino, local y Drive;
+  el 2026-11-08 quedaron 2 locales y 10 remotos tras la aplicación inicial.
+- [x] Reconectar Drive y comprobar subida manual y extracción aislada el 2026-11-08.
+- [ ] Comprobar la primera ejecución automática posterior a la reconexión y a la
+  retención: timer previsto el 2026-11-09 a las 02:00 (-03); revisión ya programada
+  para las 02:15. La subida manual no demuestra el flujo automático.
 - [ ] Validar consistencia del respaldo con Zomboid en ejecución y el apagado/arranque
   limpio del servicio, incluido su socket de control.
 
@@ -116,8 +119,16 @@ Trabajo ya realizado sobre Zomboid:
 - `/home/pzuser/backup_pz.sh` ahora detiene la ejecución ante errores, comprueba el
   ZIP, conserva la copia local y devuelve error si falla la subida. Script anterior:
   `/home/pzuser/backup_pz.sh.original`.
-- Temporizador diario a las 02:00, hora del servidor. Drive aún falla con
-  `invalid_grant`; una ejecución fallida ya no aparece como exitosa.
+- Temporizador diario a las 02:00, hora del servidor. La ejecución del 2026-11-08
+  a las 02:00 verificó el ZIP local y falló al subir por `invalid_grant`, antes de
+  la reconexión; a las 17:29 seguía siendo el último resultado de systemd, salida 1.
+- El 2026-11-08 se reconectó Drive y se subió manualmente el ZIP de las 02:00;
+  tamaño y MD5 coincidieron. Se descargó y extrajo de forma aislada, con `Saves`,
+  `Server` y `db` presentes; después se limpió la prueba a petición de Luis. No se
+  arrancó la copia ni se probó su jugabilidad o consistencia durante escritura.
+- La retención aplicada incluye nombres manuales `pz_backup*.zip`, ordena por
+  modificación y verifica tamaño y MD5 de la copia nueva antes de borrar. Revertir
+  el script no recupera los objetos ya eliminados; véase el README de Zomboid.
 - El socket falló por un FIFO antiguo. Se añadió
   `/etc/tmpfiles.d/zomboid-control.conf` para limpiarlo al arrancar; falta validar
   esa corrección tras un reinicio. La integridad del ZIP no prueba por sí sola
