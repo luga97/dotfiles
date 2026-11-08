@@ -1,29 +1,31 @@
 # Plan de infraestructura de Omarchy y home server
 
-Actualizado: 2026-11-07. Estado: inventario y copias de configuración completados;
-T3 headless preparado, aún sin instalar. Migración de servicios no iniciada.
+Actualizado: 2026-11-07. Estado: inventario y copias de configuración completados.
+T3 en home server suspendido por aclaración de Luis; Hermes en evaluación.
 
 ## Retomar después de una compactación
 
-Leer este archivo antes de continuar. Luis autorizó avanzar el resto del plan
-en paralelo al análisis de SearXNG/Ketch. Se completaron inventario y copias de
-configuración y se preparó la instalación de T3. La confirmación de su comando
-de instalación se solicitó según `arch-install`; no ejecutarlo sin respuesta.
+Leer este archivo antes de continuar. La aclaración más reciente de Luis cambia
+el diseño: desarrolla y usa T3 principalmente en Omarchy; en home server quiere
+clonar y ejecutar los servicios. No ha aprobado instalar T3 allí y está evaluando
+Hermes como asistente de operaciones. La solicitud anterior de instalación quedó
+superada por esta aclaración; no repetirla como si solo faltara un sí.
 Actualizar las casillas al terminar cada fase y verificar de nuevo los estados
 del diagnóstico antes de actuar.
 
 **Prioridad:** servicios persistentes en home server; trabajo personal, de
-escritorio o ligado al hardware en Omarchy. Preparar T3 Code para las dos
-máquinas antes de añadir otro coordinador. Conservar Paseo hasta validar el
-flujo móvil y Pi. Hermes es una propuesta opcional, todavía no está instalado.
+escritorio o ligado al hardware en Omarchy. T3 permanece en Omarchy; SSH sobre
+Tailscale ya permite gestionar home server sin instalar allí T3. Conservar Paseo
+hasta validar el flujo móvil y Pi. Hermes en home server se evalúa para operaciones
+y disponibilidad cuando Omarchy esté apagada; todavía no está instalado.
 
 **Fuera de alcance por indicación de Luis:** Telegram Bridge y el seguimiento
 de correo pertenecen al proyecto CV, que está pausado. Ignorar su inactividad;
 no reactivarlos ni tratarlos como incidencias de infraestructura.
 
-**Próximo paso de implementación:** confirmar/instalar la CLI T3 revisada y preparar
-su servicio en home server, manteniendo los pendientes de fiabilidad separados.
-La reconexión de Google Drive quedó pendiente por decisión de Luis.
+**Próximo paso de diseño:** concretar el flujo desarrollo → despliegue y el primer
+caso útil de Hermes. El instalador T3 preparado se conserva como referencia, fuera
+del trabajo activo. La reconexión de Google Drive sigue pendiente por decisión de Luis.
 
 **Búsqueda:** herramientas nativas del modelo/harness primero; Ketch como alternativa
 o para capacidades especializadas. Conservar SearXNG; se propone una instancia en
@@ -40,8 +42,13 @@ Omarchy ni se cambió Ketch, que sigue apuntando a localhost. Ver su [README](se
   hardware puede permanecer allí aunque sea persistente.
 - Tailscale conecta las máquinas y el teléfono. SSH permite operar el host remoto;
   no hace falta otro agente para cada comando sencillo.
-- T3 es la interfaz principal propuesta. Pi, Codex y otros proveedores ejecutan
-  tareas en el host elegido. Usar un modelo remoto no exige una GPU local.
+- T3 es la interfaz principal de desarrollo en Omarchy. Home server recibe versiones
+  de servicios para ejecutar; no es otro puesto de desarrollo interactivo. Usar un
+  modelo remoto no exige una GPU local.
+- Git comunica versiones de código/configuración; SSH permite despliegues y diagnóstico;
+  NFS permite acceso a archivos, pero no es el mecanismo de publicación de versiones.
+- GitLab Runner y MR review ya procesan código en home server. Aclarar si se conservan
+  como automatizaciones persistentes o si los builds se trasladan; no moverlos aún.
 - systemd/Docker mantienen los servicios; los respaldos no deben depender de una
   conversación con un agente. Cada automatización debe tener un responsable y
   un único mecanismo de programación activo.
@@ -106,33 +113,35 @@ Trabajo ya realizado sobre Zomboid:
   esa corrección tras un reinicio. La integridad del ZIP no prueba por sí sola
   la consistencia de la partida.
 
-## Fase 2 — T3 persistente en home server
+## Fase 2 — Desarrollo en Omarchy y despliegue en home server
 
 - [x] Preparar instalador de CLI oficial v0.1.7 con checksum y revisar alternativas
-  pacman/AUR. Ver [procedimiento](services/t3code/README.md).
-- [ ] Obtener confirmación del comando e instalar la CLI T3 en home server.
-- [ ] Preparar T3 como servicio supervisado y documentado en dotfiles, con acceso
-  a proyectos y proveedores del servidor; comprobar que funciona sin sesión gráfica.
-- [ ] Conservar T3 en Omarchy para trabajo personal y ejecución ligada a su hardware.
-- [ ] Vincular los entornos de ambas máquinas y probar una tarea sencilla por host,
-  con resultado, registros y permisos identificables.
-- [ ] Probar Pi desde T3 con la configuración y extensiones existentes. Su aparición
+  pacman/AUR. Trabajo histórico: instalación suspendida, no es el siguiente paso.
+  Ver [referencia](services/t3code/README.md).
+- [ ] Definir por servicio el repositorio, versión/commit desplegado, datos y secretos
+  locales, comando de publicación, prueba de salud y forma de volver a la versión previa.
+- [ ] Probar un flujo completo: editar/probar en Omarchy, publicar en Git, recibir una
+  versión identificada en home server, ejecutar con systemd/Compose y verificar salud.
+- [ ] Aclarar dónde se ejecutan los builds de servicios y el CI actual, manteniendo
+  separado el desarrollo interactivo de las automatizaciones persistentes.
+- [ ] Probar Pi desde T3 en Omarchy con sus extensiones. Su aparición
   en el catálogo no demuestra todavía que este flujo funcione.
 
-La CLI instalada contempla `t3 serve`, `t3 up`, `t3 service`,
-`t3 environment link/list`, `--lan`, `--tailscale-serve` y
-`--tailscale-serve-port`. Consultar su ayuda vigente al implementar. Los cambios
-de servicio pueden reiniciar T3: tener en cuenta la conversación activa.
+T3 puede operar el servidor mediante SSH desde Omarchy; no requiere otro T3 allí.
+El enlace nativo entre entornos se conserva como alternativa futura si aparece
+una necesidad real de sesiones de agente gestionadas por T3 en el servidor.
 
 ## Fase 3 — Acceso privado y trabajo entre máquinas
 
-- [ ] Habilitar y probar acceso directo por Tailscale desde el teléfono y entre hosts.
+- [ ] Habilitar y probar acceso directo por Tailscale al T3 de Omarchy desde el teléfono
+  y mantener el acceso a los servicios privados de home server.
 - [ ] Separar el acceso privado a T3/Paseo del endpoint público del webhook de GitLab.
   Evitar sobrescribir el puerto/ruta del Funnel existente al configurar Serve.
 - [ ] Retirar el Funnel obsoleto de Omarchy tras verificar sus consumidores.
 - [ ] Completar la confianza y autenticación SSH inversas si el diseño las necesita.
-- [ ] Definir cómo queda pendiente un trabajo dirigido a Omarchy cuando esté apagada,
-  y cómo se identifica, reintenta y recoge su resultado sin ejecutarlo dos veces.
+- [ ] Si se incorpora Hermes y delegación a Omarchy, definir cómo queda pendiente un
+  trabajo cuando esté apagada y cómo se recoge su resultado sin ejecutarlo dos veces.
+  El acceso al T3 de Omarchy requiere que esa máquina y su backend estén encendidos.
 
 Endpoints observados: `archlinux.tail27d0f2.ts.net` publica MR review mediante
 Funnel hacia `127.0.0.1:8080`; `/health` devolvió 200. El Funnel de
@@ -152,13 +161,15 @@ las conversaciones de ambas aplicaciones en una única sesión.
 
 ## Fase 5 — Hermes opcional en home server
 
-- [ ] Definir un primer caso concreto de asistente persistente que aporte valor
-  adicional al flujo ya validado con T3.
+- [ ] Evaluar como primer caso un informe de salud/diagnóstico de servicios y respaldos,
+  disponible aunque Omarchy esté apagada. No necesita coordinar desarrollo para aportar valor.
 - [ ] Si procede, configurar Hermes Agent de Nous Research en home server, con
   memoria, mensajería y tareas propias claramente delimitadas.
-- [ ] Elegir una vía de ejecución remota: SSH para comandos; Pi o integración con
-  T3 para tareas de agente. Validar esa integración antes de depender de ella.
-- [ ] Probar una tarea completa: recepción, elección de host, espera si Omarchy
+- [ ] Mantener scripts, systemd y Compose como mecanismos de ejecución; Hermes puede
+  consultar estado, explicar errores y lanzar operaciones explícitas de esos runbooks.
+- [ ] Evaluar después la delegación a Omarchy: SSH para comandos; Pi o integración con
+  T3 para tareas de agente. No es requisito del primer caso de operaciones.
+- [ ] Si se habilita delegación, probar una tarea completa: recepción, elección de host, espera si Omarchy
   está apagada, ejecución y entrega del resultado.
 
 Hermes todavía no está instalado ni existe una integración Hermes → T3/Pi. No

@@ -1,6 +1,9 @@
 # T3 Code en home server
 
-Estado 2026-11-07: procedimiento preparado; todavía no instalado ni iniciado.
+Estado 2026-11-07: instalación suspendida; todavía no instalado ni iniciado.
+Luis quiere desarrollar con T3 en Omarchy y clonar/ejecutar servicios en home
+server. Se evalúa Hermes para operaciones allí; no hace falta otro T3 para usar SSH.
+Este procedimiento se conserva como referencia, fuera del trabajo activo.
 Omarchy conserva su instalación actual y sus sesiones. Paseo no se modifica.
 
 ## Paquete elegido y revisión
@@ -21,10 +24,11 @@ CLI oficial Linux x64 v0.1.7, la misma versión que la app actual de Omarchy:
   a sobrescribir una instalación existente. No ejecuta un instalador de Internet,
   usa sudo ni inicia servicios. Su sintaxis se verifica con `bash -n`.
 
-## Próxima operación
+## Procedimiento histórico de instalación
 
-Requiere la confirmación de instalación prevista por la skill `arch-install`.
-Primero sincronizar este repo en home server. Comando de instalación:
+No ejecutar durante esta evaluación. La solicitud anterior no se aprobó; si en
+el futuro se decide instalarlo, volver a revisar versión y necesidad antes de
+seguir la skill `arch-install`. Comando preparado como referencia:
 
 ```bash
 ssh home-server 'bash ~/services/t3code/install-headless.sh'
@@ -35,7 +39,7 @@ configurar un servicio de usuario que use las herramientas de mise de ese host.
 Revisar unidad, PATH, directorio de datos y arranque sin sesión gráfica; copiar la
 configuración efectiva a este paquete y verificarla antes de habilitar acceso remoto.
 
-## Red y comprobaciones pendientes
+## Comprobaciones si se retoma la instalación
 
 - Arranque inicial en loopback, puerto 3773, sin publicar un nuevo Funnel.
 - Revisar proveedores (Pi 0.85.1 y Node 26.8.2 ya disponibles mediante mise).

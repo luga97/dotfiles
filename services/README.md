@@ -27,7 +27,7 @@ cd ~/dotfiles && stow -R services   # enlazar a ~/services/
 | paseo | nativo (systemd user) | control de agentes de código desde móvil/web |
 | project-zomboid / pz-backup | nativo (systemd sistema) | juego y respaldo diario en home-server; [configuración y pendientes](services/project-zomboid/README.md) |
 | searxng | docker-compose | [metabuscador y relación con Ketch](services/searxng/README.md); servidor degradado por DNS, conservar local hasta migrar |
-| t3code | nativo (preparado, sin instalar en home-server) | [CLI headless y procedimiento revisado](services/t3code/README.md) |
+| t3code | app en Omarchy; instalación en home-server suspendida | desarrollo en Omarchy; [procedimiento headless histórico](services/t3code/README.md) fuera del trabajo activo |
 | telegram-bridge | nativo (systemd user) | API HTTP local 127.0.0.1:8787 para enviar mensajes a Telegram |
 
 > Unidades de sistema: NFS exporta desde el kernel; Zomboid y sus respaldos usan

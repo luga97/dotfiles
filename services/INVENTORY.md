@@ -1,6 +1,7 @@
 # Inventario de servicios de Omarchy y home server
 
-Revisión de solo lectura: 2026-11-07, antes de la migración a T3 persistente.
+Revisión de solo lectura: 2026-11-07. Diseño vigente: desarrollo con T3 en Omarchy
+y ejecución de servicios en home server; instalación T3 allí suspendida.
 Este inventario distingue configuración encontrada, estado del proceso y prueba
 funcional. Un proceso activo no demuestra por sí solo que todo su flujo funcione.
 Los permisos de firewall no se auditaron en esta revisión.
@@ -59,7 +60,7 @@ ni sesiones que usa. En esta revisión no se restauró ningún servicio.
 - No se reinició ningún servicio, cambió exposición de red, ejecutó pipeline,
   envió mensaje ni reautorizó Google Drive para producir este inventario.
 - Pendientes relevantes: resolver DNS del contenedor SearXNG en home server antes
-  de centralizarlo, migración controlada de T3,
+  de centralizarlo, flujo de desarrollo/despliegue y evaluación de Hermes para operaciones,
   revisión de `aw-awatcher`, cobertura de datos persistentes y fiabilidad de Zomboid.
 - Las unidades/código existentes demuestran cómo arrancar; las comprobaciones de
   esta tabla son muestras puntuales. Revalidar antes de retirar una instancia.
