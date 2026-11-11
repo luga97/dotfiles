@@ -22,13 +22,14 @@ se carga cuando hace falta desde la skill compartida `omarchy-t3`.
 
 ### Configuración compartida entre las máquinas
 
-En ambas máquinas `~/.hermes/SOUL.md` enlaza a este `SOUL.md` versionado y
-`skills.external_dirs` incluye `~/.agents/skills`, gestionado por dotfiles. Los
-cambios al SOUL y las skills compartidas viajan por el flujo Git habitual; las
-sesiones ya iniciadas pueden necesitar una nueva sesión para cargar el contexto.
-En Omarchy se conservó el SOUL original en `~/.hermes/SOUL.md.installer-default`.
-Para reproducir la configuración en otra instalación, una vez sincronizado el
-repo y enlazadas las skills, respaldar primero cualquier SOUL existente y ejecutar:
+En home server `~/.hermes/SOUL.md` enlaza al `SOUL.md` general versionado aquí.
+En Omarchy, el perfil `default` es Omar y su `~/.hermes/SOUL.md` es un archivo
+regular cuyo contenido coincidía con [omar/SOUL.md](omar/SOUL.md) al revisarlo
+el 2026-11-11. No se actualiza automáticamente al cambiar la copia versionada.
+Las skills compartidas en `~/.agents/skills` se gestionan mediante dotfiles;
+las sesiones iniciadas pueden necesitar una nueva sesión para cargar cambios.
+Para reproducir el SOUL general **en home server**, una vez sincronizado el repo
+y enlazadas las skills, respaldar primero cualquier SOUL existente y ejecutar:
 
 ```bash
 ln -s ~/dotfiles/services/services/hermes/SOUL.md ~/.hermes/SOUL.md
@@ -40,36 +41,36 @@ privados y ajustes propios del host. OAuth, `.env`, memorias, conversaciones,
 cron, Kanban y bases de datos permanecen independientes; Git no los sincroniza.
 El modelo y la autenticación también se configuran por máquina. El dashboard del
 servidor no se habilita automáticamente en Omarchy; esta última tiene su propio
-gateway multiplexado para Omar, descrito a continuación.
+gateway de Omar, descrito a continuación.
 
 ### Omar en Omarchy
 
-Omar es el perfil `omar` de Hermes en Omarchy y está seleccionado para la CLI con
-`hermes profile use omar`. Su [SOUL](omar/SOUL.md) se comparte por Git mediante
-`~/.hermes/profiles/omar/SOUL.md`; su memoria y conversaciones son locales. Usa
-Codex y las skills de `~/.agents/skills`. El perfil `default` sigue existiendo y es
-el propietario técnico del gateway multiplexado; no hay que borrarlo para usar Omar.
+Omar es el perfil `default` de Hermes en Omarchy. Su identidad activa está en
+`~/.hermes/SOUL.md`, un archivo regular; [omar/SOUL.md](omar/SOUL.md) es la copia
+versionada, no un enlace activo. Su memoria y conversaciones son locales. Usa
+Codex y las skills de `~/.agents/skills`. No modificar otros perfiles sin una
+instrucción explícita de Luis.
 
 Omar tiene bot de Telegram propio, restringido al propietario. La dependencia se
 instaló mediante el gestor de Hermes (`hermes --run-module pm.cli install --extra
 telegram`). No compartir el token ni duplicarlo entre perfiles. Luis confirmó que
 Omar le respondió por Telegram.
 
-El gateway nativo de usuario de Omarchy está habilitado y activo con linger; sirve
-ambos perfiles en un solo proceso. El `10-home-server.conf` compartido contiene
+El gateway nativo de usuario de Omarchy está habilitado y activo; sirve el perfil
+`default` de Omar. El `10-home-server.conf` compartido contiene
 `ConditionHost=archlinux`: para que el servicio funcione en Omarchy se instala
 **solo allí** una copia regular de [20-omarchy.conf](omar/20-omarchy.conf) en
 `~/.config/systemd/user/hermes-gateway.service.d/` y se ejecuta
 `systemctl --user daemon-reload`. No stowear ese archivo en ambas máquinas. El
 servicio es generado por Hermes; no versionar la unidad generada con rutas locales.
 
-El gateway de Omarchy expone su API en la IP Tailscale `100.110.219.43:8642`, con
-claves diferentes para `default` y `omar`, guardadas en los `.env` privados. El
-peer `omarchy` está registrado en Jarvis con la clave de Omar; se probó una llamada
-real a `omarchy/omar`, su respuesta y el rechazo HTTP 401 sin clave. La API concede
-acceso a las herramientas del perfil, incluida la terminal: no exponerla a Internet
-ni publicar las claves. La ruta configurada es servidor → Omar; Omar no tiene
-registrado aún un peer inverso. Omarchy debe estar encendida y conectada.
+El gateway de Omarchy expone su API en la IP Tailscale `100.110.219.43:8642`.
+En Jarvis está registrado el peer `omarchy` para `omarchy/default` (Omar). En
+Omar están registrados `homeserver` para Jarvis/default y `homeinfra` para el
+perfil infra. Los registros se comprobaron el 2026-11-11; no se probaron entonces
+llamadas entre peers ni el rechazo de credenciales inválidas. La API concede
+acceso a herramientas del perfil, incluida la terminal: no exponerla a Internet
+ni publicar claves. Omarchy debe estar encendida y conectada para recibir tareas.
 
 
 Los datos del entorno, el proyecto CV pausado y la preferencia de búsqueda están
