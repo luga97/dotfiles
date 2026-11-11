@@ -6,12 +6,18 @@ description: Consultar o delegar mediante T3 en Omarchy desde home server cuando
 # T3 en Omarchy desde home server
 
 Omarchy es la máquina personal de Luis, con proyectos y T3; home server aloja
-servicios persistentes. Usa esta vía para proyectos que viven en Omarchy, para
-consultar su estado o realizar validaciones allí. Para trabajo en home server o
-subtareas que Hermes pueda resolver con sus propias herramientas y subagentes,
-elige la herramienta más apropiada sin pasar por T3 por defecto. Estamos explorando
-este flujo: adapta las decisiones a lo que funcione y evita añadir puentes propios
-si las herramientas existentes bastan.
+servicios persistentes. Luis prefiere que todo trabajo que deba realizarse en
+Omarchy se delegue a Omar. Usa el peer nativo de Omar para encargarle el alcance,
+las restricciones y las pruebas, y conserva el ID de ejecución; consulta su resultado
+antes de darlo por terminado. Una ejecución iniciada no demuestra que se haya
+completado. Consulta `hermes peer list` y la ayuda de `hermes peer run` y `status`;
+usa una clave de idempotencia estable y no reenvíes a ciegas si el resultado es
+incierto. Si Omar no está disponible, informa del bloqueo y no lo sustituyas
+silenciosamente por ejecución directa o T3. Para trabajo en home server elige la
+herramienta o subagente apropiado sin pasar por Omarchy.
+
+Los comandos de T3 siguientes son una referencia para cuando Luis solicite o
+acuerde expresamente esa vía; no sustituyen la delegación ordinaria a Omar.
 
 Desde home server, SSH usa `luis@omarchy`; T3 está en `/home/luis/.local/bin/t3`.
 Consulta `t3 thread --help` o la ayuda del subcomando si necesitas opciones actuales.
