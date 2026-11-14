@@ -44,9 +44,9 @@ o.bind("SUPER + SHIFT + ALT + G", "Telegram", { webapp = "https://web.telegram.o
 
 --disable cliamp, is removed
 hl.unbind("SUPER + SHIFT + ALT + M")
---set youtube music
+-- Abrir o enfocar Spotify con SUPER + SHIFT + M.
 hl.unbind("SUPER + SHIFT + M")
-o.bind("SUPER + SHIFT + M", "Youtube Music", { webapp = "https://music.youtube.com", focus = true })
+o.bind("SUPER + SHIFT + M", "Spotify", { omarchy = "spotify" })
 
 --set google translator
 o.bind("SUPER + SHIFT + ALT + T", "Translator", { webapp = "https://translate.google.com/", focus = true })
