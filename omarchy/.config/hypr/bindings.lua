@@ -44,9 +44,9 @@ o.bind("SUPER + SHIFT + ALT + G", "Telegram", { webapp = "https://web.telegram.o
 
 --disable cliamp, is removed
 hl.unbind("SUPER + SHIFT + ALT + M")
--- Abrir o enfocar Spotify con SUPER + SHIFT + M.
+-- Abrir o enfocar Google Maps con SUPER + SHIFT + M.
 hl.unbind("SUPER + SHIFT + M")
-o.bind("SUPER + SHIFT + M", "Spotify", { omarchy = "spotify" })
+o.bind("SUPER + SHIFT + M", "Google Maps", { webapp = "https://maps.google.com/", focus = true })
 
 --set google translator
 o.bind("SUPER + SHIFT + ALT + T", "Translator", { webapp = "https://translate.google.com/", focus = true })
